@@ -1,2 +1,2 @@
-goog.provide('test.one');
+goog.provide('googly.test');
 goog.require('goog.dom')

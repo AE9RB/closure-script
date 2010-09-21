@@ -57,14 +57,14 @@ class Googly
         @deps.delete(filename)
       end
       # Build new deps.js as needed
-      unless @deps_js
+      unless false and @deps_js
         @deps_js = []
         @deps_js << "// This deps.js was generated on-the-fly by Googlyscript\n"
         @deps_js << "goog.basePath = '';\n"
         @deps.dup.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
           @deps_js << "goog.addDependency(#{dep[:path].inspect}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
         end
-        @deps_content_length = @deps_js.join('').length.to_s
+        @deps_content_length = @deps_js.inject(0){|sum, s| sum + s.length }.to_s
         # Log after rebuilding
         puts "::Googly::Deps: #{added_files.length} added, #{changed_files.length} changed, #{deleted_files.length} deleted."
       end

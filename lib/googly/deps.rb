@@ -57,7 +57,7 @@ class Googly
         @deps.delete(filename)
       end
       # Build new deps.js as needed
-      unless false and @deps_js
+      unless @deps_js
         @deps_js = []
         @deps_js << "// This deps.js was generated on-the-fly by Googlyscript\n"
         @deps_js << "goog.basePath = '';\n"

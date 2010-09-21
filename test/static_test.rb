@@ -11,7 +11,7 @@ class StaticTest < Test::Unit::TestCase
     res = Rack::MockRequest.new(Rack::Lint.new(Googly::Static.new(*PUBLIC))).
       get("/test.html")
     assert res.ok?
-    assert res =~ /<body>/
+    assert res =~ /<html>/
   end
   
   def test_404_error

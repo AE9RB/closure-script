@@ -28,12 +28,12 @@ class Googly
   # Googly.add_route('/goog', :goog)
   # Googly.add_route('/', File.join(Googly.base_path, 'public'))
   # Advanced routes (no assumptions):
-  # Googly.add_route('/myapp', :dir => my_dir, :deps => :write)
+  # Googly.add_route('/myapp', :dir => my_dir, :deps => true, :deps_server => true)
   # Options:
   # :dir => filesystem dir
   # :hidden => false|true
-  # :deps => false|true|:write
-  # :deps_server => false|true|:no_nav
+  # :deps => false|true
+  # :deps_server => false|true
   # :soy => false|true
   # :erb => false|true
   # :haml => false|true
@@ -62,9 +62,9 @@ class Googly
   
   
   def call(env)
-    Dir.mkdir @config.tmpdir rescue Errno::EEXIST
+    Dir.mkdir config.tmpdir rescue Errno::EEXIST
     status, headers, body = [ 500, {'Content-Type' => 'text/plain'}, "Internal Server Error" ]
-    save_path_info = env["PATH_INFO"]
+    saved_path_info = env["PATH_INFO"]
     path_info = Rack::Utils.unescape(env["PATH_INFO"])
     (@routes || default_routes).each do |path, options|
       if path_info =~ %r{^#{Regexp.escape(path)}(/.*|)$}
@@ -73,7 +73,7 @@ class Googly
           status, headers, body = rack_server.call(env)
           break unless headers["X-Cascade"] == "pass"
         end
-        env["PATH_INFO"] = save_path_info
+        env["PATH_INFO"] = saved_path_info
         break
       end
     end
@@ -89,10 +89,10 @@ class Googly
   def config
     unless @config
       @config = OpenStruct.new
-      @config.java = nil
+      @config.sidebar_nav = true
+      @config.java = 'java'
       @config.compiler_jar = File.join(base_path, 'closure-compiler', 'compiler.jar')
       closure_bin_build = File.join(base_path, 'closure-library', 'closure', 'bin', 'build')
-      @config.depswriter = File.join(closure_bin_build, 'depswriter.py')
       @config.closurebuilder = File.join(closure_bin_build, 'closurebuilder.py')
       @config.tmpdir = Dir.tmpdir
     end
@@ -104,8 +104,9 @@ class Googly
   
   # X-Cascade stack of rack servers
   def rack_stack_for(path, options)
+    @deps_server ||= Deps.new(@routes)
     rack_stack = Array.new
-    rack_stack << Deps.new(path, options) if options[:deps_server]
+    rack_stack << @deps_server if options[:deps_server]
     rack_stack << Static.new(path, options)
     rack_stack << Erb.new(path, options) if options[:erb]
     rack_stack << Soy.new(path, options) if options[:soy]

@@ -29,7 +29,7 @@ class Googly
     
     # The object starts out with knowledge of no deps.
     # This will scan and cache every .js file in every route.
-    # If deps are altered (except mtime), returns true.
+    # If @deps are altered (except mtime), returns true.
     def deps_changed?
       added_files = []
       changed_files = []
@@ -46,14 +46,14 @@ class Googly
           dep.delete(:not_found)
           mtime = File.mtime(filename)
           if dep[:mtime] != mtime
-            raise unless filename.index(dir) == 0 # glob sanity
             file = File.read filename
-            dep[:path] = "#{path}#{filename.slice(dir_range)}"
             old_dep_provide = dep[:provide]
             dep[:provide] = file.scan(PROVIDE_REGEX).flatten
             old_dep_require = dep[:require]
             dep[:require] = file.scan(REQUIRE_REGEX).flatten
-            if !dep[:mtime]
+            if !dep[:path]
+              raise unless filename.index(dir) == 0 # glob sanity
+              dep[:path] = "#{path}#{filename.slice(dir_range)}"
               added_files << filename
             elsif old_dep_provide != dep[:provide] or old_dep_require != dep[:require]
               changed_files << filename
@@ -69,9 +69,10 @@ class Googly
       end
       # return true if anything changed
       if 0 < added_files.length + changed_files.length + deleted_files.length
-        puts "Googlyscript sources: #{added_files.length} added, #{changed_files.length} changed, #{deleted_files.length} deleted."
+        puts "Googlyscript js cache: #{added_files.length} added, #{changed_files.length} changed, #{deleted_files.length} deleted."
         return true
       else
+        puts "Googlyscript js cache: deps not changed."
         return false
       end
     end

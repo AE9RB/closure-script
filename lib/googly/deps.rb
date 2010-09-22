@@ -16,16 +16,14 @@ class Googly
 
   class Deps
     
-    BASE_REGEX_STRING = '^\s*goog\.%s\(\s*[\'"](.+)[\'"]\s*\)'
-    PROVIDE_REGEX = Regexp.new(BASE_REGEX_STRING % 'provide')
-    REQUIRE_REGEX = Regexp.new(BASE_REGEX_STRING % 'require')
-    
-    def initialize(source)
+    def initialize(source, path_info)
       @source = source
+      @path_info = path_info
+      @path_info = '/deps.js' if @path_info == true 
     end
     
     def call(env)
-      if Rack::Utils.unescape(env["PATH_INFO"]) == '/deps.js'
+      if Rack::Utils.unescape(env["PATH_INFO"]) == @path_info
         deps
       else
         not_found
@@ -33,7 +31,7 @@ class Googly
     end
     
     def deps
-      @deps_js = nil if @source.check_deps
+      @deps_js = nil if @source.deps_changed?
       unless @deps_js
         @deps_js = []
         @deps_js << "// This deps.js was generated on-the-fly by Googlyscript\n"

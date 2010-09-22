@@ -27,11 +27,14 @@ class Googly
       @deps = {}
     end
     
-    def check_deps
+    # The object starts out with knowledge of no deps.
+    # This will scan and cache every .js file in every route.
+    # If deps are altered (except mtime), returns true.
+    def deps_changed?
       added_files = []
       changed_files = []
       deleted_files = []
-      # Set up deps and mark everything for deletion
+      # Mark everything for deletion
       @deps.each {|f, dep| dep[:not_found] = true}
       # Scan for changes
       @routes.each do |path, options|
@@ -43,22 +46,24 @@ class Googly
           dep.delete(:not_found)
           mtime = File.mtime(filename)
           if dep[:mtime] != mtime
-            if dep == {}
-              added_files << filename
-            else
-              changed_files << filename
-            end
-            raise unless filename.index(dir) == 0
+            raise unless filename.index(dir) == 0 # glob sanity
             file = File.read filename
             dep[:path] = "#{path}#{filename.slice(dir_range)}"
+            old_dep_provide = dep[:provide]
             dep[:provide] = file.scan(PROVIDE_REGEX).flatten
+            old_dep_require = dep[:require]
             dep[:require] = file.scan(REQUIRE_REGEX).flatten
+            if !dep[:mtime]
+              added_files << filename
+            elsif old_dep_provide != dep[:provide] or old_dep_require != dep[:require]
+              changed_files << filename
+            end
             dep[:mtime] = mtime
           end
         end
       end
       # Delete not-found files
-      @deps.select{|f, dep| dep[:not_found]}.each do |filename, options|
+      @deps.select{|f, dep| dep[:not_found]}.each do |filename, o|
         deleted_files << filename
         @deps.delete(filename)
       end

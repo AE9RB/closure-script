@@ -48,7 +48,7 @@ class Googly
   # :dir => filesystem dir
   # :hidden => false|true
   # :deps => false|true
-  # :deps_server => false|true
+  # :deps_server => false|true|path
   # :soy => false|true
   # :erb => false|true
   # :haml => false|true
@@ -84,7 +84,7 @@ class Googly
     path_info = Rack::Utils.unescape(env["PATH_INFO"])
     (@routes || default_routes).each do |path, options|
       if path_info =~ %r{^#{Regexp.escape(path)}(/.*|)$}
-        env["PATH_INFO"] = $1
+        env["PATH_INFO"] = Rack::Utils.escape($1)
         options[:rack_stack].each do |rack_server|
           status, headers, body = rack_server.call(env)
           break unless headers["X-Cascade"] == "pass"
@@ -121,9 +121,8 @@ class Googly
   # X-Cascade stack of rack servers
   def rack_stack_for(path, options)
     @source ||= Source.new(@routes)
-    @deps_server ||= Deps.new(@source)
     rack_stack = Array.new
-    rack_stack << @deps_server if options[:deps_server]
+    rack_stack << Deps.new(@source, options[:deps_server]) if options[:deps_server]
     rack_stack << Static.new(path, options)
     rack_stack << Erb.new(path, options) if options[:erb]
     rack_stack << Soy.new(path, options) if options[:soy]

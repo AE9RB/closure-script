@@ -20,6 +20,7 @@ class Googly
   googly_lib_path = File.expand_path(File.dirname(__FILE__))
   $LOAD_PATH.unshift(googly_lib_path) if !$LOAD_PATH.include?(googly_lib_path)
   
+  autoload(:Source, 'googly/source')
   autoload(:Deps, 'googly/deps')
   autoload(:Static, 'googly/static')
   autoload(:Erb, 'googly/erb')
@@ -53,13 +54,15 @@ class Googly
   # :haml => false|true
   def add_route(path, options)
     @routes ||= Array.new
-    #TODO verify path slashes
     #TODO something about duplicate mount points
+    raise "path must start with /" unless path =~ %r{^/}
+    path = '' if path == '/'
+    raise "path must not end with /" if path =~ %r{/$}
     # Easy routing makes assumptions
     if options.kind_of? Symbol
       options = built_ins[options]
     elsif options.kind_of? String
-      if path == "/"
+      if path == ''
         options = {:dir => options, :hidden => true}
       elsif path == "/goog"
         options = {:dir => options, :deps => true, :deps_server => true} 
@@ -68,7 +71,6 @@ class Googly
       end
     end
     options[:dir] = File.expand_path(options[:dir])
-    path = '' if path == '/'
     options[:rack_stack] = rack_stack_for(path, options)
     @routes << [path, options]
     @routes.sort! {|a,b| b[0] <=> a[0]}
@@ -118,7 +120,8 @@ class Googly
   
   # X-Cascade stack of rack servers
   def rack_stack_for(path, options)
-    @deps_server ||= Deps.new(@routes)
+    @source ||= Source.new(@routes)
+    @deps_server ||= Deps.new(@source)
     rack_stack = Array.new
     rack_stack << @deps_server if options[:deps_server]
     rack_stack << Static.new(path, options)

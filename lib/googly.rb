@@ -13,13 +13,13 @@
 # limitations under the License.
 
 require 'ostruct'
-require 'tmpdir'
 
 class Googly
 
   googly_lib_path = File.expand_path(File.dirname(__FILE__))
   $LOAD_PATH.unshift(googly_lib_path) if !$LOAD_PATH.include?(googly_lib_path)
   
+  autoload(:Compiler, 'googly/compiler')
   autoload(:Source, 'googly/source')
   autoload(:Deps, 'googly/deps')
   autoload(:Static, 'googly/static')
@@ -78,7 +78,6 @@ class Googly
   
   
   def call(env)
-    Dir.mkdir config.tmpdir rescue Errno::EEXIST
     status, headers, body = [ 500, {'Content-Type' => 'text/plain'}, "Internal Server Error" ]
     saved_path_info = env["PATH_INFO"]
     path_info = Rack::Utils.unescape(env["PATH_INFO"])
@@ -105,18 +104,15 @@ class Googly
   def config
     unless @config
       @config = OpenStruct.new
-      @config.sidebar_nav = true
       @config.java = 'java'
       @config.compiler_jar = File.join(base_path, 'closure-compiler', 'compiler.jar')
-      closure_bin_build = File.join(base_path, 'closure-library', 'closure', 'bin', 'build')
-      @config.closurebuilder = File.join(closure_bin_build, 'closurebuilder.py')
-      @config.tmpdir = Dir.tmpdir
+      @config.deps_prepend = File.join(base_path, 'public', 'navigator.js')
     end
     @config
   end
   
   
-  private
+  protected
   
   # X-Cascade stack of rack servers
   def rack_stack_for(path, options)

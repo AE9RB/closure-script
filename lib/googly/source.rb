@@ -48,9 +48,9 @@ class Googly
           if dep[:mtime] != mtime
             file = File.read filename
             old_dep_provide = dep[:provide]
-            dep[:provide] = file.scan(PROVIDE_REGEX).flatten
+            dep[:provide] = file.scan(PROVIDE_REGEX).flatten.uniq
             old_dep_require = dep[:require]
-            dep[:require] = file.scan(REQUIRE_REGEX).flatten
+            dep[:require] = file.scan(REQUIRE_REGEX).flatten.uniq
             if !dep[:path]
               raise unless filename.index(dir) == 0 # glob sanity
               dep[:path] = "#{path}#{filename.slice(dir_range)}"
@@ -76,6 +76,7 @@ class Googly
         return false
       end
     end
+    alias :refresh :deps_changed?
     
   end
   

@@ -17,12 +17,11 @@ class Googly
   class Compiler
     
     def initialize(source)
-      source.refresh
-      prepare_sources_hash(source)
-      find_the_one_true_base_js(source)
+      @source = source
     end
 
     def files(namespaces)
+      refresh
       files = [@base_js]
       [namespaces].flatten.each do |namespace|
         dependencies(namespace).each do |source_info|
@@ -36,12 +35,18 @@ class Googly
 
     protected
     
+    def refresh
+      @source.refresh
+      prepare_sources_hash
+      find_the_one_true_base_js
+    end
+    
     # The deps from Googly::Source are optimized for scanning the filesystem
     # and serving up deps.js.  This creates a new hash optimized for making a
     # dependency graph; one keyed by the provide instead of the filename.
-    def prepare_sources_hash(source)
+    def prepare_sources_hash
       @sources = {}
-      source.deps.each do |filename, dep|
+      @source.deps.each do |filename, dep|
         dep[:provide].each do |provide|
           if @sources[provide]
             raise "Namespace #{provide.dump} provided more than once."
@@ -58,11 +63,11 @@ class Googly
     # any requires or provides that defines var goog inside.
     # This is how the original python scripts did it
     # except I added the provide+require check.
-    def find_the_one_true_base_js(source)
-      source.deps.each do |filename, dep|
+    def find_the_one_true_base_js
+      @base_js = nil
+      @source.deps.each do |filename, dep|
         if File.basename(filename) == 'base.js'
           if dep[:provide].length + dep[:require].length == 0
-            p filename
             if File.read(filename) =~ /^var goog = goog \|\| \{\};/
               if @base_js
                 raise "Google closure base.js found more than once"

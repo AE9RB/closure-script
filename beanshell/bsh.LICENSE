@@ -1,0 +1,11 @@
+Googlyscript uses an unmodified version of BeanShell.
+The BeanShell jar isn't distributed with a license.
+The BeanShell source code download link is currently broken.
+So I went to their website and grabbed the license info.
+http://www.beanshell.org/license.html
+
+Dual Licensing: Sun Public License / Gnu Lesser Public License
+BeanShell is dual licensed under both the SPL and LGPL.
+You may use and develop BeanShell under either license.
+http://www.sun.com/developers/spl.html
+http://www.gnu.org/licenses/lgpl.html

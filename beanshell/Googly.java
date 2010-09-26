@@ -18,9 +18,10 @@
 // the end of the critical compiler run function.  Rather than take control
 // of this important code which would need to be kept in sync with Google's
 // releases, I use a SecurityManager to trap the System.exit() calls.
+// BeanShell can't extend SecurityManager so this must be compiled.
 
 // Once loaded up in a BeanShell or other REPL:
-//   java -classpath bsh-2.0b4.jar:Googly.jar:../closure-compiler/compiler.jar:. bsh.Interpreter
+//   java -classpath bsh-2.0b4.jar:Googly.jar:../closure-compiler/compiler.jar bsh.Interpreter
 // You may repeatedly request javascript compilations:
 //   Googly.compile_js(new String[]{"--js", "../app/javascripts/test.js", "--js_output_file", "out.js", "--compilation_level", "ADVANCED_OPTIMIZATIONS"});
 

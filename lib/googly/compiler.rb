@@ -23,7 +23,7 @@ class Googly
     def files(namespaces)
       refresh
       files = [@base_js]
-      [namespaces].flatten.each do |namespace|
+      [namespaces].flatten.uniq.each do |namespace|
         dependencies(namespace).each do |source_info|
           unless files.include? source_info[:filename]
             files.push source_info[:filename] 

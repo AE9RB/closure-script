@@ -19,6 +19,7 @@ class Googly
   googly_lib_path = File.expand_path(File.dirname(__FILE__))
   $LOAD_PATH.unshift(googly_lib_path) if !$LOAD_PATH.include?(googly_lib_path)
   
+  autoload(:BeanShell, 'googly/beanshell')
   autoload(:Compiler, 'googly/compiler')
   autoload(:Source, 'googly/source')
   autoload(:Deps, 'googly/deps')
@@ -48,7 +49,7 @@ class Googly
   # :dir => filesystem dir
   # :hidden => false|true
   # :deps => false|true
-  # :deps_server => false|true|path
+  # :deps_server => false|true|"path" - default path is "/deps.js"
   # :soy => false|true
   # :erb => false|true
   # :haml => false|true

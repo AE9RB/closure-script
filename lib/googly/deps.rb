@@ -15,6 +15,8 @@
 class Googly
 
   class Deps
+
+    include Googly::Responses
     
     def initialize(source, path_info)
       @source = source
@@ -45,14 +47,6 @@ class Googly
       [200, {"Content-Type" => "text/javascript",
          "Content-Length" => @deps_content_length},
         @deps_js]
-    end
-    
-    def not_found
-      body = "File not found\n"
-      [404, {"Content-Type" => "text/plain",
-         "Content-Length" => body.size.to_s,
-         "X-Cascade" => "pass"},
-       [body]]
     end
     
   end

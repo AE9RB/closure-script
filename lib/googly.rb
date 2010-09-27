@@ -19,6 +19,7 @@ class Googly
   googly_lib_path = File.expand_path(File.dirname(__FILE__))
   $LOAD_PATH.unshift(googly_lib_path) if !$LOAD_PATH.include?(googly_lib_path)
   
+  autoload(:Responses, 'googly/responses')
   autoload(:BeanShell, 'googly/beanshell')
   autoload(:Compiler, 'googly/compiler')
   autoload(:Source, 'googly/source')
@@ -39,6 +40,27 @@ class Googly
       instance.send(*args, &block)
     end
   end
+  
+  def initialize
+    
+    @routes = Array.new
+    
+    @base_path ||= File.expand_path(File.join(File.dirname(__FILE__), '..'))
+
+    @config = OpenStruct.new
+    @config.java = 'java'
+    @config.compiler_jar = File.join(base_path, 'closure-compiler', 'compiler.jar')
+    @config.makefile = File.join(base_path, 'app', 'javascripts', 'makefile.yml')
+    @config.deps_prepend = File.join(base_path, 'public', 'navigator.js')
+
+    @beanshell = BeanShell.new
+    @source = Source.new(@routes)
+    @compiler = Compiler.new(@source, @beanshell, @config)
+    
+    
+  end
+  
+  attr_reader :base_path, :config
 
   # Easy routes:
   # Googly.add_route('/goog', :goog)
@@ -54,7 +76,6 @@ class Googly
   # :erb => false|true
   # :haml => false|true
   def add_route(path, options)
-    @routes ||= Array.new
     #TODO something about duplicate mount points
     raise "path must start with /" unless path =~ %r{^/}
     path = '' if path == '/'
@@ -79,10 +100,33 @@ class Googly
   
   
   def call(env)
+    
+    path_info = Rack::Utils.unescape(env["PATH_INFO"])
+    if path_info == '/'
+      call_root(env)
+    else
+      call_route(env, path_info)
+    end
+  end
+  
+
+  protected
+
+
+  def call_root(env)
+    status, headers, body = [ 500, {'Content-Type' => 'text/plain'}, "Internal Server Error" ]
+    [@compiler].each do |rack_server|
+      status, headers, body = rack_server.call(env)
+      break unless headers["X-Cascade"] == "pass"
+    end
+    [status, headers, body]
+  end
+
+
+  def call_route(env, path_info)
     status, headers, body = [ 500, {'Content-Type' => 'text/plain'}, "Internal Server Error" ]
     saved_path_info = env["PATH_INFO"]
-    path_info = Rack::Utils.unescape(env["PATH_INFO"])
-    (@routes || default_routes).each do |path, options|
+    @routes.each do |path, options|
       if path_info =~ %r{^#{Regexp.escape(path)}(/.*|)$}
         env["PATH_INFO"] = Rack::Utils.escape($1)
         options[:rack_stack].each do |rack_server|
@@ -93,31 +137,12 @@ class Googly
         break
       end
     end
-    return [status, headers, body]
+    [status, headers, body]
   end
 
-
-  def base_path
-    @base_path ||= File.expand_path(File.join(File.dirname(__FILE__), '..'))
-  end
-
-
-  def config
-    unless @config
-      @config = OpenStruct.new
-      @config.java = 'java'
-      @config.compiler_jar = File.join(base_path, 'closure-compiler', 'compiler.jar')
-      @config.deps_prepend = File.join(base_path, 'public', 'navigator.js')
-    end
-    @config
-  end
-  
-  
-  protected
   
   # X-Cascade stack of rack servers
   def rack_stack_for(path, options)
-    @source ||= Source.new(@routes)
     rack_stack = Array.new
     rack_stack << Deps.new(@source, options[:deps_server]) if options[:deps_server]
     rack_stack << Static.new(path, options)
@@ -138,20 +163,6 @@ class Googly
       :goog_vendor => {:dir => goog_vendor_dir, :deps => true, :deps_server => true},
       :googly => {:dir => googly_dir, :deps => true, :soy => true, :erb => true, :haml => true},
     }
-  end
-  
-  # These routes are used until add_route is called
-  def default_routes
-    return @default_routes if @default_routes
-    saved_routes = @routes
-    @routes = Array.new
-    add_route('/', :public)
-    add_route('/goog', :goog)
-    add_route('/goog_vendor', :goog_vendor)
-    add_route('/googly', :googly)
-    @default_routes = @routes
-    @routes = saved_routes
-    return @default_routes
   end
   
 end

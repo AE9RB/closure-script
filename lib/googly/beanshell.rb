@@ -12,21 +12,26 @@ class Googly
     end
     
     def run(command)
+      begin
+        shell << command
+        return read_until_prompt
+      rescue Errno::EPIPE
+        @shell.close
+        @shell = nil
+      end
+      puts "Java BeanShell is restarting (this should not happen)"
       shell << command
       read_until_prompt
     end
     
     private
-
+    
     def read_until_prompt
       result = ''
-      until result =~ PROMPT
-        read = shell.readpartial(8192)
-        result << read
-      end
+      result << shell.readpartial(8192) until result =~ PROMPT
       result.sub PROMPT, ''
     end
-    
+
     def shell
       return @shell if @shell
       classpath = [Googly.config.compiler_jar]

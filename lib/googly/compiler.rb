@@ -16,8 +16,39 @@ class Googly
 
   class Compiler
     
-    def initialize(source)
+    include Googly::Responses    
+    
+    def initialize(source, beanshell, config)
       @source = source
+      @beanshell = beanshell
+      @config = config
+    end
+    
+    def call(env)
+      yaml = YAML.load(ERB.new(File.read(@config.makefile)).result)
+      raise "makefile error" unless yaml.kind_of? Hash
+      
+      job = yaml[env['QUERY_STRING']]
+      return not_found unless job.kind_of? Hash
+      
+      messages = compile_js(job)
+      puts messages
+      
+      #TODO use Rack::File and real js_output_file
+      body = File.read File.join(Googly.base_path, 'app', 'javascripts', 'out.js')
+      [404, {"Content-Type" => "text/javascript",
+         "Content-Length" => body.size.to_s},
+       [body]]
+    end
+    
+    def compile_js(job)
+      job['options'].push '--js_output_file'
+      job['options'].push File.join(Googly.base_path, 'app', 'javascripts', 'out.js')
+      files(job['require']).each do |filename|
+        job['options'].push '--js'
+        job['options'].push filename
+      end
+      @beanshell.compile_js(job['options'])
     end
 
     def files(namespaces)

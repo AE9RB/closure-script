@@ -1,0 +1,9 @@
+---
+test.js:
+  require:
+    - goog.editor.Field
+  options:
+    - --compilation_level
+    - ADVANCED_OPTIMIZATIONS
+    - --js_output_file
+    - public/javascripts/test.js

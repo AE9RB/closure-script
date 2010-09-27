@@ -10,7 +10,7 @@ class CompilerTest < Test::Unit::TestCase
     namespace = "goog.editor.Field"
     closurebuilder_files = `#{CLOSUREBUILDER} --root=#{CLOSURE_LIBRARY.dump} -n #{namespace} 2>/dev/null`
     closurebuilder_files = closurebuilder_files.split
-    compiler = Googly::Compiler.new(GOOG_SOURCE)
+    compiler = Googly::Compiler.new(GOOG_SOURCE, Googly::BeanShell.new, Googly.config)
     compiler_files = compiler.files(namespace)
     assert_equal closurebuilder_files.length, compiler_files.length
     # Unfortunately, closurebuilder.py uses sets instead of arrays

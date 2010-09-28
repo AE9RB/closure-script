@@ -48,7 +48,6 @@ public class Googly {
   }
 
   public static void compile_js(String[] args) {
-  // public static void compile_js(String... args) {
     disableSystemExit();
     try {
       com.google.javascript.jscomp.CommandLineRunner.main(args);

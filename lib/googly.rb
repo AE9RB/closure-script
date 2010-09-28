@@ -100,12 +100,11 @@ class Googly
   
   
   def call(env)
-    
-    path_info = Rack::Utils.unescape(env["PATH_INFO"])
-    if path_info == '/'
+    path_info = env["PATH_INFO"]
+    if path_info == '/' or path_info == '%2F' or path_info == '%2f'
       call_root(env)
     else
-      call_route(env, path_info)
+      call_route(env)
     end
   end
   
@@ -123,9 +122,10 @@ class Googly
   end
 
 
-  def call_route(env, path_info)
+  def call_route(env)
     status, headers, body = [ 500, {'Content-Type' => 'text/plain'}, "Internal Server Error" ]
     saved_path_info = env["PATH_INFO"]
+    path_info = Rack::Utils.unescape(env["PATH_INFO"])
     @routes.each do |path, options|
       if path_info =~ %r{^#{Regexp.escape(path)}(/.*|)$}
         env["PATH_INFO"] = Rack::Utils.escape($1)

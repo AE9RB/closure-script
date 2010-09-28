@@ -23,16 +23,24 @@ class Googly
       @beanshell = beanshell
       @config = config
     end
-    
+
     def call(env)
       yaml = YAML.load(ERB.new(File.read(@config.makefile)).result)
+      build, type = env["QUERY_STRING"].split('=')
+      build = Rack::Utils.unescape(build)
+      #TODO calc default type, either 'require' or solo type
+      type = Rack::Utils.unescape(type||'test') 
+      #TODO figure out something to help find yaml mistakes
       raise "makefile error" unless yaml.kind_of? Hash
+      raise "makefile error" unless yaml[build].kind_of? Hash
+      raise "makefile error" unless yaml[build][type].kind_of? Array
       
-      job = yaml[env['QUERY_STRING']]
-      return not_found unless job.kind_of? Hash
+      namespaces = (yaml[build]['require']||[]).flatten
+      options = yaml[build][type].flatten
+      output = compile_js(namespaces, options)
       
-      messages = compile_js(job)
-      puts messages
+      #TODO temp logging
+      puts output
       
       #TODO use Rack::File and real js_output_file
       body = File.read File.join(Googly.base_path, 'app', 'javascripts', 'out.js')
@@ -41,20 +49,20 @@ class Googly
        [body]]
     end
     
-    def compile_js(job)
-      job['options'].push '--js_output_file'
-      job['options'].push File.join(Googly.base_path, 'app', 'javascripts', 'out.js')
-      files(job['require']).each do |filename|
-        job['options'].push '--js'
-        job['options'].push filename
+    def compile_js(namespaces, options)
+      options.push '--js_output_file'
+      options.push File.join(Googly.base_path, 'app', 'javascripts', 'out.js')
+      files(namespaces).each do |filename|
+        options.push '--js'
+        options.push filename
       end
-      @beanshell.compile_js(job['options'])
+      @beanshell.compile_js(options)
     end
 
     def files(namespaces)
       refresh
       files = [@base_js]
-      [namespaces].flatten.uniq.each do |namespace|
+      namespaces.each do |namespace|
         dependencies(namespace).each do |source_info|
           unless files.include? source_info[:filename]
             files.push source_info[:filename] 

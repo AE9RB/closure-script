@@ -1,2 +1,8 @@
 goog.provide('googly.test');
-goog.require('goog.dom')
+
+googly.test = function() {
+  this.bar = 'foo';
+  window.location = "123";
+}
+
+googly.test(); 

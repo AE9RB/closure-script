@@ -9,6 +9,9 @@ class Googly
     
     # Shortcut to Googly.compile_js in Googly.jar.
     def compile_js(args)
+      # booleans don't .dump and yaml prefers to emit boolean instead of string
+      args = args.map{|arg| arg == true ? 'true' : arg == false ? 'false' : arg}
+      # The googly.java will trap Java System.exit() calls.
       run "Googly.compile_js(new String[]{#{args.collect{|a|a.dump}.join(', ')}});"
     end
     

@@ -2,14 +2,15 @@
 # You get at this from the browser with something like:
 # /?test.js or /?test.js=test
 # Append .log for the log from the last compile.  If it contains
-# the --help from the compiler, you have an error in this file.
+# the options help from the compiler, you have an error in this file.
 # Append .map for the source map from the last compile.
 # Using .map or .log without a build type gets you the results from
-# the last compile job run.  This information is retained uniquely for
-# each build and type so you can be explicit: /?test.js.log=build
-test.js:
+# the last compile job run but this information is retained uniquely for
+# each build and type so you can be explicit: /?test.log=build
+googly:
   # You can use every option that compiler.jar supports.  Even the ones that
-  # print to the console since you can simply view /?test.js.log.
+  # print to the console since you can simply view /?test.log.
+  # See all options with: java -jar compiler.jar --help
   # Options are passed to the compiler with very few modifications:
   # 1. --js_output_file is set to a temp file if none is specified.
   # 2. --create_source_map is set to a temp file if none is specified.
@@ -31,7 +32,7 @@ test.js:
   build: 
     # Perhaps you are process driven or have a build team.
     - *base_options
-    - [--js_output_file, ./public/javascripts/test.js]
+    - [--js_output_file, ./public/javascripts/googly.js]
   concat:
     # Not specifing a compilation_level will generate a concatenation.
     # The only supported option is --js_output_file which is optional.

@@ -27,7 +27,8 @@ class Googly
     def call(env)
       yaml = YAML.load(ERB.new(File.read(@config.makefile)).result)
       build, type = env["QUERY_STRING"].split('=')
-      build = Rack::Utils.unescape(build)
+      #TODO .js is hardcoded
+      build = Rack::Utils.unescape(build).gsub /\.js$/, ''
       #TODO calc default type, either 'require' or solo type
       type = Rack::Utils.unescape(type||'test') 
       #TODO figure out something to help find yaml mistakes

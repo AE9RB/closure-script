@@ -8,15 +8,16 @@
 # the last compile job run but this information is retained uniquely for
 # each build and type so you can be explicit: /?googly.log=build
 googly:
-  # You can use every option that compiler.jar supports.  Even the ones that
-  # print to the console since you can simply view /?googly.log.
+  # You can use every option that compiler.jar supports.  Even the ones
+  # that print to the console since you can simply view: /?googly.log
   # See all options with: java -jar compiler.jar --help
   # Options are passed to the compiler with very few modifications:
   # 1. --js_output_file is set to a temp file if none is specified.
   # 2. --create_source_map is set to a temp file if none is specified.
   # 3. --js entries are appended to satisfy the require namespaces.
   # If you explicitly set js_output_file and create_source_map without
-  # any require namespaces, absolutely nothing will be changed.
+  # any require namespaces, absolutely nothing will be changed -- in
+  # this mode you don't even need to Googly.add_route any source code.
   # The arrays are flattened before use so get creative with the syntax.
   # You may also embed Ruby: <%= Time.now %>
   require:
@@ -28,6 +29,7 @@ googly:
   test: &base_options
     # The developers work in 'test' and in 'require'.
     - [--compilation_level, ADVANCED_OPTIMIZATIONS]
+    - [--summary_detail_level, 3]
     - [--warning_level, VERBOSE]
   build: 
     # Perhaps you are process driven or have a build team.
@@ -44,9 +46,18 @@ googly:
     - [--debug, true]
     - [--formatting, PRETTY_PRINT]
     - [--formatting, PRINT_INPUT_DELIMITER]
+  simple:
+    # Overrides base_options --compilation_level
+    - *base_options
+    - [--compilation_level, SIMPLE_OPTIMIZATIONS]
+  scrub:
+    # Remove non-preserved comments and reformat
+    - *base_options
+    - [--compilation_level, WHITESPACE_ONLY]
+    - [--formatting, PRETTY_PRINT]
     
 
-myjqexperiment.js:
+myjqexperiment:
   # Require is optional.  Without it we must set which filenames to compile.
   # If there is only one build type, it becomes the default.  But two
   # or more build types and no require causes 404 on: /?myjqexperiment.js

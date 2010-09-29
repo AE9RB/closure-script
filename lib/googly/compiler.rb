@@ -27,37 +27,72 @@ class Googly
     def call(env)
       yaml = YAML.load(ERB.new(File.read(@config.makefile)).result)
       build, type = env["QUERY_STRING"].split('=')
-      #TODO .js is hardcoded
-      build = Rack::Utils.unescape(build).gsub /\.js$/, ''
+      build = Rack::Utils.unescape(build).gsub /\.(js|log|map)$/, ''
+      file_ext = $1
+      file_ext = 'json' if file_ext == 'map' # json for the mime type
+      
       #TODO calc default type, either 'require' or solo type
       type = Rack::Utils.unescape(type||'test') 
-      #TODO figure out something to help find yaml mistakes
-      raise "makefile error" unless yaml.kind_of? Hash
-      raise "makefile error" unless yaml[build].kind_of? Hash
-      raise "makefile error" unless yaml[build][type].kind_of? Array
       
-      namespaces = (yaml[build]['require']||[]).flatten
-      options = yaml[build][type].flatten
-      output = compile_js(namespaces, options)
+      if file_ext == 'js'
+        #TODO figure out something to help find yaml mistakes
+        raise "makefile error" unless yaml.kind_of? Hash
+        raise "makefile error" unless yaml[build].kind_of? Hash
+        raise "makefile error" unless yaml[build][type].kind_of? Array
+        
+        namespaces = (yaml[build]['require']||[]).flatten
+        options = yaml[build][type].flatten
+        base_filename = File.expand_path("#{build}.#{type}", @config.tmpdir)
+        js_filename = compile_js_with_cache(namespaces, options, base_filename)
+        Googly::Static.new(File.dirname(js_filename)).call(
+          {"PATH_INFO" => Rack::Utils.escape(File.basename(js_filename))}
+        )
+      else
+        Googly::Static.new(@config.tmpdir).call(
+          {"PATH_INFO" => Rack::Utils.escape("#{build}.#{type}.#{file_ext}")}
+        )
+      end
       
-      #TODO temp logging
-      puts output
-      
-      #TODO use Rack::File and real js_output_file
-      body = File.read File.join(Googly.base_path, 'app', 'javascripts', 'out.js')
-      [404, {"Content-Type" => "text/javascript",
-         "Content-Length" => body.size.to_s},
-       [body]]
     end
     
-    def compile_js(namespaces, options)
-      options.push '--js_output_file'
-      options.push File.join(Googly.base_path, 'app', 'javascripts', 'out.js')
+    def compile_js_with_cache(namespaces, options, base_filename)
+      # output file
+      if index = options.index('--js_output_file')
+        js_filename = options[index+1]
+      else
+        js_filename = "#{base_filename}.js"
+        options.push '--js_output_file'
+        options.push js_filename
+      end
+
+      # files computed from namespaces
       files(namespaces).each do |filename|
         options.push '--js'
         options.push filename
       end
-      @beanshell.compile_js(options)
+
+      #TODO don't compile unless necessary.
+      # get js_filename mtime,
+      # test mtime against each --js file in options
+      # this approach can scan namespaces + options
+
+      # source map
+      map_filename = "#{base_filename}.json"
+      options.push '--create_source_map'
+      options.push map_filename
+
+      # Really do a compile
+      File.unlink js_filename rescue Errno::ENOENT
+      File.unlink map_filename rescue Errno::ENOENT
+      File.open("#{base_filename}.log", 'w') do |f|
+        f.write "Start: #{Time.now}\n\n"
+        f.flush
+        out, err = @beanshell.compile_js(options)
+        f.write err
+        f.write "\nEnd: #{Time.now}\n"
+      end
+
+      return js_filename
     end
 
     def files(namespaces)
@@ -70,6 +105,7 @@ class Googly
           end
         end
       end
+      return [] if files.length == 1
       files
     end
 
@@ -110,7 +146,7 @@ class Googly
           if dep[:provide].length + dep[:require].length == 0
             if File.read(filename) =~ /^var goog = goog \|\| \{\};/
               if @base_js
-                raise "Google closure base.js found more than once"
+                raise "Google closure base.js found more than once."
               end
               @base_js = filename
             end
@@ -126,7 +162,7 @@ class Googly
       end
       if traversal_path.include? namespace
         traversal_path.push namespace
-        raise "Circular dependency error. #{traversal_path.join(', ')}\n"
+        raise "Circular dependency error. #{traversal_path.join(', ')}.\n"
       end
       traversal_path.push namespace
       source[:require].each do |required|

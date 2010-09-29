@@ -1,3 +1,5 @@
+require 'open3'
+
 class Googly
   
   # Googly will manage a single BeanShell to run the Java tools.
@@ -9,10 +11,8 @@ class Googly
     
     # Shortcut to Googly.compile_js in Googly.jar.
     def compile_js(args)
-      # booleans don't .dump and yaml prefers to emit boolean instead of string
-      args = args.map{|arg| arg == true ? 'true' : arg == false ? 'false' : arg}
       # The googly.java will trap Java System.exit() calls.
-      run "Googly.compile_js(new String[]{#{args.collect{|a|a.dump}.join(', ')}});"
+      run "Googly.compile_js(new String[]{#{args.collect{|a|a.to_s.dump}.join(', ')}});"
     end
     
     # Public function to run any Java command.
@@ -22,8 +22,10 @@ class Googly
         return execute command
       rescue Errno::EPIPE
         # Shut down broken pipe; another will be started.
-        @shell.close
-        @shell = nil
+        $cmdin.close
+        $cmdout.close
+        $cmderr.close
+        $cmdin = nil
       end
       # This "second chance" will not rescue the error.
       puts "Java BeanShell is restarting (this should not happen)"
@@ -34,22 +36,26 @@ class Googly
     
     # Executes a command on the REPL and returns the result.
     def execute(command)
-      shell << command unless command == :init
-      result = ''
-      result << shell.readpartial(8192) until result =~ PROMPT
-      result.sub PROMPT, ''
+      unless $cmdin
+        classpath = [Googly.config.compiler_jar]
+        classpath << File.join(Googly.base_path, 'beanshell', 'bsh-2.0b4.jar')
+        classpath << File.join(Googly.base_path, 'beanshell', 'Googly.jar')
+        java_repl = "#{Googly.config.java} -classpath #{classpath.join(':')} bsh.Interpreter"
+        $cmdin, $cmdout, $cmderr = Open3::popen3(java_repl)
+        eat_startup = ''
+        eat_startup << $cmdout.readpartial(8192) until eat_startup =~ PROMPT
+      end
+      $cmdin << command
+      out = ''
+      err = ''
+      until out =~ PROMPT
+        sleep 0.05 # wait at start and collect results 20 times per second
+        out << $cmdout.read_nonblock(8192) while true rescue Errno::EAGAIN
+        err << $cmderr.read_nonblock(8192) while true rescue Errno::EAGAIN
+      end
+      [out.sub(PROMPT, ''), err]
     end
 
-    # Builds an IO to a Googly Java REPL.
-    def shell
-      return @shell if @shell
-      classpath = [Googly.config.compiler_jar]
-      classpath << File.join(Googly.base_path, 'beanshell', 'bsh-2.0b4.jar')
-      classpath << File.join(Googly.base_path, 'beanshell', 'Googly.jar')
-      @shell = IO.popen("#{Googly.config.java} -classpath #{classpath.join(':')} bsh.Interpreter", 'r+')
-      execute :init
-      @shell
-    end
     
   end
   

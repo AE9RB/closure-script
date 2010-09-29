@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require 'ostruct'
+require 'tmpdir'
 
 class Googly
 
@@ -42,22 +43,16 @@ class Googly
   end
   
   def initialize
-    
     @routes = Array.new
-    
-    @base_path ||= File.expand_path(File.join(File.dirname(__FILE__), '..'))
-
+    @base_path = File.expand_path(File.join(File.dirname(__FILE__), '..'))
     @config = OpenStruct.new
-    @config.java = 'java'
-    @config.compiler_jar = File.join(base_path, 'closure-compiler', 'compiler.jar')
-    @config.makefile = File.join(base_path, 'app', 'javascripts', 'makefile.yml')
-    @config.deps_prepend = File.join(base_path, 'public', 'navigator.js')
-
+    config.java = 'java'
+    config.compiler_jar = File.join(base_path, 'closure-compiler', 'compiler.jar')
+    config.tmpdir = File.join(Dir.tmpdir, 'googlyscript-cache')
+    config.deps_prepend = File.join(base_path, 'public', 'navigator.js')
     @beanshell = BeanShell.new
     @source = Source.new(@routes)
-    @compiler = Compiler.new(@source, @beanshell, @config)
-    
-    
+    @compiler = Compiler.new(@source, @beanshell, config)
   end
   
   attr_reader :base_path, :config
@@ -145,7 +140,7 @@ class Googly
   def rack_stack_for(path, options)
     rack_stack = Array.new
     rack_stack << Deps.new(@source, options[:deps_server]) if options[:deps_server]
-    rack_stack << Static.new(path, options)
+    rack_stack << Static.new(options[:dir])
     rack_stack << Erb.new(path, options) if options[:erb]
     rack_stack << Soy.new(path, options) if options[:soy]
     rack_stack << Haml.new(path, options) if options[:haml]

@@ -2,7 +2,7 @@ require 'test_helper'
 
 class StaticTest < Test::Unit::TestCase
 
-  PUBLIC = ['', {:dir => File.expand_path(File.join(File.dirname(__FILE__), '..', 'public'))}]
+  PUBLIC = File.expand_path(File.join(File.dirname(__FILE__), '..', 'public'))
 
   def test_serve_files
     # Basic sanity; ensure we are serving files after inheriting Rack::File

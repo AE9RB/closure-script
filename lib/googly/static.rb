@@ -22,9 +22,7 @@ class Googly
     
     include Googly::Responses
     
-    def initialize(path, options)
-      @root = options[:dir]
-    end    
+    # All we're doing is changing the 404
     
   end
   

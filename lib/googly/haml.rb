@@ -1,9 +1,10 @@
 require 'rubygems'
 require 'haml'
+require 'rack/file'
 
 class Googly
 
-  class Haml
+  class Haml < Rack::File
 
     def initialize(options)
       @options = options
@@ -11,6 +12,8 @@ class Googly
 
     def call(env)
       path_info = Rack::Utils.unescape(env["PATH_INFO"])
+
+      return forbidden  if path_info.include? ".."
 
       template = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'public', path_info + '.haml'))
       haml = ::Haml::Engine.new(File.read(template))

@@ -2,7 +2,7 @@ class Googly
 
   class Soy
     
-    def initialize(path, options)
+    def initialize(options)
     end
     
     def call(env)

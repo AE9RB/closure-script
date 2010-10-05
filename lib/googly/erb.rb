@@ -2,7 +2,7 @@ class Googly
 
   class Erb
     
-    def initialize(path, options)
+    def initialize(options)
     end
     
     def call(env)

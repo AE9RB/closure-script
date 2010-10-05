@@ -44,11 +44,11 @@ class Googly
         options = yaml[build][type].flatten
         base_filename = File.expand_path("#{build}.#{type}", @config.tmpdir)
         js_filename = compile_js_with_cache(namespaces, options, base_filename)
-        Googly::Static.new(File.dirname(js_filename)).call(
+        Rack::File.new(File.dirname(js_filename)).call(
           {"PATH_INFO" => Rack::Utils.escape(File.basename(js_filename))}
         )
       else
-        Googly::Static.new(@config.tmpdir).call(
+        Rack::File.new(@config.tmpdir).call(
           {"PATH_INFO" => Rack::Utils.escape("#{build}.#{type}.#{file_ext}")}
         )
       end

@@ -25,7 +25,6 @@ class Googly
   autoload(:Compiler, 'googly/compiler')
   autoload(:Source, 'googly/source')
   autoload(:Deps, 'googly/deps')
-  autoload(:Static, 'googly/static')
   autoload(:Erb, 'googly/erb')
   autoload(:Soy, 'googly/soy')
   autoload(:Haml, 'googly/haml')
@@ -94,22 +93,39 @@ class Googly
   
   
   def call(env)
+    @rack_call_log = []
     path_info = env["PATH_INFO"]
     if path_info == '/' or path_info == '%2F' or path_info == '%2f'
-      call_root(env)
+      status, headers, body = call_root(env)
     else
-      call_route(env)
+      status, headers, body = call_route(env)
     end
+    return not_found if status == 404 and headers["X-Cascade"] == "pass"
+    [status, headers, body]
   end
   
 
   protected
+  
+  
+  def not_found
+    if @rack_call_log.length == 0
+      body = "404 Not Found.\nNo rack servers called.  Did you add routes?\n"
+    else
+      body = "404 Not Found.\nTried: #{@rack_call_log.join(', ')}.\n"
+    end
+    [404, {"Content-Type" => "text/plain",
+       "Content-Length" => body.size.to_s,
+       "X-Cascade" => "pass"},
+     [body]]
+  end
 
 
   def call_root(env)
-    status, headers, body = [ 500, {'Content-Type' => 'text/plain'}, "Internal Server Error" ]
+    status, headers, body = [ 404, {'X-Cascade' => 'pass'}, [] ]
     [@compiler].each do |rack_server|
       status, headers, body = rack_server.call(env)
+      @rack_call_log << rack_server.class.name
       break unless headers["X-Cascade"] == "pass"
     end
     [status, headers, body]
@@ -117,16 +133,20 @@ class Googly
 
 
   def call_route(env)
-    status, headers, body = [ 500, {'Content-Type' => 'text/plain'}, "Internal Server Error" ]
+    status, headers, body = [ 404, {'X-Cascade' => 'pass'}, [] ]
+    saved_script_name = env["SCRIPT_NAME"]
     saved_path_info = env["PATH_INFO"]
     path_info = Rack::Utils.unescape(env["PATH_INFO"])
     @routes.each do |path, options|
       if path_info =~ %r{^#{Regexp.escape(path)}(/.*|)$}
+        env["SCRIPT_NAME"] = "#{saved_script_name}#{path}"
         env["PATH_INFO"] = Rack::Utils.escape($1)
         options[:rack_stack].each do |rack_server|
           status, headers, body = rack_server.call(env)
+          @rack_call_log << rack_server.class.name
           break unless headers["X-Cascade"] == "pass"
         end
+        env["SCRIPT_NAME"] = saved_script_name
         env["PATH_INFO"] = saved_path_info
         break
       end
@@ -139,10 +159,10 @@ class Googly
   def rack_stack_for(path, options)
     rack_stack = Array.new
     rack_stack << Deps.new(@source, options[:deps_server]) if options[:deps_server]
-    rack_stack << Static.new(options[:dir])
-    rack_stack << Erb.new(path, options) if options[:erb]
-    rack_stack << Soy.new(path, options) if options[:soy]
-    rack_stack << Haml.new(path, options) if options[:haml]
+    rack_stack << Rack::File.new(options[:dir])
+    # rack_stack << Erb.new(options) if options[:erb]
+    # rack_stack << Soy.new(options) if options[:soy]
+    # rack_stack << Haml.new(options) if options[:haml]
     rack_stack
   end
 

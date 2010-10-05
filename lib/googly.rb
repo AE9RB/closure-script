@@ -49,7 +49,6 @@ class Googly
     config.java = 'java'
     config.compiler_jar = File.join(base_path, 'closure-compiler', 'compiler.jar')
     config.tmpdir = File.join(Dir.tmpdir, 'googlyscript-cache')
-    config.deps_prepend = File.join(base_path, 'public', 'navigator.js')
     @beanshell = BeanShell.new
     @source = Source.new(@routes)
     @compiler = Compiler.new(@source, @beanshell, config)

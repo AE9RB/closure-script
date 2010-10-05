@@ -21,7 +21,7 @@ googly:
   # The arrays are flattened before use so get creative with the syntax.
   # You may also embed Ruby: <%= Time.now %>
   require:
-    # Require is special and always the default: /?googly.js == /?googly.js=require
+    # Require is special and the default: /?googly.js == /?googly.js=require
     # It generates a list of goog.require() statements instead of compiled code.
     # It accepts an array of namespaces instead of compiler options.
     - googly.test
@@ -59,9 +59,8 @@ googly:
 
 myjqexperiment:
   # Require is optional.  Without it we must set which filenames to compile.
-  # If there is only one build type, it becomes the default.  But two
-  # or more build types and no require causes 404 on: /?myjqexperiment.js
-  test:
+  # You may also specifiy a default to use instead of 'require'.
+  default:
     - [--compilation_level, ADVANCED_OPTIMIZATIONS]
     - [--warning_level, QUIET]
     - [--externs, spike/jquery.externs]

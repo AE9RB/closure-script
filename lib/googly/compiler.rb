@@ -25,7 +25,6 @@ class Googly
     end
 
     def call(env)
-      yaml = YAML.load(ERB.new(File.read(@config.makefile)).result)
       build, type = env["QUERY_STRING"].split('=')
       build = Rack::Utils.unescape(build).gsub /\.(js|log|map)$/, ''
       file_ext = $1
@@ -35,6 +34,7 @@ class Googly
       type = Rack::Utils.unescape(type||'test') 
       
       if file_ext == 'js'
+        yaml = YAML.load(ERB.new(File.read(@config.makefile)).result)
         #TODO figure out something to help find yaml mistakes
         raise "makefile error" unless yaml.kind_of? Hash
         raise "makefile error" unless yaml[build].kind_of? Hash

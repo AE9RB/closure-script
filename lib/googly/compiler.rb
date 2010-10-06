@@ -49,8 +49,7 @@ class Googly
     def files(namespaces)
       @source.refresh
       prepare_sources_hash
-      find_the_one_true_base_js
-      files = [@base_js]
+      files = []
       namespaces.each do |namespace|
         dependencies(namespace).each do |source_info|
           unless files.include? source_info[:filename]
@@ -58,7 +57,8 @@ class Googly
           end
         end
       end
-      return [] if files.length == 1
+      return files if files.length == 0
+      files.unshift the_one_true_base_js
       files
     end
 
@@ -198,21 +198,22 @@ class Googly
     # any requires or provides that defines var goog inside.
     # This is how the original python scripts did it
     # except I added the provide+require check.
-    def find_the_one_true_base_js
-      @base_js = nil
+    def the_one_true_base_js
+      base_js = nil
       @source.deps.each do |filename, dep|
         if File.basename(filename) == 'base.js'
           if dep[:provide].length + dep[:require].length == 0
             if File.read(filename) =~ /^var goog = goog \|\| \{\};/
-              if @base_js
+              if base_js
                 raise "Google closure base.js found more than once."
               end
-              @base_js = filename
+              base_js = filename
             end
           end
         end
       end
-      raise "Google closure base.js could not be found" unless @base_js
+      raise "Google closure base.js could not be found" unless base_js
+      base_js
     end
     
     # recursive magics

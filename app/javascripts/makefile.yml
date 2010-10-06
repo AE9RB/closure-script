@@ -3,7 +3,6 @@
 # /?googly.js or /?googly.js=test
 # Use .log to retrieve the log:
 # /?googly.log=test
-# If the log contains help from the compiler, you probably have an error in this file.
 # Use .map for the source map:
 # /?googly.map=test
 googly:

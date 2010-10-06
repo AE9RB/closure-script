@@ -1,15 +1,13 @@
 ---
 # You get at this from the browser with something like:
 # /?googly.js or /?googly.js=test
-# Append .log for the log from the last compile.  If it contains
-# the options help from the compiler, you have an error in this file.
-# Append .map for the source map from the last compile.
-# Using .map or .log without a build type gets you the results from
-# the last compile job run but this information is retained uniquely for
-# each build and type so you can be explicit: /?googly.log=build
+# Use .log to retrieve the log:
+# /?googly.log=test
+# If the log contains help from the compiler, you probably have an error in this file.
+# Use .map for the source map:
+# /?googly.map=test
 googly:
-  # You can use every option that compiler.jar supports.  Even the ones
-  # that print to the console since you can simply view: /?googly.log
+  # You can use every option that compiler.jar supports.  Really.
   # See all options with: java -jar compiler.jar --help
   # Options are passed to the compiler with very few modifications:
   # 1. --js_output_file is set to a temp file if none is specified.
@@ -19,9 +17,10 @@ googly:
   # any require namespaces, absolutely nothing will be changed -- in
   # this mode you don't even need to Googly.add_route any source code.
   # The arrays are flattened before use so get creative with the syntax.
-  # You may also embed Ruby: <%= Time.now %>
+  # You may also embed Ruby.  It's googly: <%= Time.now %>
   require:
-    # Require is special and the default: /?googly.js == /?googly.js=require
+    # Require is unique and the default:
+    # /?googly.js == /?googly.js=require == /?googly.js=default
     # It generates a list of goog.require() statements instead of compiled code.
     # It accepts an array of namespaces instead of compiler options.
     - googly.test

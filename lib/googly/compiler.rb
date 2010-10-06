@@ -26,77 +26,29 @@ class Googly
 
     def call(env)
       build, type = env["QUERY_STRING"].split('=')
+      return not_found unless build
       build = Rack::Utils.unescape(build).gsub /\.(js|log|map)$/, ''
-      file_ext = $1
-      file_ext = 'json' if file_ext == 'map' # json for the mime type
-      
-      #TODO calc default type, either 'require' or solo type
-      type = Rack::Utils.unescape(type||'test') 
-      
-      if file_ext == 'js'
-        yaml = YAML.load(ERB.new(File.read(@config.makefile)).result)
-        #TODO figure out something to help find yaml mistakes
-        raise "makefile error" unless yaml.kind_of? Hash
-        raise "makefile error" unless yaml[build].kind_of? Hash
-        raise "makefile error" unless yaml[build][type].kind_of? Array
-        
-        namespaces = (yaml[build]['require']||[]).flatten
-        options = yaml[build][type].flatten
-        base_filename = File.expand_path("#{build}.#{type}", @config.tmpdir)
-        js_filename = compile_js_with_cache(namespaces, options, base_filename)
-        Rack::File.new(File.dirname(js_filename)).call(
-          {"PATH_INFO" => Rack::Utils.escape(File.basename(js_filename))}
-        )
-      else
-        Rack::File.new(@config.tmpdir).call(
-          {"PATH_INFO" => Rack::Utils.escape("#{build}.#{type}.#{file_ext}")}
-        )
+      file_ext = Rack::Utils.unescape($1)
+      ctx = ctx_setup(build, type)
+      compile_js(ctx) if file_ext == 'js'
+      filename = ctx[file_ext.to_sym]
+      status, headers, body = Rack::File.new(File.dirname(filename)).call(
+        {"PATH_INFO" => Rack::Utils.escape(File.basename(filename))}
+      )
+      if %w{js map}.include? file_ext
+        headers["Content-Type"] = "application/javascript" 
       end
-      
+      [status, headers, body]
     end
     
-    def compile_js_with_cache(namespaces, options, base_filename)
-      # output file
-      if index = options.index('--js_output_file')
-        js_filename = options[index+1]
-      else
-        js_filename = "#{base_filename}.js"
-        options.push '--js_output_file'
-        options.push js_filename
-      end
-
-      # files computed from namespaces
-      files(namespaces).each do |filename|
-        options.push '--js'
-        options.push filename
-      end
-
-      #TODO don't compile unless necessary.
-      # get js_filename mtime,
-      # test mtime against each --js file in options
-      # this approach can scan namespaces + options
-
-      # source map
-      map_filename = "#{base_filename}.json"
-      options.push '--create_source_map'
-      options.push map_filename
-
-      # Really do a compile
-      File.unlink js_filename rescue Errno::ENOENT
-      File.unlink map_filename rescue Errno::ENOENT
-      File.open("#{base_filename}.log", 'w') do |f|
-        f.write "Start: #{Time.now}\n\n"
-        f.flush
-        out, err = @beanshell.compile_js(options)
-        f.write err
-        f.write "\nEnd: #{Time.now}\n"
-      end
-
-      return js_filename
+    def compile(build, type=nil)
+      compile_js(ctx_setup(build, type))
     end
-
+    
     def files(namespaces)
-      refresh
+      @source.refresh
+      prepare_sources_hash
+      find_the_one_true_base_js
       files = [@base_js]
       namespaces.each do |namespace|
         dependencies(namespace).each do |source_info|
@@ -109,12 +61,118 @@ class Googly
       files
     end
 
+
     protected
     
-    def refresh
-      @source.refresh
-      prepare_sources_hash
-      find_the_one_true_base_js
+    
+    def compile_js(ctx)
+      File.unlink ctx[:js] rescue Errno::ENOENT
+      if ctx[:type] == 'require'
+        File.open(ctx[:js], 'w') do |f|
+          ctx[:namespaces].each do |namespace|
+            f.write "goog.require(#{namespace.dump});\n"
+          end
+        end
+      elsif ctx[:compilation_level]
+        File.unlink ctx[:map] rescue Errno::ENOENT
+        File.open(ctx[:log], 'w') do |f|
+          f.write "Start: #{Time.now}\n\n"
+          f.flush
+          out, err = @beanshell.compile_js(ctx[:options])
+          puts err
+          f.write err
+          f.write "\nEnd: #{Time.now}\n"
+        end
+      else # concat
+        File.open(ctx[:js], 'w') do |f|
+          ctx[:files].each do |filename|
+            file = File.read filename
+            f.write file
+            f.write "\n" unless file =~ /\n\Z/
+          end
+        end
+      end
+    end
+    
+    
+    # Sets up everything for a compilation
+    def ctx_setup(build, type)
+      @yaml = nil # so yaml() will reload the file
+      if !type or type == 'default'
+        if yaml(build)['default']
+          type = 'default'
+        else
+          type = 'require'
+        end
+      end
+      base_filename = File.expand_path("#{build}.#{type}", @config.tmpdir)
+      ctx = {
+        :files => [],
+        :type => type,
+        :log => "#{base_filename}.log",
+        :namespaces => (yaml(build)['require']||[]).flatten
+      }
+      if type == 'require'
+        ctx[:options] = []
+      else
+        ctx[:options] = yaml(build, type).flatten
+      end
+      # add namespace files to options
+      files(ctx[:namespaces]).each do |filename|
+        ctx[:options].push '--js'
+        ctx[:options].push filename
+      end
+      # scan fully built set of options to extract context
+      option = nil
+      ctx[:options].each do |value|
+        option = value and next unless option
+        raise "options must all be -- format" unless option =~ /^--/
+        if option == '--js'
+          ctx[:files].push value
+        elsif option == '--js_output_file'
+          ctx[:js] = File.expand_path value
+          value.replace ctx[:js] # upgrade to full path
+        elsif option == '--create_source_map'
+          ctx[:map] = File.expand_path value
+          value.replace ctx[:map] # upgrade to full path
+        elsif option == '--compilation_level'
+          ctx[:compilation_level] = File.expand_path value
+        end
+        option = nil
+      end
+      # supply default js and map if none were supplied
+      unless ctx[:js]
+        ctx[:js] = "#{base_filename}.js"
+        ctx[:options] << '--js_output_file'
+        ctx[:options] << ctx[:js]
+      end
+      unless ctx[:map]
+        ctx[:map] = "#{base_filename}.map" 
+        ctx[:options] << '--create_source_map'
+        ctx[:options] << ctx[:map]
+      end
+      ctx
+    end
+    
+    # Returns specified fragment of the yaml file
+    # Performs tests to report problems with the yaml file
+    # note: @yaml resets on each call to call()
+    def yaml(build=nil, type=nil)
+      @yaml ||= YAML.load(ERB.new(File.read(@config.makefile)).result)
+      raise "makefile error" unless @yaml.kind_of? Hash
+      if build
+        raise "#{build.dump} not found" unless @yaml.has_key?(build)
+        raise "makefile error" unless @yaml[build].kind_of? Hash
+        if type
+          raise "#{type.dump} in #{build.dump} not found" unless @yaml[build].has_key?(type)
+          yaml = @yaml[build][type] || []
+          raise "#{type.dump} in #{build.dump} not array" unless yaml.kind_of? Array
+          return yaml
+        else
+          return @yaml[build]
+        end
+      end
+      @yaml
     end
     
     # The deps from Googly::Source are optimized for scanning the filesystem
@@ -156,6 +214,7 @@ class Googly
       raise "Google closure base.js could not be found" unless @base_js
     end
     
+    # recursive magics
     def dependencies(namespace, deps_list = [], traversal_path = [])
       unless source = @sources[namespace]
         raise "Namespace #{namespace.dump} not found." 

@@ -38,8 +38,7 @@ googly:
   concat:
     # Not specifing a compilation_level will generate a concatenation.
     # The only supported option is --js_output_file which is optional.
-    # Trying to get the .map for this will net you a 404.
-    # It will generate a timestamped .log for those who like.
+    # Trying to get the .map or .log for this will net you a 404.
   debug:
     # When things get ugly
     - *base_options

@@ -41,7 +41,7 @@ class Googly
         next unless options[:deps]
         dir = options[:dir]
         dir_range = (dir.length..-1)
-        Dir.glob(File.join(dir,'**','**.js')).each do |filename|
+        Dir.glob(File.join(dir,'**','*.js')).each do |filename|
           dep = (@deps[filename] ||= {})
           dep.delete(:not_found)
           mtime = File.mtime(filename)

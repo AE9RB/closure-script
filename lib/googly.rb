@@ -61,9 +61,8 @@ class Googly
   # Advanced routes (no assumptions):
   # Googly.add_route('/myapp', :dir => my_dir, :deps => true, :deps_server => true)
   # Options:
-  # :dir => filesystem dir
-  # :hidden => false|true
-  # :deps => false|true
+  # :dir => "filesystem/dir"
+  # :deps => false|true - dir has dependencies (is js source code?)
   # :deps_server => false|true|"path" - default path is "/deps.js"
   # :soy => false|true
   # :erb => false|true

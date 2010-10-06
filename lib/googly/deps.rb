@@ -36,7 +36,7 @@ class Googly
       @deps_js = nil if @source.deps_changed?
       unless @deps_js
         @deps_js = []
-        @deps_js << "// This deps.js was generated on-the-fly by Googlyscript\n"
+        @deps_js << "// This deps.js was brought to you by Googlyscript\n"
         @deps_js << "goog.basePath = '';\n"
         @source.deps.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
           @deps_js << "goog.addDependency(#{dep[:path].inspect}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"

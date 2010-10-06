@@ -73,7 +73,7 @@ class Googly
             f.write "goog.require(#{namespace.dump});\n"
           end
         end
-      elsif ctx[:compilation_level]
+      elsif ctx[:compilation_level] and ctx[:files].length > 0
         File.unlink ctx[:map] rescue Errno::ENOENT
         File.open(ctx[:log], 'w') do |f|
           f.write "Start: #{Time.now}\n\n"

@@ -36,8 +36,7 @@ googly:
     - [--js_output_file, ./public/javascripts/googly.js]
   concat:
     # Not specifing a compilation_level will generate a concatenation.
-    # The only supported option is --js_output_file which is optional.
-    # Trying to get the .map or .log for this will net you a 404.
+    # The only supported options are --js and --js_output_file.
   debug:
     # When things get ugly
     - *base_options

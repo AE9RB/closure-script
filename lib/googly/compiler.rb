@@ -28,7 +28,8 @@ class Googly
       build, type = env["QUERY_STRING"].split('=')
       return not_found unless build
       build = Rack::Utils.unescape(build).gsub /\.(js|log|map)$/, ''
-      file_ext = Rack::Utils.unescape($1)
+      file_ext = $1
+      type = Rack::Utils.unescape(type) if type
       ctx = ctx_setup(build, type)
       compile_js(ctx) if file_ext == 'js'
       filename = ctx[file_ext.to_sym]

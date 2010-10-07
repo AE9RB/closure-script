@@ -67,6 +67,18 @@ class Googly
     
     
     def compile_js(ctx)
+      # First, test if compilation is really needed.
+      compiled = true
+      js_mtime = File.mtime ctx[:js] rescue Errno::ENOENT
+      makefile_mtime = File.mtime @config.makefile
+      compiled = false if !js_mtime or makefile_mtime > js_mtime
+      ctx[:files].each do |filename|
+        break unless compiled
+        mtime = File.mtime filename
+        compiled = false if !mtime or mtime > js_mtime
+      end
+      return if compiled
+      # Onward.  Delete the js file and rebuild it.
       File.unlink ctx[:js] rescue Errno::ENOENT
       if ctx[:type] == 'require'
         File.open(ctx[:js], 'w') do |f|
@@ -95,8 +107,14 @@ class Googly
       end
     end
     
-    
-    # Sets up everything for a compilation
+    # Sets up entire context for a compilation.
+    # :files => array of all source files in build.
+    # :type => computed type.
+    # :log,js,map => full path to the files.
+    # :namespaces => from the 'require' for the build.
+    # :compilation_level => the compiler option, if present.
+    # :options => for compiler.jar only; use the above extracted
+    #             keys for internal Googly::Compiler logic.
     def ctx_setup(build, type)
       @yaml = nil # so yaml() will reload the file
       if !type or type == 'default'

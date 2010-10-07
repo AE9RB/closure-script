@@ -211,6 +211,35 @@ function assertNotThrows(a, opt_b) {
 }
 
 /**
+ * Asserts that the given callback function results in a JsUnitException when
+ * called, and that the resulting failure message matches the given expected
+ * message.
+ * @param {function() : void} callback Function to be run expected to result
+ *     in a JsUnitException (usually contains a call to an assert).
+ * @param {string} opt_expectedMessage Failure message expected to be given
+ *     with the exception.
+ */
+function assertThrowsJsUnitException(callback, opt_expectedMessage) {
+  var failed = false;
+  try {
+    goog.testing.asserts.callWithoutLogging(callback);
+  } catch (ex) {
+    if (!ex.isJsUnitException) {
+      fail('Expected a JsUnitException');
+    }
+    if (typeof opt_expectedMessage != 'undefined' &&
+        ex.message != opt_expectedMessage) {
+      fail('Expected message [' + opt_expectedMessage + '] but got [' +
+          ex.message + ']');
+    }
+    failed = true;
+  }
+  if (!failed) {
+    fail('Expected a failure: ' + opt_expectedMessage);
+  }
+}
+
+/**
  * @param {*} a
  * @param {*=} opt_b
  */
@@ -355,6 +384,24 @@ function assertNotNaN(a, opt_b) {
 }
 
 /**
+ * Runs a function in an environment where test failures are not logged. This is
+ * useful for testing test code, where failures can be a normal part of a test.
+ * @param {function() : void} fn Function to run without logging failures.
+ */
+goog.testing.asserts.callWithoutLogging = function(fn) {
+  var testRunner = goog.global['G_testRunner'];
+  var oldLogTestFailure = testRunner['logTestFailure'];
+  try {
+    // Any failures in the callback shouldn't be recorded.
+    testRunner['logTestFailure'] = undefined;
+    fn();
+  } finally {
+    testRunner['logTestFailure'] = oldLogTestFailure;
+  }
+};
+
+
+/**
  * Determines if two items of any type match, and formulates an error message
  * if not.
  * @param {*} expected Expected argument to match.
@@ -394,7 +441,12 @@ goog.testing.asserts.findDifferences = function(expected, actual) {
         // goog.structs.Map, at least on systems that support iteration.
         if (!var1['__iterator__']) {
           for (var prop in var1) {
-            if (isArray || prop in var2) {
+            if (isArray && goog.testing.asserts.isArrayIndexProp_(prop)) {
+              // Skip array indices for now. We'll handle them later.
+              continue;
+            }
+
+            if (prop in var2) {
               innerAssert(var1[prop], var2[prop],
                           childPath.replace('%s', prop));
             } else {
@@ -402,16 +454,36 @@ goog.testing.asserts.findDifferences = function(expected, actual) {
                             ' not present in actual ' + (path || typeOfVar2));
             }
           }
-          if (!isArray) {
-            // make sure there aren't properties in var2 that are missing
-            // from var1. if there are, then by definition they don't
-            // match.
-            for (var prop in var2) {
-              if (!(prop in var1)) {
-                failures.push('property ' + prop +
-                              ' not present in expected ' +
-                              (path || typeOfVar1));
-              }
+          // make sure there aren't properties in var2 that are missing
+          // from var1. if there are, then by definition they don't
+          // match.
+          for (var prop in var2) {
+            if (isArray && goog.testing.asserts.isArrayIndexProp_(prop)) {
+              // Skip array indices for now. We'll handle them later.
+              continue;
+            }
+
+            if (!(prop in var1)) {
+              failures.push('property ' + prop +
+                            ' not present in expected ' +
+                            (path || typeOfVar1));
+            }
+          }
+
+          // Handle array indices by iterating from 0 to arr.length.
+          //
+          // Although all browsers allow holes in arrays, browsers
+          // are inconsistent in what they consider a hole. For example,
+          // "[0,undefined,2]" has a hole on IE but not on Firefox.
+          //
+          // Because our style guide bans for...in iteration over arrays,
+          // we assume that most users don't care about holes in arrays,
+          // and that it is ok to say that a hole is equivalent to a slot
+          // populated with 'undefined'.
+          if (isArray) {
+            for (prop = 0; prop < var1.length; prop++) {
+              innerAssert(var1[prop], var2[prop],
+                          childPath.replace('%s', String(prop)));
             }
           }
         } else {
@@ -760,6 +832,17 @@ goog.testing.asserts.raiseException_ = function(comment, opt_message) {
   }
 
   throw new goog.testing.JsUnitException(comment, opt_message);
+};
+
+
+/**
+ * Helper function for assertObjectEquals. Tells us if a given property
+ * name is an array index.
+ * @param {string} prop
+ * @return {boolean}
+ */
+goog.testing.asserts.isArrayIndexProp_ = function(prop) {
+  return (prop | 0) == prop;
 };
 
 

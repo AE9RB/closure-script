@@ -338,7 +338,7 @@ goog.net.XhrIo.prototype.setTimeoutInterval = function(ms) {
 
 /**
  * Instance send that actually uses XMLHttpRequest to make a server call.
- * @param {string|goog.Uri} url Uri to make request too.
+ * @param {string|goog.Uri} url Uri to make request to.
  * @param {string=} opt_method Send method, default: GET.
  * @param {string|GearsBlob=} opt_content Post data. This can be a Gears blob
  *     if the underlying HTTP request object is a Gears HTTP request.
@@ -538,7 +538,7 @@ goog.net.XhrIo.prototype.dispatchErrors_ = function() {
  *     defaults to ABORT.
  */
 goog.net.XhrIo.prototype.abort = function(opt_failureCode) {
-  if (this.xhr_) {
+  if (this.xhr_ && this.active_) {
     this.logger_.fine(this.formatMsg_('Aborting'));
     this.active_ = false;
     this.inAbort_ = true;
@@ -888,6 +888,18 @@ goog.net.XhrIo.prototype.getResponseJson = function(opt_xssiPrefix) {
 goog.net.XhrIo.prototype.getResponseHeader = function(key) {
   return this.xhr_ && this.isComplete() ?
       this.xhr_.getResponseHeader(key) : undefined;
+};
+
+
+/**
+ * Gets the text of all the headers in the response.
+ * Will only return correct result when called from the context of a callback
+ * and the request has completed.
+ * @return {string} The value of the response headers or empty string.
+ */
+goog.net.XhrIo.prototype.getAllResponseHeaders = function() {
+  return this.xhr_ && this.isComplete() ?
+      this.xhr_.getAllResponseHeaders() : '';
 };
 
 

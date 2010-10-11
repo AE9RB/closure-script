@@ -133,13 +133,14 @@ class Googly
       }
       if type == 'require'
         ctx[:options] = []
+        # file dependency intentionally skipped
       else
         ctx[:options] = yaml(build, type).flatten
-      end
-      # add namespace files to options
-      files(ctx[:namespaces]).each do |filename|
-        ctx[:options].push '--js'
-        ctx[:options].push filename
+        # add namespace files to options
+        files(ctx[:namespaces]).each do |filename|
+          ctx[:options].push '--js'
+          ctx[:options].push filename
+        end
       end
       # scan fully built set of options to extract context
       option = nil

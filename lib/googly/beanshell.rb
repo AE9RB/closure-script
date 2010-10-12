@@ -38,7 +38,7 @@ class Googly
     def execute(command)
       unless $cmdin
         classpath = [Googly.config.compiler_jar]
-        classpath << File.join(Googly.base_path, 'beanshell', 'bsh-2.0b4.jar')
+        classpath << File.join(Googly.base_path, 'beanshell', 'bsh-core-2.0b4.jar')
         classpath << File.join(Googly.base_path, 'beanshell', 'Googly.jar')
         java_repl = "#{Googly.config.java} -classpath #{classpath.join(':')} bsh.Interpreter"
         $cmdin, $cmdout, $cmderr = Open3::popen3(java_repl)

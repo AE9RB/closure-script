@@ -1,6 +1,7 @@
 Googlyscript uses an unmodified version of BeanShell.
 The BeanShell jar isn't distributed with a license.
-The BeanShell source code download link is currently broken.
+The source code didn't have a license in it either.
+
 So I went to their website and grabbed the license info.
 http://www.beanshell.org/license.html
 

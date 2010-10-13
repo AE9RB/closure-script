@@ -169,7 +169,7 @@ class Googly
     public_dir = File.join(base_path, 'public')
     goog_dir = File.join(base_path, 'closure-library', 'closure', 'goog')
     goog_vendor_dir = File.join(base_path, 'closure-library', 'third_party', 'closure', 'goog')
-    googly_dir = File.join(base_path, 'app', 'javascripts')
+    googly_dir = File.join(base_path, 'src', 'javascript')
     {
       :public => {:dir => public_dir, :hidden => true},
       :goog => {:dir => goog_dir, :deps => true, :deps_server => true},

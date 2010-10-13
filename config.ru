@@ -14,7 +14,7 @@ Googly.add_route('/', :public)
 Googly.add_route('/goog', :goog)
 Googly.add_route('/goog_vendor', :goog_vendor)
 Googly.add_route('/googly', :googly)
-Googly.config.makefile = File.join(Googly.base_path, 'app', 'javascripts', 'makefile.yml')
+Googly.config.makefile = File.join(Googly.base_path, 'src', 'javascript', 'makefile.yml')
 Googly.config.tmpdir = File.join(Googly.base_path, 'tmp')
 run Googly
 

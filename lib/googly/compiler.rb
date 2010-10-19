@@ -178,6 +178,7 @@ class Googly
     # Performs tests to report problems with the yaml file
     # note: @yaml resets on each call to call()
     def yaml(build=nil, type=nil)
+      raise "no makefile configured" unless @config.makefile
       @yaml ||= YAML.load(ERB.new(File.read(@config.makefile)).result)
       raise "makefile error" unless @yaml.kind_of? Hash
       if build

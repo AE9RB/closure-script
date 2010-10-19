@@ -1,0 +1,52 @@
+---
+# You get at this from the browser with something like:
+# /?myapp.js or /?myapp.js=test
+# Use .log to retrieve the log:
+# /?myapp.log=test
+# Use .map for the source map:
+# /?myapp.map=test
+myapp:
+  # You can use every option that compiler.jar supports.  Really.
+  # See all options with: java -jar compiler.jar --help
+  # Options are passed to the compiler with very few modifications:
+  # 1. --js_output_file is set to a temp file if none is specified.
+  # 2. --create_source_map is set to a temp file if none is specified.
+  # 3. --js entries are appended to satisfy the require namespaces.
+  # If you explicitly set js_output_file and create_source_map without
+  # any require namespaces, absolutely nothing will be changed -- in
+  # this mode you don't even need to Googly.add_route any source code.
+  # The arrays are flattened before use so get creative with the syntax.
+  # You may also embed Ruby.  It's googly: <%= Time.now %>
+  require:
+    # Require is unique and the default:
+    # /?myapp.js == /?myapp.js=require == /?myapp.js=default
+    # It generates a list of goog.require() statements instead of compiled code.
+    # It accepts an array of namespaces instead of compiler options.
+    - myapp.HelloWorld
+  test: &base_options
+    # The developers work in 'test' and in 'require'.
+    - [--compilation_level, ADVANCED_OPTIMIZATIONS]
+    - [--summary_detail_level, 3]
+    - [--warning_level, VERBOSE]
+  build: 
+    # Perhaps you are process driven or have a build team.
+    - *base_options
+    - [--js_output_file, myapp.js]
+  concat:
+    # Not specifing a compilation_level will generate a concatenation.
+    # The only supported options are --js and --js_output_file.
+  debug:
+    # When things get ugly
+    - *base_options
+    - [--debug, true]
+    - [--formatting, PRETTY_PRINT]
+    - [--formatting, PRINT_INPUT_DELIMITER]
+  simple:
+    # Overrides base_options --compilation_level
+    - *base_options
+    - [--compilation_level, SIMPLE_OPTIMIZATIONS]
+  scrub:
+    # Remove non-preserved comments and reformat
+    - *base_options
+    - [--compilation_level, WHITESPACE_ONLY]
+    - [--formatting, PRETTY_PRINT]

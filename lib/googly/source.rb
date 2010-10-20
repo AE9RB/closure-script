@@ -16,8 +16,6 @@ class Googly
 
   class Source
     
-    attr_reader :deps
-    
     BASE_REGEX_STRING = '^\s*goog\.%s\(\s*[\'"](.+)[\'"]\s*\)'
     PROVIDE_REGEX = Regexp.new(BASE_REGEX_STRING % 'provide')
     REQUIRE_REGEX = Regexp.new(BASE_REGEX_STRING % 'require')
@@ -62,13 +60,14 @@ class Googly
           end
         end
       end
-      # Delete not-found files
+      # Sweep to delete not-found files
       @deps.select{|f, dep| dep[:not_found]}.each do |filename, o|
         deleted_files << filename
         @deps.delete(filename)
       end
-      # return true if anything changed
+      # Decide if anything changed
       if 0 < added_files.length + changed_files.length + deleted_files.length
+        @sources = nil
         puts "Googlyscript js cache: #{added_files.length} added, #{changed_files.length} changed, #{deleted_files.length} deleted."
         return true
       else
@@ -77,6 +76,85 @@ class Googly
       end
     end
     alias :refresh :deps_changed?
+
+    
+    # After refresh or deps_changed? is called, this contains the result.
+    attr_reader :deps
+    
+    
+    def files(namespaces)
+      refresh
+      # Work up a cached hash keyed by provide namespace
+      unless @sources
+        @sources = {}
+        @deps.each do |filename, dep|
+          dep[:provide].each do |provide|
+            if @sources[provide]
+              raise "Namespace #{provide.dump} provided more than once."
+            end
+            @sources[provide] = {
+              :filename => filename,
+              :require => dep[:require]
+            }
+          end
+        end
+      end
+      # Create an array of filenames
+      files = []
+      namespaces.each do |namespace|
+        dependencies(namespace).each do |source_info|
+          unless files.include? source_info[:filename]
+            files.push source_info[:filename] 
+          end
+        end
+      end
+      return files if files.length == 0
+      files.unshift base_js
+      files
+    end
+
+
+    protected
+    
+
+    # Looks for a single file named base.js without
+    # any requires or provides that defines var goog inside.
+    # This is how the original python scripts did it
+    # except I added the provide+require check.
+    def base_js
+      found_base_js = nil
+      @deps.each do |filename, dep|
+        if File.basename(filename) == 'base.js'
+          if dep[:provide].length + dep[:require].length == 0
+            if File.read(filename) =~ /^var goog = goog \|\| \{\};/
+              if found_base_js
+                raise "Google Closure base.js found more than once."
+              end
+              found_base_js = filename
+            end
+          end
+        end
+      end
+      raise "Google Closure base.js could not be found." unless found_base_js
+      found_base_js
+    end
+    
+
+    # Recursion with circular dependency stop
+    def dependencies(namespace, deps_list = [], traversal_path = [])
+      unless source = @sources[namespace]
+        raise "Namespace #{namespace.dump} not found." 
+      end
+      return deps_list if traversal_path.include? namespace
+      traversal_path.push namespace
+      source[:require].each do |required|
+        dependencies required, deps_list, traversal_path
+      end
+      traversal_path.pop
+      deps_list.push source
+      return deps_list
+    end
+
     
   end
   

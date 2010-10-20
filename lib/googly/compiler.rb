@@ -46,23 +46,7 @@ class Googly
       compile_js(ctx_setup(build, type))
     end
     
-    def files(namespaces)
-      @source.refresh
-      prepare_sources_hash
-      files = []
-      namespaces.each do |namespace|
-        dependencies(namespace).each do |source_info|
-          unless files.include? source_info[:filename]
-            files.push source_info[:filename] 
-          end
-        end
-      end
-      return files if files.length == 0
-      files.unshift the_one_true_base_js
-      files
-    end
-
-
+    
     protected
     
     
@@ -107,6 +91,7 @@ class Googly
       end
     end
     
+    
     # Sets up entire context for a compilation.
     # :files => array of all source files in build.
     # :type => computed type.
@@ -137,7 +122,7 @@ class Googly
       else
         ctx[:options] = yaml(build, type).flatten
         # add namespace files to options
-        files(ctx[:namespaces]).each do |filename|
+        @source.files(ctx[:namespaces]).each do |filename|
           ctx[:options].push '--js'
           ctx[:options].push filename
         end
@@ -174,6 +159,7 @@ class Googly
       ctx
     end
     
+
     # Returns specified fragment of the yaml file
     # Performs tests to report problems with the yaml file
     # note: @yaml resets on each call to call()
@@ -194,64 +180,6 @@ class Googly
         end
       end
       @yaml
-    end
-    
-    # The deps from Googly::Source are optimized for scanning the filesystem
-    # and serving up deps.js.  This creates a new hash optimized for making a
-    # dependency graph; one keyed by the provide instead of the filename.
-    def prepare_sources_hash
-      @sources = {}
-      @source.deps.each do |filename, dep|
-        dep[:provide].each do |provide|
-          if @sources[provide]
-            raise "Namespace #{provide.dump} provided more than once."
-          end
-          @sources[provide] = {
-            :filename => filename,
-            :require => dep[:require]
-          }
-        end
-      end
-    end
-    
-    # Looks for a single file named base.js without
-    # any requires or provides that defines var goog inside.
-    # This is how the original python scripts did it
-    # except I added the provide+require check.
-    def the_one_true_base_js
-      base_js = nil
-      @source.deps.each do |filename, dep|
-        if File.basename(filename) == 'base.js'
-          if dep[:provide].length + dep[:require].length == 0
-            if File.read(filename) =~ /^var goog = goog \|\| \{\};/
-              if base_js
-                raise "Google closure base.js found more than once."
-              end
-              base_js = filename
-            end
-          end
-        end
-      end
-      raise "Google closure base.js could not be found" unless base_js
-      base_js
-    end
-    
-    # recursive magics
-    def dependencies(namespace, deps_list = [], traversal_path = [])
-      unless source = @sources[namespace]
-        raise "Namespace #{namespace.dump} not found." 
-      end
-      if traversal_path.include? namespace
-        traversal_path.push namespace
-        raise "Circular dependency error. #{traversal_path.join(', ')}.\n"
-      end
-      traversal_path.push namespace
-      source[:require].each do |required|
-        dependencies required, deps_list, traversal_path
-      end
-      traversal_path.pop
-      deps_list.push source
-      return deps_list
     end
 
 

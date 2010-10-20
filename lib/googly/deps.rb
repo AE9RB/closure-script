@@ -32,6 +32,8 @@ class Googly
       end
     end
     
+    protected
+    
     def deps
       @deps_js = nil if @source.deps_changed?
       unless @deps_js

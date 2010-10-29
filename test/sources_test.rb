@@ -7,7 +7,7 @@ class SourcesTest < Test::Unit::TestCase
   CLOSUREBUILDER = File.join(CLOSURE_LIBRARY, 'closure', 'bin', 'build', 'closurebuilder.py')
   CALCDEPS = File.join(CLOSURE_LIBRARY, 'closure', 'bin', 'calcdeps.py')
   FIELD_JS = File.join(CLOSURE_LIBRARY, 'closure', 'goog', 'editor', 'field.js')
-  GOOG_SOURCE = Googly::Source.new([['/goog', {:dir => CLOSURE_LIBRARY, :deps => true}]])
+  GOOG_SOURCE = Googly::Source.new([['/goog', {:dir => CLOSURE_LIBRARY, :source => true}]])
 
   def test_files_against_closurebuilder
     closurebuilder_files = `#{CLOSUREBUILDER} --root=#{CLOSURE_LIBRARY.dump} -n #{BIG_NAMESPACE.dump} 2>/dev/null`

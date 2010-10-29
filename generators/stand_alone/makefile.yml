@@ -50,3 +50,15 @@ myapp:
     - *base_options
     - [--compilation_level, WHITESPACE_ONLY]
     - [--formatting, PRETTY_PRINT]
+
+
+myjqexperiment:
+  # This fictional example won't actually work.
+  # Require is optional.  Without it we must set which filenames to compile.
+  # You may also specifiy a default to use instead of 'require'.
+  default:
+    - [--compilation_level, ADVANCED_OPTIMIZATIONS]
+    - [--warning_level, QUIET]
+    - [--externs, spike/jquery.externs]
+    - [--js, spike/common.js]
+    - [--js, spike/widget_test_3.js]

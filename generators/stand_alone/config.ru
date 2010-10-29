@@ -1,4 +1,4 @@
-#\ -w -p 3000
+#\ -w -p 9009
 
 require 'rubygems'
 gem 'googlyscript'

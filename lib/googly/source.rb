@@ -80,7 +80,7 @@ class Googly
     end
     
 
-    # The current dependencies.  Read this after calling {Source#changed?}  Do not change.
+    # The current dependencies.  Read this after calling {Source#deps_changed?}  Do not change.
     # The values for the returned Hash contain a Hash describing a file.
     # - (Array) <b>:provide</b> -- Array of <tt>goog.provide</tt> namespace strings from the file.
     # - (Array) <b>:require</b> -- Array of <tt>goog.require</tt> namespace strings from the file.

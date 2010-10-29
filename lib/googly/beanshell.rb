@@ -6,15 +6,6 @@ class Googly
   # This way we don't pay the Java startup costs on every compile job.
   class BeanShell
     
-    # Compiles javascript with Google Closure via Googly.java.
-    # The Google Closure compiler has system exits within its main
-    # compile function.  Googlyscript includes a jar that can trap
-    # these system exits and allow for seamless REPL execution.
-    def compile_js(args)
-      # The googly.java will trap Java System.exit() calls.
-      run "Googly.compile_js(new String[]{#{args.collect{|a|a.to_s.dump}.join(', ')}});"
-    end
-    
     # Run any Java command that BeanShell supports.
     # Recovers from error conditions when the Java process is killed.
     def run(command)

@@ -22,9 +22,8 @@ class Googly
     
     include Googly::Responses    
     
-    def initialize(source, beanshell, config)
+    def initialize(source, config)
       @source = source
-      @beanshell = beanshell
       @config = config
     end
 
@@ -83,7 +82,8 @@ class Googly
         File.open(ctx[:log], 'w') do |f|
           f.write "Start: #{Time.now}\n\n"
           f.flush
-          out, err = @beanshell.compile_js(ctx[:options])
+          java_opts = ctx[:options].collect{|a|a.to_s.dump}.join(', ')
+          out, err = Googly.java("Googly.compile_js(new String[]{#{java_opts}});")
           puts err
           f.write err
           f.write "\nEnd: #{Time.now}\n"

@@ -1,5 +1,7 @@
 require 'test_helper'
 
+# Python is required as a dependency of calcdeps.py and closurebuilder.py
+
 class SourcesTest < Test::Unit::TestCase
 
   BIG_NAMESPACE = "goog.editor.Field"

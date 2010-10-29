@@ -20,7 +20,7 @@ require 'tmpdir'
 # directly into a Rails 3 route file, or adapted to anything that
 # provides a rack environment.
 # @example config.ru
-#   #\ -w -p 3000
+#   #\ -w -p 9009
 #   require 'rubygems'
 #   gem 'googlyscript'
 #   require 'googly'
@@ -142,6 +142,15 @@ class Googly
     [status, headers, body]
   end
   
+  # Run Java command in a REPL (read-execute-print-loop).
+  # This keeps Java running so you only pay the startup cost on the first compile.
+  # @param (String) command Rack environment.
+  # @return (Array)[stdout, stderr]
+  def java(command)
+    @beanshell ||= BeanShell.new
+    @beanshell.run(command)
+  end
+  
 
   protected
   
@@ -152,9 +161,8 @@ class Googly
     config.java = 'java'
     config.compiler_jar = File.join(base_path, 'closure-compiler', 'compiler.jar')
     config.tmpdir = Dir.tmpdir
-    @beanshell = BeanShell.new
     @source = Source.new(@routes)
-    @compiler = Compiler.new(@source, @beanshell, config)
+    @compiler = Compiler.new(@source, config)
   end
   
   def not_found

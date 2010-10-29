@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 class Googly
+  
+  # This class is responsible for scanning source files and calculating dependencies.
 
   class Source
     
-    BASE_REGEX_STRING = '^\s*goog\.%s\(\s*[\'"](.+)[\'"]\s*\)'
+    BASE_REGEX_STRING = '^\s*goog\.%s\s*\(\s*[\'"]([^\)]+)[\'"]\s*\)'
     PROVIDE_REGEX = Regexp.new(BASE_REGEX_STRING % 'provide')
     REQUIRE_REGEX = Regexp.new(BASE_REGEX_STRING % 'require')
     
@@ -25,9 +28,9 @@ class Googly
       @deps = {}
     end
     
-    # The object starts out with knowledge of no deps.
-    # This will scan and cache every .js file in every route.
-    # If @deps are altered (except mtime), returns true.
+    # Scan every .js file in every route for changes since last scan.
+    # Updates {Source#deps} as needed.
+    # @return (Boolean) True if any changes to {Source#deps} (except :mtime).
     def deps_changed?
       added_files = []
       changed_files = []
@@ -36,7 +39,7 @@ class Googly
       @deps.each {|f, dep| dep[:not_found] = true}
       # Scan for changes
       @routes.each do |path, options|
-        next unless options[:deps]
+        next unless options[:source]
         dir = options[:dir]
         dir_range = (dir.length..-1)
         Dir.glob(File.join(dir,'**','*.js')).each do |filename|
@@ -75,16 +78,26 @@ class Googly
         return false
       end
     end
-    alias :refresh :deps_changed?
-
     
-    # After refresh or deps_changed? is called, this contains the result.
+
+    # The current dependencies.  Read this after calling {Source#changed?}  Do not change.
+    # The values for the returned Hash contain a Hash describing a file.
+    # - (Array) <b>:provide</b> -- Array of <tt>goog.provide</tt> namespace strings from the file.
+    # - (Array) <b>:require</b> -- Array of <tt>goog.require</tt> namespace strings from the file.
+    # - (String) <b>:path</b> -- Path where Googlyscript is serving the file.  (will match env['PATH_INFO'])
+    # - (Time) <b>:mtime</b> -- File.mtime
+    # @return (Hash{filename=>Hash})
     attr_reader :deps
     
-    
+
+    # Calculate all required files for an array of namespaces.
+    # This will also refresh {Source#deps}.
+    # @param (Array<String>) namespaces 
+    # @return (Array<String>) Full filesystem path and name for each file.
     def files(namespaces)
-      refresh
-      # Work up a cached hash keyed by provide namespace
+      # Work up a cached hash keyed by provide namespace.
+      # Everything we need is in @deps.
+      deps_changed?
       unless @sources
         @sources = {}
         @deps.each do |filename, dep|

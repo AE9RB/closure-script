@@ -2,21 +2,21 @@ require 'open3'
 
 class Googly
   
-  # Googly will manage a single BeanShell to run the Java tools.
+  # Googlyscript will manage a single BeanShell to run the Java tools.
   # This way we don't pay the Java startup costs on every compile job.
-
   class BeanShell
     
-    PROMPT = /^bsh % $\Z/
-    
-    # Shortcut to Googly.compile_js in Googly.jar.
+    # Compiles javascript with Google Closure via Googly.java.
+    # The Google Closure compiler has system exits within its main
+    # compile function.  Googlyscript includes a jar that can trap
+    # these system exits and allow for seamless REPL execution.
     def compile_js(args)
       # The googly.java will trap Java System.exit() calls.
       run "Googly.compile_js(new String[]{#{args.collect{|a|a.to_s.dump}.join(', ')}});"
     end
     
-    # Public function to run any Java command.
-    # Handles error when the Java process is killed.
+    # Run any Java command that BeanShell supports.
+    # Recovers from error conditions when the Java process is killed.
     def run(command)
       begin
         return execute command
@@ -36,6 +36,7 @@ class Googly
     
     # Executes a command on the REPL and returns the result.
     def execute(command)
+      prompt = /^bsh % $\Z/
       unless $cmdin
         classpath = [Googly.config.compiler_jar]
         classpath << File.join(Googly.base_path, 'beanshell', 'bsh-core-2.0b4.jar')
@@ -43,17 +44,17 @@ class Googly
         java_repl = "#{Googly.config.java} -classpath #{classpath.join(':')} bsh.Interpreter"
         $cmdin, $cmdout, $cmderr = Open3::popen3(java_repl)
         eat_startup = ''
-        eat_startup << $cmdout.readpartial(8192) until eat_startup =~ PROMPT
+        eat_startup << $cmdout.readpartial(8192) until eat_startup =~ prompt
       end
       $cmdin << command
       out = ''
       err = ''
-      until out =~ PROMPT
+      until out =~ prompt
         sleep 0.05 # wait at start and collect results 20 times per second
         out << $cmdout.read_nonblock(8192) while true rescue Errno::EAGAIN
         err << $cmderr.read_nonblock(8192) while true rescue Errno::EAGAIN
       end
-      [out.sub(PROMPT, ''), err]
+      [out.sub(prompt, ''), err]
     end
 
     

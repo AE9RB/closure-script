@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 class Googly
+  
+  # The compiler will detect changes to your source and compile only
+  # when necessary.
 
   class Compiler
     
@@ -24,6 +28,9 @@ class Googly
       @config = config
     end
 
+    # Rack interface.
+    # @param (Hash) env Rack environment.
+    # @return (Array)[status, headers, body]
     def call(env)
       build, type = env["QUERY_STRING"].split('=')
       return not_found unless build
@@ -42,6 +49,7 @@ class Googly
       [status, headers, body]
     end
     
+    # Compile a job from the makefile.
     def compile(build, type=nil)
       compile_js(ctx_setup(build, type))
     end
@@ -121,7 +129,6 @@ class Googly
         # file dependency intentionally skipped
       else
         ctx[:options] = yaml(build, type).flatten
-        # add namespace files to options
         @source.files(ctx[:namespaces]).each do |filename|
           ctx[:options].push '--js'
           ctx[:options].push filename

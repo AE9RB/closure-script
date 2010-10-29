@@ -1,5 +1,7 @@
 class Googly
 
+  # @todo This is a work in progress.
+
   class Soy
     
     def initialize(options)

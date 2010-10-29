@@ -1,8 +1,11 @@
 require 'rubygems'
+gem 'haml'
 require 'haml'
 require 'rack/file'
 
 class Googly
+
+  # @todo This is a work in progress.
 
   class Haml < Rack::File
 

@@ -12,18 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 class Googly
+  
+  # The deps server will vend a deps.js that is always up-to-date.
 
   class Deps
 
     include Googly::Responses
-    
+
+    # @param (Source) source
+    # @param (String) path_info default: '/deps.js'
     def initialize(source, path_info)
       @source = source
       @path_info = path_info
       @path_info = '/deps.js' if @path_info == true 
     end
     
+    # Rack interface.
+    # @param (Hash) env Rack environment.
+    # @return (Array)[status, headers, body]
     def call(env)
       if Rack::Utils.unescape(env["PATH_INFO"]) == @path_info
         deps

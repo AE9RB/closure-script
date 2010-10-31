@@ -214,8 +214,8 @@ class Googly
     rack_stack = Array.new
     rack_stack << Deps.new(@source, options[:deps]) if options[:deps]
     rack_stack << Rack::File.new(options[:dir])
-    rack_stack << Erb.new(options)
-    rack_stack << Haml.new(options)
+    rack_stack << Erb.new(options[:dir])
+    rack_stack << Haml.new(options[:dir])
     rack_stack
   end
 

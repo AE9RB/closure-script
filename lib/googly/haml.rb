@@ -6,8 +6,8 @@ class Googly
     
     include Responses
 
-    def initialize(options)
-      @options = options
+    def initialize(root)
+      @root = root
     end
 
     def call(env)
@@ -19,13 +19,13 @@ class Googly
       template = Errno::ENOENT
       filename = path_info.gsub(/\.html$/, '.haml')
       if filename != path_info
-        template = File.read(File.join(@options[:dir], filename)) rescue Errno::ENOENT
+        template = File.read(File.join(@root, filename)) rescue Errno::ENOENT
       end
       if template == Errno::ENOENT
-        template = File.read(File.join(@options[:dir], path_info + '.haml')) rescue Errno::ENOENT
+        template = File.read(File.join(@root, path_info + '.haml')) rescue Errno::ENOENT
       end
       if template == Errno::ENOENT
-        template = File.read(File.join(@options[:dir], path_info + '.html.haml')) rescue Errno::ENOENT
+        template = File.read(File.join(@root, path_info + '.html.haml')) rescue Errno::ENOENT
       end
       return not_found if template == Errno::ENOENT
 

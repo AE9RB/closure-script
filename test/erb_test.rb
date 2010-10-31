@@ -3,7 +3,7 @@ require 'test_helper'
 class ErbTest < Test::Unit::TestCase
 
   def setup
-    @options = {:dir => File.join(Googly.base_path, 'test')}
+    @options = File.join(Googly.base_path, 'test')
   end
 
   def test_serve_from_single_file_extension

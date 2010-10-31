@@ -49,7 +49,6 @@ class Googly
   autoload(:Source, 'googly/source')
   autoload(:Deps, 'googly/deps')
   autoload(:Erb, 'googly/erb')
-  autoload(:Soy, 'googly/soy')
   autoload(:Haml, 'googly/haml')
 
   # Singleton
@@ -77,8 +76,6 @@ class Googly
   # @return [OpenStruct]
   attr_reader :config
   
-  #TODO make deps>sources and deps_server>deps
-
   # Maps javascript sources and static files to the Googlyscript http server.
   # @example Basic routing:
   #   Googly.add_route('/', './public')
@@ -101,7 +98,7 @@ class Googly
   #         a large enough number of image files to slow a directory glob.
   # @option options [Boolean, String] :deps (false) This will serve
   #         path+"/deps.js" when true.  Set to a string if you
-  #         want something other than "/deps.js".  Its basic intent is to override
+  #         want something other than "/deps.js".  The intent is to override
   #         the static deps.js in the google closure library with a dynamic 
   #         version that is always up-to-date.
   def add_route(path, options)
@@ -118,7 +115,7 @@ class Googly
       elsif path == "/goog"
         options = {:dir => options, :source => true, :deps => true} 
       else
-        options = {:dir => options, :source => true, :soy => true, :erb => true, :haml => true} 
+        options = {:dir => options, :source => true} 
       end
     end
     options[:dir] = File.expand_path(options[:dir])
@@ -143,7 +140,7 @@ class Googly
   end
   
   # Run Java command in a REPL (read-execute-print-loop).
-  # This keeps Java running so you only pay the startup cost on the first compile.
+  # This keeps Java running so you only pay the startup cost on the first job.
   # @param (String) command Rack environment.
   # @return (Array)[stdout, stderr]
   def java(command)
@@ -217,9 +214,8 @@ class Googly
     rack_stack = Array.new
     rack_stack << Deps.new(@source, options[:deps]) if options[:deps]
     rack_stack << Rack::File.new(options[:dir])
-    # rack_stack << Erb.new(options) if options[:erb]
-    # rack_stack << Soy.new(options) if options[:soy]
-    # rack_stack << Haml.new(options) if options[:haml]
+    rack_stack << Erb.new(options)
+    rack_stack << Haml.new(options)
     rack_stack
   end
 
@@ -232,7 +228,7 @@ class Googly
       :public => {:dir => public_dir, :hidden => true},
       :goog => {:dir => goog_dir, :source => true, :deps => true},
       :goog_vendor => {:dir => goog_vendor_dir, :source => true, :deps => true},
-      :googly => {:dir => googly_dir, :source => true, :soy => true, :erb => true, :haml => true},
+      :googly => {:dir => googly_dir, :source => true},
     }
   end
   

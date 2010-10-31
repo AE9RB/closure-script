@@ -19,7 +19,7 @@ class Googly
 
   class Deps
 
-    include Googly::Responses
+    include Responses
 
     # @param (Source) source
     # @param (String) path_info default: '/deps.js'

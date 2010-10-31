@@ -14,5 +14,13 @@ class Googly
        [body]]
     end
     
+    def forbidden
+      body = "Forbidden\n"
+      [403, {"Content-Type" => "text/plain",
+             "Content-Length" => body.size.to_s,
+             "X-Cascade" => "pass"},
+       [body]]
+    end
+    
   end
 end

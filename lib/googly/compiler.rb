@@ -42,7 +42,7 @@ class Googly
       status, headers, body = Rack::File.new(File.dirname(filename)).call(
         {"PATH_INFO" => Rack::Utils.escape(File.basename(filename))}
       )
-      if %w{js map}.include? file_ext
+      if status == 200 and %w{js map}.include?(file_ext)
         headers["Content-Type"] = "application/javascript" 
       end
       [status, headers, body]

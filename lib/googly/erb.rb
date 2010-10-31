@@ -1,18 +1,16 @@
 class Googly
 
-  # @todo This is a work in progress.
+  # @todo This is a placeholder for ERB support.
 
   class Erb
     
+    include Responses
+
     def initialize(options)
     end
     
     def call(env)
-      body = "File not found\n"
-      [404, {"Content-Type" => "text/plain",
-         "Content-Length" => body.size.to_s,
-         "X-Cascade" => "pass"},
-       [body]]
+      not_found
     end
     
   end

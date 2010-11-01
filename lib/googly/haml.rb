@@ -19,22 +19,23 @@ class Googly
       template = Errno::ENOENT
       filename = path_info.gsub(/\.html$/, '.haml')
       if filename != path_info
-        template = File.read(File.join(@root, filename)) rescue Errno::ENOENT
+        filename = File.join(@root, filename)
+        template = File.read(filename) rescue Errno::ENOENT
       end
       if template == Errno::ENOENT
-        template = File.read(File.join(@root, path_info + '.haml')) rescue Errno::ENOENT
+        filename = File.join(@root, path_info + '.haml')
+        template = File.read(filename) rescue Errno::ENOENT
       end
       if template == Errno::ENOENT
-        template = File.read(File.join(@root, path_info + '.html.haml')) rescue Errno::ENOENT
+        filename = File.join(@root, path_info + '.html.haml')
+        template = File.read(filename) rescue Errno::ENOENT
       end
       return not_found if template == Errno::ENOENT
 
-      # We wait until the very last moment to load haml.
-      require 'rubygems'
-      gem 'haml'
-      require 'haml'
+      haml_options = Googly.config.haml_options || {}
+      haml_options = haml_options.merge(:filename => filename)
       
-      body = ::Haml::Engine.new(template).render
+      body = ::Haml::Engine.new(template, haml_options).render
       [200, {"Content-Type" => "text/html",
          "Content-Length" => body.size.to_s},
        [body]]

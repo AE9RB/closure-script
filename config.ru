@@ -3,8 +3,6 @@
 # Visit the generators folder to use Googlyscript on your project.
 
 require File.join(File.dirname(__FILE__), 'lib', 'googly.rb')
-require 'rubygems'
-gem 'haml'
 require 'haml'
 require 'sass/plugin/rack'
 
@@ -18,7 +16,7 @@ Googly.add_route('/goog_vendor', :goog_vendor)
 Googly.add_route('/googly', :googly)
 Googly.config.makefile = File.join(Googly.base_path, 'src', 'javascript', 'makefile.yml')
 Googly.config.tmpdir = File.join(Googly.base_path, 'tmp')
-Googly.config.haml_options = {:format => :html5}
+Googly.config.haml[:format] = :html5
 
 use Rack::Reloader, 0
 use Rack::Lint

@@ -1,6 +1,6 @@
 class Googly
 
-  # Basic support for ERB.
+  # Basic support for ERB templates.
 
   class Erb
     
@@ -22,6 +22,7 @@ class Googly
         template = File.read(File.join(@root, filename)) rescue Errno::ENOENT
       end
       if template == Errno::ENOENT
+        #TODO Content-Type for non-html
         template = File.read(File.join(@root, path_info + '.erb')) rescue Errno::ENOENT
       end
       if template == Errno::ENOENT

@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'haml'
 
 class HamlTest < Test::Unit::TestCase
 

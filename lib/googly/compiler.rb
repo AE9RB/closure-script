@@ -33,7 +33,7 @@ class Googly
     def call(env)
       build, type = env["QUERY_STRING"].split('=')
       return not_found unless build
-      build = Rack::Utils.unescape(build).gsub /\.(js|log|map)$/, ''
+      build = Rack::Utils.unescape(build).gsub(/\.(js|log|map)$/, '')
       file_ext = $1
       type = Rack::Utils.unescape(type) if type
       ctx = ctx_setup(build, type)
@@ -172,7 +172,8 @@ class Googly
     # note: @yaml resets on each call to call()
     def yaml(build=nil, type=nil)
       raise "no makefile configured" unless @config.makefile
-      @yaml ||= YAML.load(ERB.new(File.read(@config.makefile)).result)
+      require 'yaml'
+      @yaml ||= ::YAML.load(ERB.new(File.read(@config.makefile)).result)
       raise "makefile error" unless @yaml.kind_of? Hash
       if build
         raise "#{build.dump} not found" unless @yaml.has_key?(build)

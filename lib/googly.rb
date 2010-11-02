@@ -198,7 +198,8 @@ class Googly
         options[:rack_stack].each do |rack_server|
           status, headers, body = rack_server.call(env)
           @rack_call_log << rack_server.class.name
-          break unless headers["X-Cascade"] == "pass"
+          # Rack::File from rack<V2 doesn't implement X-Cascade
+          break unless headers["X-Cascade"] == "pass" or rack_server.class == Rack::File and status == 404
         end
         env["SCRIPT_NAME"] = saved_script_name
         env["PATH_INFO"] = saved_path_info

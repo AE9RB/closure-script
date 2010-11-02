@@ -3,8 +3,7 @@
 # Visit the generators folder to use Googlyscript on your project.
 
 require File.join(File.dirname(__FILE__), 'lib', 'googly.rb')
-require 'haml'
-require 'sass/plugin/rack'
+require 'sass/plugin'
 
 Sass::Plugin.options[:template_location] = File.join(Googly.base_path, 'src', 'stylesheet')
 Sass::Plugin.options[:css_location] = File.join(Googly.base_path, 'public', 'stylesheets')
@@ -21,7 +20,7 @@ Googly.config.haml[:format] = :html5
 use Rack::Reloader, 0
 use Rack::Lint
 use Rack::ShowExceptions
-use Sass::Plugin::Rack
+use Googly::Sass
 run Googly
 
 print "Your javascript is about to become googly!\n"

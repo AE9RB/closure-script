@@ -50,6 +50,7 @@ class Googly
   autoload(:Deps, 'googly/deps')
   autoload(:Erb, 'googly/erb')
   autoload(:Haml, 'googly/haml')
+  autoload(:Sass, 'googly/sass')
 
   # Singleton
   class << self
@@ -158,6 +159,7 @@ class Googly
     config.java = 'java'
     config.compiler_jar = File.join(base_path, 'closure-compiler', 'compiler.jar')
     config.tmpdir = Dir.tmpdir
+    config.haml = {}
     @source = Source.new(@routes)
     @compiler = Compiler.new(@source, config)
   end

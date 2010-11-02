@@ -1,14 +1,23 @@
+# Copyright 2010 The Googlyscript Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 class Googly
 
-  # Enable Haml by making ::Haml::Engine available (<tt>require 'haml'</tt>).
-  # Sass works by installing Sass::Plugin::Rack as middleware.
+  # To enable Haml, install the gem and it becomes available.
   # @example config.ru
-  #  require 'haml'
   #  Googly.config.haml[:format] = :html5
-  # @example config.ru
-  #  require 'sass/plugin/rack'
-  #  Sass::Plugin.options[:template_location] = {in_dir => out_dir}
-  #  use Sass::Plugin::Rack
 
   class Haml
     
@@ -17,7 +26,6 @@ class Googly
     # @param (String) root Filesystem root.
     def initialize(root)
       @root = root
-      Googly.config.haml ||= {}
     end
 
     # Rack interface.
@@ -44,9 +52,9 @@ class Googly
         template = File.read(filename) rescue Errno::ENOENT
       end
       return not_found if template == Errno::ENOENT
-
-      options = Googly.config.haml.merge(:filename => filename)
       
+      require 'haml'
+      options = Googly.config.haml.merge(:filename => filename)
       body = ::Haml::Engine.new(template, options).render
       [200, {"Content-Type" => "text/html",
          "Content-Length" => body.size.to_s},

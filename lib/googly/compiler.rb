@@ -20,7 +20,7 @@ class Googly
 
   class Compiler
     
-    include Googly::Responses    
+    include Responses    
     
     def initialize(source, config)
       @source = source
@@ -39,13 +39,8 @@ class Googly
       ctx = ctx_setup(build, type)
       compile_js(ctx) if file_ext == 'js'
       filename = ctx[file_ext.to_sym]
-      status, headers, body = Rack::File.new(File.dirname(filename)).call(
-        {"PATH_INFO" => Rack::Utils.escape(File.basename(filename))}
-      )
-      if status == 200 and %w{js map}.include?(file_ext)
-        headers["Content-Type"] = "application/javascript" 
-      end
-      [status, headers, body]
+      content_type = %w{js map}.include?(file_ext) ? 'application/javascript' : 'text/plain'
+      file_response(filename, content_type)
     end
     
     # Compile a job from the makefile.

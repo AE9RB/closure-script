@@ -47,10 +47,10 @@ class Googly
   autoload(:BeanShell, 'googly/beanshell')
   autoload(:Compiler, 'googly/compiler')
   autoload(:Source, 'googly/source')
-  autoload(:Deps, 'googly/deps')
-  autoload(:Erb, 'googly/erb')
-  autoload(:Haml, 'googly/haml')
   autoload(:Sass, 'googly/sass')
+  autoload(:Route, 'googly/route')
+  
+  include Responses
 
   # Singleton
   class << self
@@ -74,6 +74,7 @@ class Googly
   # - (String) *java* -- default: "java" -- Your Java executable.
   # - (String) *compiler_jar* -- A compiler.jar to use instead of the one in the gem.
   # - (String) *tmpdir* -- Temp directory to use instead of the OS default.
+  # - (Hash) *haml* -- Options hash for haml engine.
   # @return [OpenStruct]
   attr_reader :config
   
@@ -120,7 +121,7 @@ class Googly
       end
     end
     options[:dir] = File.expand_path(options[:dir])
-    options[:rack_stack] = rack_stack_for(path, options)
+    options[:route] ||= Route.new(options[:dir], options[:deps], @source)
     @routes << [path, options]
     @routes.sort! {|a,b| b[0] <=> a[0]}
   end
@@ -129,15 +130,12 @@ class Googly
   # @param (Hash) env Rack environment.
   # @return (Array)[status, headers, body]
   def call(env)
-    @rack_call_log = []
     path_info = env["PATH_INFO"]
     if path_info == '/' or path_info == '%2F' or path_info == '%2f'
-      status, headers, body = call_root(env)
+      call_root(env)
     else
-      status, headers, body = call_route(env)
+      call_routes(env)
     end
-    return not_found if status == 404 and headers["X-Cascade"] == "pass"
-    [status, headers, body]
   end
   
   # Run Java command in a REPL (read-execute-print-loop).
@@ -164,64 +162,28 @@ class Googly
     @compiler = Compiler.new(@source, config)
   end
   
-  def not_found
-    if @rack_call_log.length == 0
-      body = "404 Not Found.\nNo rack servers called.  Did you add routes?\n"
-    else
-      body = "404 Not Found.\nTried: #{@rack_call_log.join(', ')}.\n"
-    end
-    [404, {"Content-Type" => "text/plain",
-       "Content-Length" => body.size.to_s,
-       "X-Cascade" => "pass"},
-     [body]]
-  end
-
 
   def call_root(env)
-    status, headers, body = [ 404, {'X-Cascade' => 'pass'}, [] ]
+    status, headers, body = not_found
     [@compiler].each do |rack_server|
       status, headers, body = rack_server.call(env)
-      @rack_call_log << rack_server.class.name
       break unless headers["X-Cascade"] == "pass"
     end
     [status, headers, body]
   end
 
 
-  def call_route(env)
-    status, headers, body = [ 404, {'X-Cascade' => 'pass'}, [] ]
-    saved_script_name = env["SCRIPT_NAME"]
-    saved_path_info = env["PATH_INFO"]
+  def call_routes(env)
     path_info = Rack::Utils.unescape(env["PATH_INFO"])
     @routes.each do |path, options|
       if path_info =~ %r{^#{Regexp.escape(path)}(/.*|)$}
-        env["SCRIPT_NAME"] = "#{saved_script_name}#{path}"
-        env["PATH_INFO"] = Rack::Utils.escape($1)
-        options[:rack_stack].each do |rack_server|
-          status, headers, body = rack_server.call(env)
-          @rack_call_log << rack_server.class.name
-          # Rack::File from rack<V2 doesn't implement X-Cascade
-          break unless headers["X-Cascade"] == "pass" or rack_server.class == Rack::File and status == 404
-        end
-        env["SCRIPT_NAME"] = saved_script_name
-        env["PATH_INFO"] = saved_path_info
-        break
+        return options[:route].call(env, $1)
       end
     end
-    [status, headers, body]
+    not_found
   end
 
   
-  # X-Cascade stack of rack servers
-  def rack_stack_for(path, options)
-    rack_stack = Array.new
-    rack_stack << Deps.new(@source, options[:deps]) if options[:deps]
-    rack_stack << Rack::File.new(options[:dir])
-    rack_stack << Erb.new(options[:dir])
-    rack_stack << Haml.new(options[:dir])
-    rack_stack
-  end
-
   def built_ins
     public_dir = File.join(base_path, 'public')
     goog_dir = File.join(base_path, 'closure-library', 'closure', 'goog')

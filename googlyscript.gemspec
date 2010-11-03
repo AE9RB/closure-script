@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'rack'
 
   s.files        = `git ls-files`.split("\n")
-  s.executables  = `git ls-files`.split("\n").map{|f| f =~ /^bin\/(.*)/ ? $1 : nil}.compact
+  s.executables  = `git ls-files`.split("\n").map{|f| f =~ /^(bin\/.*)/ ? $1 : nil}.compact
+  s.test_files   = `git ls-files`.split("\n").map{|f| f =~ /^(test\/.*_test.rb)$/ ? $1 : nil}.compact
   s.require_path = 'lib'
 end

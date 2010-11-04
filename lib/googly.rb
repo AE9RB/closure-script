@@ -76,14 +76,23 @@ class Googly
   # - (String) *tmpdir* -- Temp directory to use instead of the OS default.
   # - (Hash) *haml* -- Options hash for haml engine.
   # @return [OpenStruct]
-  attr_reader :config
+  def config
+    return @config if @config
+    @config = OpenStruct.new
+    @config.java = 'java'
+    @config.compiler_jar = File.join(base_path, 'closure-compiler', 'compiler.jar')
+    @config.tmpdir = Dir.tmpdir
+    @config.haml = {}
+    @config
+  end
   
   # Maps javascript sources and static files to the Googlyscript http server.
   # @example Basic routing:
   #   Googly.add_route('/', './public')
   #   Googly.add_route('/goog', :goog)
+  #   Googly.add_route('/myapp', my_dir)
   # @example Advanced routing:
-  #   Googly.add_route('/myapp', :dir => my_dir, :source => true, :deps => true)
+  #   Googly.add_route('/', :dir => my_dir, :source => true, :deps => '/goog/deps.js')
   # @overload add_route(path, directory)
   # @overload add_route(path, built_in)
   # @overload add_route(path, options)
@@ -153,11 +162,6 @@ class Googly
   def initialize 
     @routes = Array.new
     @base_path = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-    @config = OpenStruct.new
-    config.java = 'java'
-    config.compiler_jar = File.join(base_path, 'closure-compiler', 'compiler.jar')
-    config.tmpdir = Dir.tmpdir
-    config.haml = {}
     @source = Source.new(@routes)
     @compiler = Compiler.new(@source, config)
   end

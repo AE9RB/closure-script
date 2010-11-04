@@ -123,7 +123,6 @@ class Googly
       end
       return files if files.length == 0
       files.unshift base_js
-      files
     end
 
 

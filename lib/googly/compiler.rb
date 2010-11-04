@@ -36,7 +36,7 @@ class Googly
       build = Rack::Utils.unescape(build).gsub(/\.(js|log|map)$/, '')
       file_ext = $1
       type = Rack::Utils.unescape(type) if type
-      ctx = ctx_setup(build, type)
+      ctx = ctx_setup(build, type, file_ext)
       compile_js(ctx) if file_ext == 'js'
       filename = ctx[file_ext.to_sym]
       content_type = %w{js map}.include?(file_ext) ? 'application/javascript' : 'text/plain'
@@ -58,7 +58,7 @@ class Googly
       js_mtime = File.mtime ctx[:js] rescue Errno::ENOENT
       makefile_mtime = File.mtime @config.makefile
       compiled = false if !js_mtime or makefile_mtime > js_mtime
-      ctx[:files].each do |filename|
+      (ctx[:files]+ctx[:externs]).each do |filename|
         break unless compiled
         mtime = File.mtime filename
         compiled = false if !mtime or mtime > js_mtime
@@ -97,13 +97,13 @@ class Googly
     
     # Sets up entire context for a compilation.
     # :files => array of all source files in build.
+    # :externs => array of all externs in build.
     # :type => computed type.
     # :log,js,map => full path to the files.
     # :namespaces => from the 'require' for the build.
     # :compilation_level => the compiler option, if present.
-    # :options => for compiler.jar only; use the above extracted
-    #             keys for internal Googly::Compiler logic.
-    def ctx_setup(build, type)
+    # :options => for compiler.jar only
+    def ctx_setup(build, type, file_ext)
       @yaml = nil # so yaml() will reload the file
       if !type or type == 'default'
         if yaml(build)['default']
@@ -115,18 +115,22 @@ class Googly
       base_filename = File.expand_path("#{build}.#{type}", @config.tmpdir)
       ctx = {
         :files => [],
+        :externs => [],
         :type => type,
         :log => "#{base_filename}.log",
         :namespaces => (yaml(build)['require']||[]).flatten
       }
       if type == 'require'
         ctx[:options] = []
-        # file dependency intentionally skipped
       else
         ctx[:options] = yaml(build, type).flatten
-        @source.files(ctx[:namespaces]).each do |filename|
-          ctx[:options].push '--js'
-          ctx[:options].push filename
+        if file_ext == 'js'
+          # File dependency is expensive so we only run it when it's needed.
+          # So only js requests when it's not the 'require' type.
+          @source.files(ctx[:namespaces]).each do |filename|
+            ctx[:options].push '--js'
+            ctx[:options].push filename
+          end
         end
       end
       # scan fully built set of options to extract context
@@ -136,6 +140,8 @@ class Googly
         raise "options must all be -- format" unless option =~ /^--/
         if option == '--js'
           ctx[:files].push value
+        elsif option == '--externs'
+          ctx[:externs].push value
         elsif option == '--js_output_file'
           ctx[:js] = File.expand_path value
           value.replace ctx[:js] # upgrade to full path

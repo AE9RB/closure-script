@@ -135,6 +135,11 @@ class Googly
     @routes.sort! {|a,b| b[0] <=> a[0]}
   end
   
+  # @see Compiler#compile_js
+  def compile_js(build, type=nil)
+    @compiler.compile_js(build, type)
+  end
+    
   # Rack interface.
   # @param (Hash) env Rack environment.
   # @return (Array)[status, headers, body]

@@ -36,23 +36,25 @@ class Googly
       build = Rack::Utils.unescape(build).gsub(/\.(js|log|map)$/, '')
       file_ext = $1
       type = Rack::Utils.unescape(type) if type
-      ctx = ctx_setup(build, type, file_ext)
-      compile_js(ctx) if file_ext == 'js'
+      ctx = setup(build, type, file_ext)
+      compile(ctx) if file_ext == 'js'
       filename = ctx[file_ext.to_sym]
       content_type = %w{js map}.include?(file_ext) ? 'application/javascript' : 'text/plain'
       file_response(filename, content_type)
     end
     
     # Compile a job from the makefile.
-    def compile(build, type=nil)
-      compile_js(ctx_setup(build, type))
+    # @param (String) build
+    # @param (String) type
+    def compile_js(build, type=nil)
+      compile(setup(build, type))
     end
     
     
     protected
     
     
-    def compile_js(ctx)
+    def compile(ctx)
       # First, test if compilation is really needed.
       compiled = true
       js_mtime = File.mtime ctx[:js] rescue Errno::ENOENT
@@ -103,7 +105,7 @@ class Googly
     # :namespaces => from the 'require' for the build.
     # :compilation_level => the compiler option, if present.
     # :options => for compiler.jar only
-    def ctx_setup(build, type, file_ext)
+    def setup(build, type, file_ext)
       @yaml = nil # so yaml() will reload the file
       if !type or type == 'default'
         if yaml(build)['default']

@@ -62,12 +62,6 @@ class Googly
     end
   end
   
-  # Filesystem location of the Googlyscript install.
-  # Typically, where the gem was installed.  This is mainly used
-  # internally but may be useful for experimental configurations.
-  # @return [String]
-  attr_reader :base_path
-
   # These need to be set before the rack server is called for the first time.
   # === Attributes:
   # - (String) *makefile* -- Full path to the yaml makefile.
@@ -135,10 +129,27 @@ class Googly
     @routes.sort! {|a,b| b[0] <=> a[0]}
   end
   
+  # For Rakefile tasks or other automation.
   # @see Compiler#compile_js
   def compile_js(build, type=nil)
     @compiler.compile_js(build, type)
   end
+  
+  # Run Java command in a REPL (read-execute-print-loop).
+  # This keeps Java running so you only pay the startup cost on the first job.
+  # It will have compiler.jar and googly.jar loaded.
+  # @param (String) command Rack environment.
+  # @return (Array)[stdout, stderr]
+  def java(command)
+    @beanshell ||= BeanShell.new
+    @beanshell.run(command)
+  end
+
+  # Filesystem location of the Googlyscript install.
+  # Typically, where the gem was installed.  This is mainly used
+  # internally but may be useful for experimental configurations.
+  # @return [String]
+  attr_reader :base_path
     
   # Rack interface.
   # @param (Hash) env Rack environment.
@@ -152,17 +163,9 @@ class Googly
     end
   end
   
-  # Run Java command in a REPL (read-execute-print-loop).
-  # This keeps Java running so you only pay the startup cost on the first job.
-  # @param (String) command Rack environment.
-  # @return (Array)[stdout, stderr]
-  def java(command)
-    @beanshell ||= BeanShell.new
-    @beanshell.run(command)
-  end
-  
 
   protected
+
   
   def initialize 
     @routes = Array.new

@@ -112,17 +112,13 @@ class Googly
           end
         end
       end
-      # Create an array of filenames
-      files = []
+      # Create an array of all filenames
+      filenames = []
       namespaces.each do |namespace|
-        dependencies(namespace).each do |source_info|
-          unless files.include? source_info[:filename]
-            files.push source_info[:filename] 
-          end
-        end
+        dependencies(namespace, filenames)
       end
-      return files if files.length == 0
-      files.unshift base_js
+      return filenames if filenames.length == 0
+      filenames.unshift base_js
     end
 
 
@@ -150,24 +146,21 @@ class Googly
       raise "Google Closure base.js could not be found." unless found_base_js
       found_base_js
     end
-    
 
-    # Recursion with circular dependency stop
-    def dependencies(namespace, deps_list = [], traversal_path = [])
+
+    # Recursion with unusual circular dependency stop
+    def dependencies(namespace, filenames = [], prev = nil)
       unless source = @sources[namespace]
         raise "Namespace #{namespace.dump} not found." 
       end
-      return deps_list if traversal_path.include? namespace
-      traversal_path.push namespace
+      return if source == prev or filenames.include? source[:filename]
       source[:require].each do |required|
-        dependencies required, deps_list, traversal_path
+        dependencies required, filenames, source
       end
-      traversal_path.pop
-      deps_list.push source
-      return deps_list
+      filenames.push source[:filename]
     end
-
     
+
   end
   
 end

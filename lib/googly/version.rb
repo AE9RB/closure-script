@@ -1,5 +1,5 @@
 class Googly
-  VERSION = "0.0.5.dev"
+  VERSION = "0.0.6.dev"
 
   #TODO Thinking about these...
   # COMPILER_VERSION = ??

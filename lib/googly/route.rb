@@ -39,11 +39,18 @@ class Googly
       return forbidden if path_info.include? ".."
       return deps if path_info == @deps
       ext = File.extname(path_info)
-      files1 = [File.join(@root, path_info)]
-      files1 << files1.first + '.html' if ext == ''
-      files1 << files1.first.gsub(/.html$/,'') if ext == '.html'
+      filename = File.join(@root, path_info)
+      # First, the static files
+      files1 = [filename]
+      files1 << filename + '.html' if ext == ''
       files1.each do |filename1|
-        return file_response(filename1) if File.file?(filename1) and File.readable?(filename1)
+        if File.file?(filename1) and File.readable?(filename1)
+          return file_response(filename1)
+        end
+      end
+      # Now the template files
+      files1 << filename.gsub(/.html$/,'') if ext == '.html'
+      files1.each do |filename1|
         [['.erb', :erb], ['.haml', :haml]].each do |ext, method|
           files2 = [filename1+ext]
           files2 << filename1.gsub(/.html$/, ext) if File.extname(filename1) == '.html'

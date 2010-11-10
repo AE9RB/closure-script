@@ -56,7 +56,7 @@ class Googly
           files2 << filename1.gsub(/.html$/, ext) if File.extname(filename1) == '.html'
           files2.each do |filename2|
             if File.file?(filename2) and File.readable?(filename2)
-              return send(method, filename2, File.extname(filename1))
+              return send(method, filename2, File.extname(filename1), env)
             end
           end
         end
@@ -67,20 +67,25 @@ class Googly
     
     protected
     
+    def locals_for(env)
+      req = Rack::Request.new(env)
+      locals = {:mode => req.params['mode']}
+    end
     
-    def erb(filename, ext)
+    def erb(filename, ext, env)
       require 'erb'
-      body = ::ERB.new(File.read(filename)).result
+      locals = OpenStruct.new locals_for(env)
+      body = ::ERB.new(File.read(filename)).result(locals.send(:binding))
       [200, {"Content-Type" => Rack::Mime.mime_type(ext, 'text/html'),
          "Content-Length" => body.size.to_s},
        [body]]
     end
     
     
-    def haml(filename, ext)
+    def haml(filename, ext, env)
       require 'haml'
       options = Googly.config.haml.merge(:filename => filename)
-      body = ::Haml::Engine.new(File.read(filename), options).render
+      body = ::Haml::Engine.new(File.read(filename), options).render(Object.new, locals_for(env))
       [200, {"Content-Type" => "text/html",
          "Content-Length" => body.size.to_s},
        [body]]

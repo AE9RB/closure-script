@@ -125,7 +125,7 @@ class Googly
       if type == 'require'
         ctx[:options] = []
       else
-        ctx[:options] = yaml(build, type).flatten
+        ctx[:options] = []
         if file_ext == 'js'
           # File dependency is expensive so we only run it when it's needed.
           # So only js requests when it's not the 'require' type.
@@ -134,6 +134,7 @@ class Googly
             ctx[:options].push filename
           end
         end
+        ctx[:options] += yaml(build, type).flatten
       end
       # scan fully built set of options to extract context
       option = nil

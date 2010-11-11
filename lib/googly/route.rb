@@ -14,6 +14,9 @@
 
 
 class Googly
+  
+  # Googly::Route is the primary file server.  It supports ERB and Haml
+  # templating.  Templates render with a Rack::Request binding.
 
   class Route
     
@@ -74,8 +77,8 @@ class Googly
     
     def erb(filename, ext, env)
       require 'erb'
-      locals = OpenStruct.new locals_for(env)
-      body = ::ERB.new(File.read(filename)).result(locals.send(:binding))
+      ctx = Rack::Request.new(env)
+      body = ::ERB.new(File.read(filename)).result(ctx.send(:binding))
       [200, {"Content-Type" => Rack::Mime.mime_type(ext, 'text/html'),
          "Content-Length" => body.size.to_s},
        [body]]
@@ -85,7 +88,7 @@ class Googly
     def haml(filename, ext, env)
       require 'haml'
       options = Googly.config.haml.merge(:filename => filename)
-      body = ::Haml::Engine.new(File.read(filename), options).render(Object.new, locals_for(env))
+      body = ::Haml::Engine.new(File.read(filename), options).render(Rack::Request.new(env))
       [200, {"Content-Type" => "text/html",
          "Content-Length" => body.size.to_s},
        [body]]

@@ -67,14 +67,8 @@ class Googly
       not_found
     end
     
-    
     protected
-    
-    def locals_for(env)
-      req = Rack::Request.new(env)
-      locals = {:mode => req.params['mode']}
-    end
-    
+
     def erb(filename, ext, env)
       require 'erb'
       ctx = Rack::Request.new(env)
@@ -110,7 +104,6 @@ class Googly
          "Content-Length" => @deps_content_length},
         @deps_js]
     end
-    
-    
+
   end
 end

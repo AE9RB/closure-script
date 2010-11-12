@@ -46,6 +46,7 @@ class Googly
         classpath = [Googly.config.compiler_jar]
         classpath << File.join(Googly.base_path, 'beanshell', 'bsh-core-2.0b4.jar')
         classpath << File.join(Googly.base_path, 'lib', 'googly.jar')
+        #TODO spaces won't be escaped
         java_repl = "#{Googly.config.java} -classpath #{classpath.join(':')} bsh.Interpreter"
         $cmdin, $cmdout, $cmderr = Open3::popen3(java_repl)
         eat_startup = ''
@@ -55,6 +56,7 @@ class Googly
       out = ''
       err = ''
       until out =~ prompt
+        #TODO make threaded; this will save ~0.025 seconds per execution
         sleep 0.05 # wait at start and collect results 20 times per second
         out << $cmdout.read_nonblock(8192) while true rescue Errno::EAGAIN
         err << $cmderr.read_nonblock(8192) while true rescue Errno::EAGAIN

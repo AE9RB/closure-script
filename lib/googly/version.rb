@@ -4,5 +4,6 @@ class Googly
   #TODO Thinking about these...
   # COMPILER_VERSION = ??
   # LIBRARY_VERSION = ??
+  # TEMPLATES_VERSION = ??
   
 end

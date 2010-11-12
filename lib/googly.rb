@@ -138,7 +138,7 @@ class Googly
   # Run Java command in a REPL (read-execute-print-loop).
   # This keeps Java running so you only pay the startup cost on the first job.
   # It will have compiler.jar and googly.jar loaded.
-  # @param (String) command Rack environment.
+  # @param (String) command BeanShell Java command.
   # @return (Array)[stdout, stderr]
   def java(command)
     @beanshell ||= BeanShell.new
@@ -192,6 +192,7 @@ class Googly
         return options[:route].call(env, $1)
       end
     end
+    #TODO log warning about no routes
     not_found
   end
 

@@ -1,4 +1,4 @@
-#\ -w -p 9009
+#\ -w -p 9009 -E none
 # This is the rackup for working on Googlyscript.
 # Visit the generators folder to use Googlyscript on your project.
 
@@ -17,6 +17,7 @@ Googly.config.makefile = File.join(Googly.base_path, 'src', 'javascript', 'makef
 Googly.config.tmpdir = File.join(Googly.base_path, 'tmp')
 Googly.config.haml[:format] = :html5
 
+# use Rack::CommonLogger # This is slow, enable as needed
 use Rack::Reloader, 0
 use Rack::Lint
 use Rack::ShowExceptions

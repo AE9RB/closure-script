@@ -24,6 +24,7 @@ class Googly
     
     def initialize(source, config)
       @source = source
+      #TODO remove config after makefile extraction
       @config = config
     end
 
@@ -34,13 +35,13 @@ class Googly
       build, type = env["QUERY_STRING"].split('=')
       return not_found unless build
       build = Rack::Utils.unescape(build).gsub(/\.(js|log|map)$/, '')
-      file_ext = $1
+      return not_found unless file_ext = $1
       type = Rack::Utils.unescape(type) if type
-      ctx = setup(build, type, file_ext)
+      ctx = setup(build, type)
       compile(ctx) if file_ext == 'js'
       filename = ctx[file_ext.to_sym]
       content_type = %w{js map}.include?(file_ext) ? 'application/javascript' : 'text/plain'
-      file_response(filename, content_type)
+      file_response(env, filename, content_type)
     end
     
     # Compile a job from the makefile.
@@ -55,31 +56,44 @@ class Googly
     
     
     def compile(ctx)
-      # First, test if compilation is really needed.
-      compiled = true
-      js_mtime = File.mtime ctx[:js] rescue Errno::ENOENT
       makefile_mtime = File.mtime @config.makefile
-      compiled = false if !js_mtime or makefile_mtime > js_mtime
-      (ctx[:files]+ctx[:externs]).each do |filename|
+      js_mtime = File.mtime ctx[:js] rescue Errno::ENOENT
+      compiled = js_mtime && js_mtime > makefile_mtime
+      # the 'require' type is unique
+      if ctx[:type] == 'require'
+        unless compiled
+          File.open(ctx[:js], 'w') do |f|
+            ctx[:namespaces].each do |namespace|
+              f.write "goog.require(#{namespace.dump});\n"
+            end
+          end
+        end
+        return
+      end
+      # compute namespace additions to files and options
+      files = @source.files(ctx[:namespaces])
+      options = files.inject([]) do |memo, filename|
+        memo.push '--js'
+        memo.push filename
+      end
+      # The namespace files always come first for base.js
+      files = files + ctx[:files]
+      options = options + ctx[:options]
+      # update compiled status with scan of files and externs
+      (files + ctx[:externs]).each do |filename|
         break unless compiled
         mtime = File.mtime filename
         compiled = false if !mtime or mtime > js_mtime
       end
       return if compiled
-      # Onward.  Delete the js file and rebuild it.
-      File.unlink ctx[:js] rescue Errno::ENOENT
-      if ctx[:type] == 'require'
-        File.open(ctx[:js], 'w') do |f|
-          ctx[:namespaces].each do |namespace|
-            f.write "goog.require(#{namespace.dump});\n"
-          end
-        end
-      elsif ctx[:compilation_level] and ctx[:files].length > 0
+      # compile
+      if ctx[:compilation_level] and files.length > 0
+        File.unlink ctx[:js] rescue Errno::ENOENT
         File.unlink ctx[:map] rescue Errno::ENOENT
         File.open(ctx[:log], 'w') do |f|
           f.write "Start: #{Time.now}\n\n"
           f.flush
-          java_opts = ctx[:options].collect{|a|a.to_s.dump}.join(', ')
+          java_opts = options.collect{|a|a.to_s.dump}.join(', ')
           out, err = Googly.java("Googly.compile_js(new String[]{#{java_opts}});")
           puts err
           f.write err
@@ -87,7 +101,7 @@ class Googly
         end
       else # concat
         File.open(ctx[:js], 'w') do |f|
-          ctx[:files].each do |filename|
+          files.each do |filename|
             file = File.read filename
             f.write file
             f.write "\n" unless file =~ /\n\Z/
@@ -105,7 +119,8 @@ class Googly
     # :namespaces => from the 'require' for the build.
     # :compilation_level => the compiler option, if present.
     # :options => for compiler.jar only
-    def setup(build, type, file_ext)
+    def setup(build, type)
+      #TODO new makefile system
       @yaml = nil # so yaml() will reload the file
       if !type or type == 'default'
         if yaml(build)['default']
@@ -116,42 +131,31 @@ class Googly
       end
       base_filename = File.expand_path("#{build}.#{type}", @config.tmpdir)
       ctx = {
+        :options => (type == 'require') ? [] : yaml(build, type).flatten,
         :files => [],
         :externs => [],
         :type => type,
         :log => "#{base_filename}.log",
         :namespaces => (yaml(build)['require']||[]).flatten
       }
-      if type == 'require'
-        ctx[:options] = []
-      else
-        ctx[:options] = yaml(build, type).flatten
-        if file_ext == 'js'
-          # File dependency is expensive so we only run it when it's needed.
-          # So only js requests when it's not the 'require' type.
-          @source.files(ctx[:namespaces]).each do |filename|
-            ctx[:options].push '--js'
-            ctx[:options].push filename
-          end
-        end
-      end
       # scan fully built set of options to extract context
       option = nil
       ctx[:options].each do |value|
         option = value and next unless option
         raise "options must all be -- format" unless option =~ /^--/
-        if option == '--js'
-          ctx[:files].push value
-        elsif option == '--externs'
-          ctx[:externs].push value
-        elsif option == '--js_output_file'
-          ctx[:js] = File.expand_path value
-          value.replace ctx[:js] # upgrade to full path
-        elsif option == '--create_source_map'
-          ctx[:map] = File.expand_path value
-          value.replace ctx[:map] # upgrade to full path
-        elsif option == '--compilation_level'
-          ctx[:compilation_level] = File.expand_path value
+        case option
+          when '--js'
+            ctx[:files].push value
+          when '--externs'
+            ctx[:externs].push value
+          when '--js_output_file'
+            ctx[:js] = File.expand_path value
+            value.replace ctx[:js] # sync to full path
+          when '--create_source_map'
+            ctx[:map] = File.expand_path value
+            value.replace ctx[:map] # sync to full path
+          when '--compilation_level'
+            ctx[:compilation_level] = File.expand_path value
         end
         option = nil
       end
@@ -172,7 +176,7 @@ class Googly
 
     # Returns specified fragment of the yaml file
     # Performs tests to report problems with the yaml file
-    # note: @yaml resets on each call to call()
+    # note: @yaml resets on each call to #setup
     def yaml(build=nil, type=nil)
       raise "no makefile configured" unless @config.makefile
       require 'yaml'

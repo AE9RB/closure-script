@@ -21,7 +21,7 @@ class Googly
   # @example config.ru
   #  require 'sass/plugin'
   #  Sass::Plugin.options[:template_location] = {in_dir => out_dir}
-  #  use Googly::Sass
+  #  use Googly::Sass, 1.500
 
   class Sass
     

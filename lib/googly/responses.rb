@@ -36,10 +36,12 @@ class Googly
       alias :to_path :filename
     end
     
-    # Status 200 directly from the filesystem.
+    # Status 200 directly from the filesystem. 
+    # Includes caching optimized for development.
     # Return {#not_found} if filename isn't a readable file.
+    # Return {#not_modified} if File.mtime == If-Modified-Since.
     # @return (Array)[status, headers, FileResponseBody]
-    def file_response(filename, content_type = nil)
+    def file_response(env, filename, content_type = nil)
       begin
         raise Errno::EPERM unless File.file?(filename) and File.readable?(filename)
       rescue SystemCallError
@@ -51,11 +53,23 @@ class Googly
         body = [File.read(filename)]
         size = body.first.respond_to?(:bytesize) ? body.first.bytesize : body.first.size
       end
+      last_modified = File.mtime(filename)
+      if_mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil
+      # We check for exact match since it's not usual to checkout older files.
+      # This really does speed things up... according to firebug in firefox anyways.
+      return not_modified if last_modified == if_mod_since
       [200, {
-        "Last-Modified"  => File.mtime(filename).httpdate,
         "Content-Type"   => content_type || Rack::Mime.mime_type(File.extname(filename), 'text/plain'),
-        "Content-Length" => size.to_s
+        "Content-Length" => size.to_s,
+        "Last-Modified"  => last_modified.httpdate,
+        "Cache-Control" => 'no-cache, max-age=0, must-revalidate'
       }, body]
+    end
+
+    # Status 304
+    # @return (Array)[status, headers, body]
+    def not_modified
+      [304, {}, []]
     end
     
     # Status 403 with X-Cascade => pass.

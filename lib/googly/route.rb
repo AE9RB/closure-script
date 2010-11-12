@@ -48,7 +48,7 @@ class Googly
       files1 << filename + '.html' if ext == ''
       files1.each do |filename1|
         if File.file?(filename1) and File.readable?(filename1)
-          return file_response(filename1)
+          return file_response(env, filename1)
         end
       end
       # Now the template files
@@ -68,6 +68,8 @@ class Googly
     end
     
     protected
+    
+    #TODO Rack::Response
 
     def erb(filename, ext, env)
       require 'erb'

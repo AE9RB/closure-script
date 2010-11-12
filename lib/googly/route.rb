@@ -40,7 +40,7 @@ class Googly
     def call(env, path_info = nil)
       path_info ||= Rack::Utils.unescape(env["PATH_INFO"])
       return forbidden if path_info.include? ".."
-      return deps if path_info == @deps
+      return @source.deps_js if path_info == @deps
       ext = File.extname(path_info)
       filename = File.join(@root, path_info)
       # First, the static files
@@ -90,22 +90,5 @@ class Googly
        [body]]
     end
     
-    
-    def deps
-      @deps_js = nil if @source.deps_changed?
-      unless @deps_js
-        @deps_js = []
-        @deps_js << "// This deps.js was brought to you by Googlyscript\n"
-        @deps_js << "goog.basePath = '';\n"
-        @source.deps.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
-          @deps_js << "goog.addDependency(#{dep[:path].inspect}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
-        end
-        @deps_content_length = @deps_js.inject(0){|sum, s| sum + s.length }.to_s
-      end
-      [200, {"Content-Type" => "text/javascript",
-         "Content-Length" => @deps_content_length},
-        @deps_js]
-    end
-
   end
 end

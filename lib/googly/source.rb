@@ -16,6 +16,7 @@
 class Googly
   
   # This class is responsible for scanning source files and calculating dependencies.
+  # Will scan every .js file in every source route for changes.
 
   class Source
     
@@ -28,16 +29,71 @@ class Googly
       @deps = {}
     end
     
-    # Scan every .js file in every route for changes since last scan.
-    # Updates {Source#deps} as needed.
-    # @return (Boolean) True if any changes to {Source#deps} (except :mtime).
-    def deps_changed?
+    # @return (Array)[status, headers, body]
+    def deps_js
+      refresh
+      unless @deps_js
+        @deps_js = []
+        @deps_js << "// This deps.js was brought to you by Googlyscript\n"
+        @deps_js << "goog.basePath = '';\n"
+        @deps.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
+          @deps_js << "goog.addDependency(#{dep[:path].inspect}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
+        end
+        @deps_js_content_length = @deps_js.inject(0){|sum, s| sum + s.length }.to_s
+      end
+      [200, {"Content-Type" => "text/javascript",
+         "Content-Length" => @deps_js_content_length},
+        @deps_js]
+    end
+    
+
+    # Calculate all required files for an array of namespaces.
+    # @param (Array<String>) namespaces 
+    # @return (Array<String>) New Array of filenames.
+    def files(namespaces)
+      # Work up a cached hash keyed by provide namespace.
+      # Everything we need is in @deps.
+      refresh
+      unless @sources
+        @sources = {}
+        @deps.each do |filename, dep|
+          dep[:provide].each do |provide|
+            if @sources[provide]
+              raise "Namespace #{provide.dump} provided more than once."
+            end
+            @sources[provide] = {
+              :filename => filename,
+              :require => dep[:require]
+            }
+          end
+        end
+      end
+      # Create an array of all filenames
+      filenames = []
+      namespaces.each do |namespace|
+        map_filenames(namespace, filenames)
+      end
+      return filenames if filenames.length == 0
+      filenames.unshift base_js
+    end
+
+
+    protected
+    
+    
+    # Builds @deps (Hash{filename=>Hash}) -- The current dependencies keyed by http path.
+    # Also, resets instance variables used for caching when anything changes
+    # - (Array) <b>:provide</b> -- Array of <tt>goog.provide</tt> namespace strings from the file.
+    # - (Array) <b>:require</b> -- Array of <tt>goog.require</tt> namespace strings from the file.
+    # - (String) <b>:path</b> -- Path where Googlyscript is serving the file.  (will match env['PATH_INFO'])
+    # - (Time) <b>:mtime</b> -- File.mtime
+    def refresh
       added_files = []
       changed_files = []
       deleted_files = []
-      # Mark everything for deletion
+      # Mark everything for deletion.
       @deps.each {|f, dep| dep[:not_found] = true}
-      # Scan for changes
+      # Scan filesystem for changes.
       @routes.each do |path, options|
         next unless options[:source]
         dir = options[:dir]
@@ -57,72 +113,26 @@ class Googly
               dep[:path] = "#{path}#{filename.slice(dir_range)}"
               added_files << filename
             elsif old_dep_provide != dep[:provide] or old_dep_require != dep[:require]
+              # We're changed only if the provides or requires changes.
+              # Other edits to the files don't actually alter the dependencies.
               changed_files << filename
             end
             dep[:mtime] = mtime
           end
         end
       end
-      # Sweep to delete not-found files
+      # Sweep to delete not-found files.
       @deps.select{|f, dep| dep[:not_found]}.each do |filename, o|
         deleted_files << filename
         @deps.delete(filename)
       end
-      # Decide if anything changed
+      # Decide if deps has changed.
       if 0 < added_files.length + changed_files.length + deleted_files.length
         @sources = nil
+        @deps_js = nil
         puts "Googlyscript js cache: #{added_files.length} added, #{changed_files.length} changed, #{deleted_files.length} deleted."
-        return true
-      else
-        puts "Googlyscript js cache: deps not changed."
-        return false
       end
     end
-    
-
-    # The current dependencies.  Read this after calling {Source#deps_changed?}  Do not change.
-    # The values for the returned Hash contain a Hash describing a file.
-    # - (Array) <b>:provide</b> -- Array of <tt>goog.provide</tt> namespace strings from the file.
-    # - (Array) <b>:require</b> -- Array of <tt>goog.require</tt> namespace strings from the file.
-    # - (String) <b>:path</b> -- Path where Googlyscript is serving the file.  (will match env['PATH_INFO'])
-    # - (Time) <b>:mtime</b> -- File.mtime
-    # @return (Hash{filename=>Hash})
-    attr_reader :deps
-    
-
-    # Calculate all required files for an array of namespaces.
-    # This will also refresh {Source#deps}.
-    # @param (Array<String>) namespaces 
-    # @return (Array<String>) Full filesystem path and name for each file.
-    def files(namespaces)
-      # Work up a cached hash keyed by provide namespace.
-      # Everything we need is in @deps.
-      deps_changed?
-      unless @sources
-        @sources = {}
-        @deps.each do |filename, dep|
-          dep[:provide].each do |provide|
-            if @sources[provide]
-              raise "Namespace #{provide.dump} provided more than once."
-            end
-            @sources[provide] = {
-              :filename => filename,
-              :require => dep[:require]
-            }
-          end
-        end
-      end
-      # Create an array of all filenames
-      filenames = []
-      namespaces.each do |namespace|
-        dependencies(namespace, filenames)
-      end
-      return filenames if filenames.length == 0
-      filenames.unshift base_js
-    end
-
-
-    protected
     
 
     # Looks for a single file named base.js without
@@ -148,14 +158,14 @@ class Googly
     end
 
 
-    # Recursion with unusual circular dependency stop
-    def dependencies(namespace, filenames = [], prev = nil)
+    # Namespace require recursion with circular dependency stop on the filename
+    def map_filenames(namespace, filenames = [], prev = nil)
       unless source = @sources[namespace]
         raise "Namespace #{namespace.dump} not found." 
       end
       return if source == prev or filenames.include? source[:filename]
       source[:require].each do |required|
-        dependencies required, filenames, source
+        map_filenames required, filenames, source
       end
       filenames.push source[:filename]
     end

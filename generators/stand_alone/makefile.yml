@@ -11,7 +11,7 @@ myapp:
   # Options are passed to the compiler with very few modifications:
   # 1. --js_output_file is set to a temp file if none is specified.
   # 2. --create_source_map is set to a temp file if none is specified.
-  # 3. --js entries are appended to satisfy the require namespaces.
+  # 3. --js entries are prepended to satisfy the require namespaces.
   # If you explicitly set js_output_file and create_source_map without
   # any require namespaces, absolutely nothing will be changed -- in
   # this mode you don't even need to Googly.add_route any source code.

@@ -57,6 +57,9 @@ class Googly
       if_mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil
       # We check for exact match since it's not usual to checkout older files.
       # This really does speed things up... according to firebug in firefox anyways.
+      # A far-future cache-busting approach like ActionView::Helpers::AssetTagHelper
+      # uses won't work because...
+      #TODO whoa, can we load the timestamp in the deps.js strings and use far-future?
       return not_modified if last_modified == if_mod_since
       [200, {
         "Content-Type"   => content_type || Rack::Mime.mime_type(File.extname(filename), 'text/plain'),
@@ -65,12 +68,14 @@ class Googly
         "Cache-Control" => 'no-cache, max-age=0, must-revalidate'
       }, body]
     end
+    module_function :file_response
 
     # Status 304
     # @return (Array)[status, headers, body]
     def not_modified
       [304, {}, []]
     end
+    module_function :not_modified
     
     # Status 403 with X-Cascade => pass.
     # @return (Array)[status, headers, body]
@@ -81,6 +86,7 @@ class Googly
              "X-Cascade" => "pass"},
        [body]]
     end
+    module_function :forbidden
 
     # Status 404 with X-Cascade => pass.
     # @return (Array)[status, headers, body]
@@ -91,6 +97,7 @@ class Googly
          "X-Cascade" => "pass"},
        [body]]
     end
+    module_function :not_found
         
   end
 end

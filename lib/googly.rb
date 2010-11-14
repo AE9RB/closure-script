@@ -49,6 +49,7 @@ class Googly
   autoload(:Source, 'googly/source')
   autoload(:Sass, 'googly/sass')
   autoload(:Route, 'googly/route')
+  autoload(:Template, 'googly/template')
   
   include Responses
 
@@ -69,6 +70,7 @@ class Googly
   # - (String) *compiler_jar* -- A compiler.jar to use instead of the one in the gem.
   # - (String) *tmpdir* -- Temp directory to use instead of the OS default.
   # - (Hash) *haml* -- Options hash for haml engine.
+  # - (Array) *engines* -- Options Add new template engines here.
   # @return [OpenStruct]
   def config
     return @config if @config
@@ -77,6 +79,19 @@ class Googly
     @config.compiler_jar = File.join(base_path, 'closure-compiler', 'compiler.jar')
     @config.tmpdir = Dir.tmpdir
     @config.haml = {}
+    @config.engines = [
+      ['.erb', Proc.new do |template, filename|
+        require 'erb'
+        erb = ::ERB.new(File.read(filename))
+        erb.filename = filename
+        erb.result(template.send(:binding))
+      end],
+      ['.haml', Proc.new do |template, filename|
+        require 'haml'
+        options = Googly.config.haml.merge(:filename => filename)
+        ::Haml::Engine.new(File.read(filename), options).render(template)
+      end],
+    ]
     @config
   end
   
@@ -150,7 +165,7 @@ class Googly
   # internally but may be useful for experimental configurations.
   # @return [String]
   attr_reader :base_path
-    
+
   # Rack interface.
   # @param (Hash) env Rack environment.
   # @return (Array)[status, headers, body]
@@ -192,7 +207,6 @@ class Googly
         return options[:route].call(env, $1)
       end
     end
-    #TODO log warning about no routes
     not_found
   end
 

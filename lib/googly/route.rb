@@ -41,52 +41,26 @@ class Googly
       path_info ||= Rack::Utils.unescape(env["PATH_INFO"])
       return forbidden if path_info.include? ".."
       return @source.deps_js if path_info == @deps
-      ext = File.extname(path_info)
+      # Static files
       filename = File.join(@root, path_info)
-      # First, the static files
-      files1 = [filename]
-      files1 << filename + '.html' if ext == ''
-      files1.each do |filename1|
-        if File.file?(filename1) and File.readable?(filename1)
-          return file_response(env, filename1)
+      files = [filename]
+      files << filename + '.html' if File.extname(path_info) == ''
+      files.each do |filename|
+        if File.file?(filename) and File.readable?(filename)
+          return file_response(env, filename)
         end
       end
-      # Now the template files
-      files1 << filename.gsub(/.html$/,'') if ext == '.html'
-      files1.each do |filename1|
-        [['.erb', :erb], ['.haml', :haml]].each do |ext, method|
-          files2 = [filename1+ext]
-          files2 << filename1.gsub(/.html$/, ext) if File.extname(filename1) == '.html'
-          files2.each do |filename2|
-            if File.file?(filename2) and File.readable?(filename2)
-              return send(method, filename2, File.extname(filename1), env)
-            end
-          end
-        end
-      end
-      not_found
+      # Templates files
+      Template.new(env, filename).response.finish
     end
     
-    protected
-    
-    #TODO Rack::Response
-
-    def erb(filename, ext, env)
-      require 'erb'
-      ctx = Rack::Request.new(env)
-      body = ::ERB.new(File.read(filename)).result(ctx.send(:binding))
-      [200, {"Content-Type" => Rack::Mime.mime_type(ext, 'text/html'),
-         "Content-Length" => body.size.to_s},
-       [body]]
-    end
-    
-    
-    def haml(filename, ext, env)
-      require 'haml'
-      options = Googly.config.haml.merge(:filename => filename)
-      body = ::Haml::Engine.new(File.read(filename), options).render(Rack::Request.new(env))
-      [200, {"Content-Type" => "text/html",
-         "Content-Length" => body.size.to_s},
+    # Status 403 with X-Cascade => pass.
+    # @return (Array)[status, headers, body]
+    def forbidden
+      body = "403 Forbidden\n"
+      [403, {"Content-Type" => "text/plain",
+             "Content-Length" => body.size.to_s,
+             "X-Cascade" => "pass"},
        [body]]
     end
     

@@ -20,6 +20,10 @@ class Googly
   # This way we don't pay the Java startup costs on every compile job.
   class BeanShell
     
+    def initialize
+      @semaphore = Mutex.new
+    end
+    
     # Run any Java command that BeanShell supports.
     # Recovers from error conditions when the Java process is killed.
     def run(command)
@@ -42,24 +46,26 @@ class Googly
     # Executes a command on the REPL and returns the result.
     def execute(command)
       prompt = /^bsh % $\Z/
-      unless $cmdin
-        classpath = [Googly.config.compiler_jar]
-        classpath << File.join(Googly.base_path, 'beanshell', 'bsh-core-2.0b4.jar')
-        classpath << File.join(Googly.base_path, 'lib', 'googly.jar')
-        #TODO spaces won't be escaped
-        java_repl = "#{Googly.config.java} -classpath #{classpath.join(':')} bsh.Interpreter"
-        $cmdin, $cmdout, $cmderr = Open3::popen3(java_repl)
-        eat_startup = ''
-        eat_startup << $cmdout.readpartial(8192) until eat_startup =~ prompt
-      end
-      $cmdin << command
       out = ''
       err = ''
-      until out =~ prompt
-        #TODO make threaded; this will save ~0.025 seconds per execution
-        sleep 0.05 # wait at start and collect results 20 times per second
-        out << $cmdout.read_nonblock(8192) while true rescue Errno::EAGAIN
-        err << $cmderr.read_nonblock(8192) while true rescue Errno::EAGAIN
+      @semaphore.synchronize do
+        unless $cmdin
+          classpath = [Googly.config.compiler_jar]
+          classpath << File.join(Googly.base_path, 'beanshell', 'bsh-core-2.0b4.jar')
+          classpath << File.join(Googly.base_path, 'lib', 'googly.jar')
+          #TODO spaces won't be escaped
+          java_repl = "#{Googly.config.java} -classpath #{classpath.join(':')} bsh.Interpreter"
+          $cmdin, $cmdout, $cmderr = Open3::popen3(java_repl)
+          eat_startup = ''
+          eat_startup << $cmdout.readpartial(8192) until eat_startup =~ prompt
+        end
+        $cmdin << command
+        until out =~ prompt
+          #TODO make threaded; this will save ~0.025 seconds per execution
+          sleep 0.05 # wait at start and collect results 20 times per second
+          out << $cmdout.read_nonblock(8192) while true rescue Errno::EAGAIN
+          err << $cmderr.read_nonblock(8192) while true rescue Errno::EAGAIN
+        end
       end
       [out.sub(prompt, ''), err]
     end

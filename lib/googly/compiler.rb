@@ -36,24 +36,16 @@ class Googly
       return Response.not_found unless file_ext = $1
       type = Rack::Utils.unescape(type) if type
       ctx = setup(build, type)
-      compile(ctx) if file_ext == 'js'
+      compile(ctx, env) if file_ext == 'js'
       filename = ctx[file_ext.to_sym]
       content_type = %w{js map}.include?(file_ext) ? 'application/javascript' : 'text/plain'
       Response.new(env, filename, content_type).finish
     end
     
-    # Compile a job from the makefile.
-    # @param (String) build
-    # @param (String) type
-    def compile_js(build, type=nil)
-      compile(setup(build, type))
-    end
-    
-    
     protected
     
     
-    def compile(ctx)
+    def compile(ctx, env)
       makefile_mtime = File.mtime @config.makefile
       js_mtime = File.mtime ctx[:js] rescue Errno::ENOENT
       compiled = js_mtime && js_mtime > makefile_mtime
@@ -69,7 +61,7 @@ class Googly
         return
       end
       # compute namespace additions to files and options
-      files = @source.files(ctx[:namespaces])
+      files = @source.files(ctx[:namespaces], env)
       options = files.inject([]) do |memo, filename|
         memo.push '--js'
         memo.push filename

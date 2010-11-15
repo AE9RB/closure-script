@@ -20,8 +20,6 @@ class Googly
 
   class Compiler
     
-    include Responses    
-    
     def initialize(source, config)
       @source = source
       #TODO remove config after makefile extraction
@@ -33,15 +31,15 @@ class Googly
     # @return (Array)[status, headers, body]
     def call(env)
       build, type = env["QUERY_STRING"].split('=')
-      return not_found unless build
+      return Response.not_found unless build
       build = Rack::Utils.unescape(build).gsub(/\.(js|log|map)$/, '')
-      return not_found unless file_ext = $1
+      return Response.not_found unless file_ext = $1
       type = Rack::Utils.unescape(type) if type
       ctx = setup(build, type)
       compile(ctx) if file_ext == 'js'
       filename = ctx[file_ext.to_sym]
       content_type = %w{js map}.include?(file_ext) ? 'application/javascript' : 'text/plain'
-      file_response(env, filename, content_type)
+      Response.new(env, filename, content_type).finish
     end
     
     # Compile a job from the makefile.

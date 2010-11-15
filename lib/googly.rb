@@ -43,17 +43,14 @@ class Googly
   googly_lib_path = File.expand_path(File.dirname(__FILE__))
   $LOAD_PATH.unshift(googly_lib_path) if !$LOAD_PATH.include?(googly_lib_path)
   
-  autoload(:Responses, 'googly/responses')
   autoload(:BeanShell, 'googly/beanshell')
   autoload(:Compiler, 'googly/compiler')
-  autoload(:Source, 'googly/source')
   autoload(:Sass, 'googly/sass')
   autoload(:Route, 'googly/route')
   autoload(:Template, 'googly/template')
   autoload(:Deps, 'googly/deps')
+  autoload(:Response, 'googly/response')
   
-  include Responses
-
   # Singleton
   class << self
     private :new
@@ -122,7 +119,7 @@ class Googly
       {:dir => options}
     end
     options[:dir] = File.expand_path(options[:dir])
-    options[:route] ||= Route.new(options[:dir], options[:deps], @source)
+    options[:route] ||= Route.new(options[:dir])
     @routes << [path, options]
     @routes.sort! {|a,b| b[0] <=> a[0]}
   end
@@ -147,12 +144,21 @@ class Googly
   # @param (Hash) env Rack environment.
   # @return (Array)[status, headers, body]
   def call(env)
-    path_info = env["PATH_INFO"]
-    if path_info == '/' or path_info == '%2F' or path_info == '%2f'
-      call_root(env)
-    else
-      call_routes(env)
+    path_info = Rack::Utils.unescape(env["PATH_INFO"])
+
+    #TODO this is the old compiler
+    return @compiler.call(env) if path_info == '/'
+
+    # Check for deps.js
+    status, headers, body = @deps.call(env, path_info)
+    return [status, headers, body] unless headers["X-Cascade"] == "pass"
+
+    @routes.each do |path, options|
+      if path_info =~ %r{^#{Regexp.escape(path)}(/.*|)$}
+        return options[:route].call(env, $1)
+      end
     end
+    Response.not_found
   end
   
 
@@ -162,47 +168,21 @@ class Googly
   def initialize 
     @routes = Array.new
     @base_path = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-    @source = Source.new(@routes)
-    @compiler = Compiler.new(@source, config)
     @deps = Deps.new(@routes)
+    @compiler = Compiler.new(@deps, config)
   end
   
 
-  def call_root(env)
-    status, headers, body = not_found
-    [@compiler].each do |rack_server|
-      status, headers, body = rack_server.call(env)
-      break unless headers["X-Cascade"] == "pass"
-    end
-    [status, headers, body]
-  end
-
-
-  def call_routes(env)
-    path_info = Rack::Utils.unescape(env["PATH_INFO"])
-
-    status, headers, body = @deps.call(env, path_info)
-    return [status, headers, body] unless headers["X-Cascade"] == "pass"
-
-    @routes.each do |path, options|
-      if path_info =~ %r{^#{Regexp.escape(path)}(/.*|)$}
-        return options[:route].call(env, $1)
-      end
-    end
-    not_found
-  end
-
-  
   def built_ins
     public_dir = File.join(base_path, 'public')
     goog_dir = File.join(base_path, 'closure-library', 'closure', 'goog')
     goog_vendor_dir = File.join(base_path, 'closure-library', 'third_party', 'closure', 'goog')
     googly_dir = File.join(base_path, 'src', 'javascript')
     {
-      :public => {:dir => public_dir, :hidden => true},
-      :goog => {:dir => goog_dir, :source => true, :deps => true},
-      :goog_vendor => {:dir => goog_vendor_dir, :source => true, :deps => true},
-      :googly => {:dir => googly_dir, :source => true},
+      :public => {:dir => public_dir},
+      :goog => {:dir => goog_dir},
+      :goog_vendor => {:dir => goog_vendor_dir},
+      :googly => {:dir => googly_dir},
     }
   end
   

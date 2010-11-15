@@ -20,8 +20,6 @@ class Googly
 
   class Deps
     
-    include Responses
-    
     BASE_REGEX_STRING = '^\s*goog\.%s\s*\(\s*[\'"]([^\)]+)[\'"]\s*\)'
     PROVIDE_REGEX = Regexp.new(BASE_REGEX_STRING % 'provide')
     REQUIRE_REGEX = Regexp.new(BASE_REGEX_STRING % 'require')
@@ -35,10 +33,10 @@ class Googly
     # @return (Array)[status, headers, body]
     def call(env, path_info=nil)
       path_info ||= Rack::Utils.unescape(env["PATH_INFO"])
-      # We don't refresh here unless we're absolutely never been run yet
+      # We don't refresh here unless we've absolutely never been run yet
       refresh(env) unless @deps_body
-      return not_found unless @base_js and @base_js[:deps_js] == path_info
-      # Since we're now serving up deps.js, do a proper refresh always
+      return Response.not_found unless @goog and @goog[:deps_js] == path_info
+      # Do a proper refresh here
       refresh(env)
       [200, {"Content-Type" => "text/javascript",
          "Content-Length" => @deps_content_length,
@@ -51,27 +49,20 @@ class Googly
     # @param (Array<String>) namespaces 
     # @return (Array<String>) New Array of filenames.
     def files(namespaces, env=nil)
+      return [] if namespaces.size == 0
       refresh(env) if env or !@namespaces
-      # Create an array of all filenames
-      filenames = namespaces.inject([@base_js[:filename]]) do |filenames, namespace|
+      raise 'Google Closure base.js not found' unless @goog
+      namespaces.inject([@goog[:base_js]]) do |filenames, namespace|
         map_filenames(namespace, filenames)
       end
-      return [] if filenames.length == 1
-      filenames
     end
 
 
     protected
     
     
-    # Builds @deps (Hash{filename=>Hash}) -- The current dependencies keyed by http path.
-    # Also, resets instance variables used for caching when anything changes
-    # - (Array) <b>:provide</b> -- Array of <tt>goog.provide</tt> namespace strings from the file.
-    # - (Array) <b>:require</b> -- Array of <tt>goog.require</tt> namespace strings from the file.
-    # - (String) <b>:path</b> -- Path where Googlyscript is serving the file.  (will match env['PATH_INFO'])
-    # - (Time) <b>:mtime</b> -- File.mtime
     def refresh(env=nil)
-      # We may modify env so that refresh is never run more than once per request
+      # We may use env so that refresh is never run more than once per request
       if env
         env_key = 'googly.deps_refreshed'
         return if env[env_key]
@@ -85,8 +76,8 @@ class Googly
         deleted_files = []
         
         # Prepare to find a moving base_js
-        previous_base_js = @base_js
-        @base_js = nil
+        previous_goog = @goog
+        @goog = nil
         
         # Mark everything for deletion.
         @deps.each {|f, dep| dep[:not_found] = true}
@@ -120,10 +111,10 @@ class Googly
               if dep[:provide].length + dep[:require].length == 0
                 if File.basename(filename) == 'base.js'
                   if file =~ /^var goog = goog \|\| \{\};/
-                    if @base_js
+                    if @goog
                       raise "Google Closure base.js found more than once."
                     end
-                    @base_js = {:filename => filename, :deps_js => dep[:path].gsub(/base.js$/, 'deps.js')}
+                    @goog = {:base_js => filename, :deps_js => dep[:path].gsub(/base.js$/, 'deps.js')}
                   end
                 end
               end
@@ -138,8 +129,8 @@ class Googly
         end
 
         # Restore base_js in the case where it hasn't changed
-        if !@base_js and previous_base_js and @deps.has_key?(previous_base_js[:filename])
-          @base_js = previous_base_js
+        if !@goog and previous_goog and @deps.has_key?(previous_goog[:base_js])
+          @goog = previous_goog
         end
       
         # Decide if deps has changed.
@@ -177,7 +168,6 @@ class Googly
         end
         
       end
-      
     end
     
 

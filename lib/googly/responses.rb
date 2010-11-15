@@ -53,19 +53,25 @@ class Googly
         body = [File.read(filename)]
         size = body.first.respond_to?(:bytesize) ? body.first.bytesize : body.first.size
       end
-      last_modified = File.mtime(filename)
+      # Caching strategy
       if_mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil
-      # We check for exact match since it's not usual to checkout older files.
-      # This really does speed things up... according to firebug in firefox anyways.
-      # A far-future cache-busting approach like ActionView::Helpers::AssetTagHelper
-      # uses won't work because...
-      #TODO whoa, can we load the timestamp in the deps.js strings and use far-future?
-      return not_modified if last_modified == if_mod_since
+      if env['QUERY_STRING'] =~ /^[0-9]{9,10}$/
+        # Files timestamped with unix time in QUERY_STRING are supercharged
+        last_modified = Time.now
+        cache_control = 'max-age=86400, public' # one day
+        return not_modified if if_mod_since and File.mtime(filename) == Time.at(env['QUERY_STRING'].to_i)
+      else
+        # Regular files must always revalidate with timestamp
+        last_modified = File.mtime(filename)
+        cache_control = 'max-age=0, private, must-revalidate'
+        return not_modified if last_modified == if_mod_since
+      end
+      
       [200, {
         "Content-Type"   => content_type || Rack::Mime.mime_type(File.extname(filename), 'text/plain'),
         "Content-Length" => size.to_s,
         "Last-Modified"  => last_modified.httpdate,
-        "Cache-Control" => 'no-cache, max-age=0, must-revalidate'
+        "Cache-Control" => cache_control
       }, body]
     end
     module_function :file_response

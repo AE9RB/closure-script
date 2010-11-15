@@ -2,7 +2,7 @@ require 'test_helper'
 
 # Python is required as a dependency of calcdeps.py and closurebuilder.py
 
-class SourcesTest < Test::Unit::TestCase
+class DepsTest < Test::Unit::TestCase
 
   CLOSURE_LIBRARY = File.join(Googly.base_path, 'closure-library')
 
@@ -12,7 +12,7 @@ class SourcesTest < Test::Unit::TestCase
 
   CLOSUREBUILDER = File.join(CLOSURE_LIBRARY, 'closure', 'bin', 'build', 'closurebuilder.py')
   CALCDEPS = File.join(CLOSURE_LIBRARY, 'closure', 'bin', 'calcdeps.py')
-  GOOG_SOURCE = Googly::Source.new([['/goog', {:dir => CLOSURE_LIBRARY, :source => true}]])
+  GOOG_SOURCE = Googly::Deps.new([['/goog', {:dir => CLOSURE_LIBRARY, :source => true}]])
 
   def test_files_against_closurebuilder
     closurebuilder_files = `#{CLOSUREBUILDER} --root=#{CLOSURE_LIBRARY.dump} -n #{NAMESPACES[0].dump} -n #{NAMESPACES[1].dump} 2>/dev/null`

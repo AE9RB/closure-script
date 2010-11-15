@@ -40,7 +40,6 @@ class Googly
     def call(env, path_info = nil)
       path_info ||= Rack::Utils.unescape(env["PATH_INFO"])
       return forbidden if path_info.include? ".."
-      return @source.deps_js if path_info == @deps
       # Static files
       filename = File.join(@root, path_info)
       files = [filename]
@@ -52,16 +51,6 @@ class Googly
       end
       # Templates files
       Template.new(env, filename).response.finish
-    end
-    
-    # Status 403 with X-Cascade => pass.
-    # @return (Array)[status, headers, body]
-    def forbidden
-      body = "403 Forbidden\n"
-      [403, {"Content-Type" => "text/plain",
-             "Content-Length" => body.size.to_s,
-             "X-Cascade" => "pass"},
-       [body]]
     end
     
   end

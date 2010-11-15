@@ -50,6 +50,7 @@ class Googly
   autoload(:Sass, 'googly/sass')
   autoload(:Route, 'googly/route')
   autoload(:Template, 'googly/template')
+  autoload(:Deps, 'googly/deps')
   
   include Responses
 
@@ -104,23 +105,11 @@ class Googly
   #   Googly.add_route('/', :dir => my_dir, :source => true, :deps => '/goog/deps.js')
   # @overload add_route(path, directory)
   # @overload add_route(path, built_in)
-  # @overload add_route(path, options)
   # @param (String) path 
   #        http server mount point
   # @param (String) directory
   # @param (Symbol) built_in :goog, :goog_vendor, :googly, :public
   # @param (Hash) options
-  # @option options [String] :dir Location in the filesystem to be mounted
-  #         by the http server.
-  # @option options [Boolean] :source (false) Does the directory
-  #         contain javascript sources?  You would leave this false if,
-  #         for example, you needed to mount a folder containing
-  #         a large enough number of image files to slow a directory glob.
-  # @option options [Boolean, String] :deps (false) This will serve
-  #         path+"/deps.js" when true.  Set to a string if you
-  #         want something other than "/deps.js".  The intent is to override
-  #         the static deps.js in the google closure library with a dynamic 
-  #         version that is always up-to-date.
   def add_route(path, options)
     #TODO something about duplicate mount points
     raise "path must start with /" unless path =~ %r{^/}
@@ -130,24 +119,12 @@ class Googly
     if options.kind_of? Symbol
       options = built_ins[options]
     elsif options.kind_of? String
-      if path == ''
-        options = {:dir => options, :hidden => true}
-      elsif path == "/goog"
-        options = {:dir => options, :source => true, :deps => true} 
-      else
-        options = {:dir => options, :source => true} 
-      end
+      {:dir => options}
     end
     options[:dir] = File.expand_path(options[:dir])
     options[:route] ||= Route.new(options[:dir], options[:deps], @source)
     @routes << [path, options]
     @routes.sort! {|a,b| b[0] <=> a[0]}
-  end
-  
-  # For Rakefile tasks or other automation.
-  # @see Compiler#compile_js
-  def compile_js(build, type=nil)
-    @compiler.compile_js(build, type)
   end
   
   # Run Java command in a REPL (read-execute-print-loop).
@@ -187,6 +164,7 @@ class Googly
     @base_path = File.expand_path(File.join(File.dirname(__FILE__), '..'))
     @source = Source.new(@routes)
     @compiler = Compiler.new(@source, config)
+    @deps = Deps.new(@routes)
   end
   
 
@@ -202,6 +180,10 @@ class Googly
 
   def call_routes(env)
     path_info = Rack::Utils.unescape(env["PATH_INFO"])
+
+    status, headers, body = @deps.call(env, path_info)
+    return [status, headers, body] unless headers["X-Cascade"] == "pass"
+
     @routes.each do |path, options|
       if path_info =~ %r{^#{Regexp.escape(path)}(/.*|)$}
         return options[:route].call(env, $1)

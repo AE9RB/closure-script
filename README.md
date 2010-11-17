@@ -1,7 +1,8 @@
 Licensed under the Apache License, Version 2.0 (the "License"); 
 http://www.apache.org/licenses/LICENSE-2.0
 
-Googlyscript
+Googlyscript - An experience with Google Closure.
+
 * Every Google Closure compiler option is supported.
 * Easy to install rack middleware. Works in frameworks or stand-alone.
 * Multithreaded-safe with a high-performance caching strategy.

@@ -22,9 +22,10 @@ class Googly
   end
   
   # A Googly::Template instance is the context in which Ruby templates are rendered.
-  # It inherits everything from Rack::Request and supplies a response instance you
-  # can use for redirects, cookies, and other controller actions.
-  # UNTESTED: try mixing in Rails helpers, like ActionView::Helpers::AssetTagHelper
+  # It inherits everything from Rack::Request and supplies a response instance
+  # you can use for redirects, cookies, and other controller actions.
+  # We don't write the template rendering into the response if
+  # the template alters anything other than headers.
   class Template < Rack::Request
     
     # When redering for http services, use this initializer to get 404
@@ -34,8 +35,13 @@ class Googly
     def initialize(env, filename = nil)
       super(env)
       @render_call_stack = []
-      @response = Rack::Response.new
-      @response.write render(filename) if filename
+      @response = original_response = Rack::Response.new
+      if filename
+        rendering = render(filename)
+        if @response == original_response and @response.status == 200 and @response.empty?
+          @response.write rendering
+        end
+      end
     rescue TemplateCallStackTooDeepError, TemplateNotFoundError => e
       e.set_backtrace e.backtrace[1..-1]
       raise e if @render_call_stack.size > 1
@@ -45,6 +51,7 @@ class Googly
       @response.header["Content-Type"] = "text/plain"
     end
     
+    # Object#finish rack response.
     attr :response
 
     # Render another template.  Templates that begin with an underbar are, by convention,
@@ -65,11 +72,11 @@ class Googly
         filename = File.expand_path(filename)
         raise TemplateNotFoundError if File.basename(filename) =~ /^_/
       end
-      @render_call_stack << filename
+      @render_call_stack.push filename
       ext = File.extname(filename)
       files1 = [filename]
       files1 << filename + '.html' if ext == ''
-      files1 << filename.gsub(/.html$/,'') if ext == '.html'
+      files1 << filename.sub(/.html$/,'') if ext == '.html'
       files1.each do |filename1|
         Googly.config.engines.each do |ext, engine|
           files2 = [filename1+ext]
@@ -92,18 +99,16 @@ class Googly
       raise TemplateNotFoundError
     end
     
-    # Includes the Google Closure base.js script.
+    # The Google Closure base.js script.
     # If you use this instead of a static link, you are free to relocate
     # the Google Closure library without updating every html fixture page.
-    # @param (Array) namespaces for goog.requires()
-    def goog_base_js(*namespaces)
-      #TODO
+    def goog_base_js
+      Googly.deps.base_js(env)
     end
     
-
-    def compiler(*args)
-      #TODO
-      #Compiler.javascript(*args)
+    #TODO this is going to be the new way of compiling
+    def compile(*args)
+      #Compile.new(*args)
     end
 
     # Escaping urls

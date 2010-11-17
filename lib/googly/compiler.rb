@@ -31,15 +31,15 @@ class Googly
     # @return (Array)[status, headers, body]
     def call(env)
       build, type = env["QUERY_STRING"].split('=')
-      return Response.not_found unless build
+      return Googly.not_found unless build
       build = Rack::Utils.unescape(build).gsub(/\.(js|log|map)$/, '')
-      return Response.not_found unless file_ext = $1
+      return Googly.not_found unless file_ext = $1
       type = Rack::Utils.unescape(type) if type
       ctx = setup(build, type)
       compile(ctx, env) if file_ext == 'js'
       filename = ctx[file_ext.to_sym]
       content_type = %w{js map}.include?(file_ext) ? 'application/javascript' : 'text/plain'
-      Response.new(env, filename, content_type).finish
+      FileResponse.new(env, filename, content_type).finish
     end
     
     protected

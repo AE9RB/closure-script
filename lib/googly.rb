@@ -22,22 +22,11 @@ require 'tmpdir'
 # @example config.ru
 #   #\ -w -p 9009
 #   require 'rubygems'
-#   gem 'googlyscript'
 #   require 'googly'
-#   Googly.add_route('/', './public')
-#   Googly.add_route('/goog', :goog)
-#   Googly.add_route('/myapp', './src/myapp')
-#   Googly.config.makefile = './src/makefile.yml'
-#   run Googly
-# @example makefile.yml
-#   myapp:
-#     require:
-#       - myapp.HelloWorld
-#     test: &base_options
-#       - [--compilation_level, ADVANCED_OPTIMIZATIONS]
-#     build: 
-#       - *base_options
-#       - [--js_output_file, myapp.js]
+#   Googly.add_source('/goog', :goog)
+#   Googly.add_source('/myapp', './src/myapp')
+#   use Googly::Middleware
+#   run Rack::File, './public'
 class Googly
   
   googly_lib_path = File.expand_path(File.dirname(__FILE__))
@@ -46,10 +35,10 @@ class Googly
   autoload(:BeanShell, 'googly/beanshell')
   autoload(:Compiler, 'googly/compiler')
   autoload(:Sass, 'googly/sass')
-  autoload(:Route, 'googly/route')
   autoload(:Template, 'googly/template')
   autoload(:Deps, 'googly/deps')
-  autoload(:Response, 'googly/response')
+  autoload(:FileResponse, 'googly/file_response')
+  autoload(:Middleware, 'googly/middleware')
   
   # Singleton
   class << self
@@ -93,36 +82,27 @@ class Googly
     @config
   end
   
-  # Maps javascript sources and static files to the Googlyscript http server.
-  # @example Basic routing:
-  #   Googly.add_route('/', './public')
-  #   Googly.add_route('/goog', :goog)
-  #   Googly.add_route('/myapp', my_dir)
-  # @example Advanced routing:
-  #   Googly.add_route('/', :dir => my_dir, :source => true, :deps => '/goog/deps.js')
-  # @overload add_route(path, directory)
-  # @overload add_route(path, built_in)
+  # Maps javascript sources to the Googlyscript server and compiler.
+  # @example
+  #   Googly.add_source('/goog', :goog)
+  #   Googly.add_source('/myapp', './myapp')
+  # @overload add_source(path, directory)
+  # @overload add_source(path, built_in)
   # @param (String) path 
   #        http server mount point
   # @param (String) directory
   # @param (Symbol) built_in :goog, :goog_vendor, :googly, :public
-  # @param (Hash) options
-  def add_route(path, options)
-    #TODO something about duplicate mount points
+  def add_source(path, directory)
     raise "path must start with /" unless path =~ %r{^/}
     path = '' if path == '/'
     raise "path must not end with /" if path =~ %r{/$}
-    # Easy routing makes assumptions
-    if options.kind_of? Symbol
-      options = built_ins[options]
-    elsif options.kind_of? String
-      {:dir => options}
-    end
-    options[:dir] = File.expand_path(options[:dir])
-    options[:route] ||= Route.new(options[:dir])
-    @routes << [path, options]
-    @routes.sort! {|a,b| b[0] <=> a[0]}
+    raise "path already exists" if @sources.find{|s|s[0]==path}
+    directory = built_ins[directory] if directory.kind_of? Symbol
+    raise "directory already exists" if @sources.find{|s|s[1]==directory}
+    @sources << [path, File.expand_path(directory)]
+    @sources.sort! {|a,b| b[0] <=> a[0]}
   end
+  attr_reader :sources
   
   # Run Java command in a REPL (read-execute-print-loop).
   # This keeps Java running so you only pay the startup cost on the first job.
@@ -140,25 +120,55 @@ class Googly
   # @return [String]
   attr_reader :base_path
 
+  attr_reader :deps
+
   # Rack interface.
   # @param (Hash) env Rack environment.
   # @return (Array)[status, headers, body]
   def call(env)
     path_info = Rack::Utils.unescape(env["PATH_INFO"])
+    return forbidden if path_info.include? ".."
 
-    #TODO this is the old compiler
+    #TODO this is the old compiler, to be remvoed
     return @compiler.call(env) if path_info == '/'
 
     # Check for deps.js
     status, headers, body = @deps.call(env, path_info)
     return [status, headers, body] unless headers["X-Cascade"] == "pass"
 
-    @routes.each do |path, options|
+    # Then check all the sources
+    @sources.each do |path, dir|
       if path_info =~ %r{^#{Regexp.escape(path)}(/.*|)$}
-        return options[:route].call(env, $1)
+        filename = File.join(dir, $1)
+        response = FileResponse.new(env, filename)
+        if !response.found? and File.extname(path_info) == ''
+          response = FileResponse.new(env, filename + '.html')
+        end
+        response = Template.new(env, filename).response unless response.found?
+        return response.finish
       end
     end
-    Response.not_found
+    not_found
+  end
+  
+  # Status 403 with X-Cascade => pass.
+  # @return (Array)[status, headers, body]
+  def forbidden
+    body = "403 Forbidden\n"
+    [403, {"Content-Type" => "text/plain",
+           "Content-Length" => body.size.to_s,
+           "X-Cascade" => "pass"},
+     [body]]
+  end
+
+  # Status 404 with X-Cascade => pass.
+  # @return (Array)[status, headers, body]
+  def not_found
+    body = "404 Not Found\n"
+    [404, {"Content-Type" => "text/plain",
+       "Content-Length" => body.size.to_s,
+       "X-Cascade" => "pass"},
+     [body]]
   end
   
 
@@ -166,23 +176,18 @@ class Googly
 
   
   def initialize 
-    @routes = Array.new
     @base_path = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-    @deps = Deps.new(@routes)
+    @sources = Array.new
+    @deps = Deps.new(@sources)
     @compiler = Compiler.new(@deps, config)
   end
   
 
   def built_ins
-    public_dir = File.join(base_path, 'public')
-    goog_dir = File.join(base_path, 'closure-library', 'closure', 'goog')
-    goog_vendor_dir = File.join(base_path, 'closure-library', 'third_party', 'closure', 'goog')
-    googly_dir = File.join(base_path, 'src', 'javascript')
     {
-      :public => {:dir => public_dir},
-      :goog => {:dir => goog_dir},
-      :goog_vendor => {:dir => goog_vendor_dir},
-      :googly => {:dir => googly_dir},
+      :goog => File.join(base_path, 'closure-library', 'closure', 'goog'),
+      :goog_vendor => File.join(base_path, 'closure-library', 'third_party', 'closure', 'goog'),
+      :googly => File.join(base_path, 'src', 'javascript'),
     }
   end
   

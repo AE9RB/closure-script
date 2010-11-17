@@ -1,15 +1,15 @@
 require 'test_helper'
 
-class RouteTest < Test::Unit::TestCase
+class ServerTest < Test::Unit::TestCase
 
   def setup
-    root = File.join(Googly.base_path, 'test', 'fixtures')
-    route = Rack::Lint.new(Googly::Route.new(root))
-    @request = Rack::MockRequest.new(route)
+    Googly.sources.delete_if{true}
+    Googly.add_source '/', File.join(Googly.base_path, 'test', 'fixtures')
+    @request = Rack::MockRequest.new(Googly)
   end
 
   def test_basics
-    %w{/route_html /route_erb /route_haml}.each do |path|
+    %w{/html /erb /haml}.each do |path|
       ['', '.html'].each do |ext|
         response = @request.get(path + ext)
         msg = "path: #{(path+ext).dump}"
@@ -29,19 +29,19 @@ class RouteTest < Test::Unit::TestCase
 
   def test_partials_not_found
     # We can always get the raw source
-    assert @request.get("/_route_partial.haml").ok?
+    assert @request.get("/_partial.haml").ok?
     # But partials refuse to be found for rendering
-    assert @request.get("/route_partial").not_found?
-    assert @request.get("/_route_partial").not_found?
-    assert @request.get("/route_partial.html").not_found?
-    assert @request.get("/_route_partial.html").not_found?
+    assert @request.get("/partial").not_found?
+    assert @request.get("/_partial").not_found?
+    assert @request.get("/partial.html").not_found?
+    assert @request.get("/_partial.html").not_found?
   end
 
   def test_static_html_extension_magic
     # The .html is always optional
-    assert @request.get("/route_html").ok?
-    assert @request.get("/route_html.html").ok?
-    assert @request.get("/route_html.html.html").not_found?
+    assert @request.get("/html").ok?
+    assert @request.get("/html.html").ok?
+    assert @request.get("/html.html.html").not_found?
   end
   
   def test_non_html_template_extension

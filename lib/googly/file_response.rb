@@ -15,15 +15,7 @@
 
 class Googly
   
-  class Response
-    
-    def self.not_found
-      body = "404 Not Found\n"
-      [404, {"Content-Type" => "text/plain",
-         "Content-Length" => body.size.to_s,
-         "X-Cascade" => "pass"},
-       [body]]
-    end
+  class FileResponse
     
     def initialize(env, filename, content_type = nil)
       @env = env
@@ -84,7 +76,7 @@ class Googly
     end
   
     def finish
-      return self.class.not_found if @status == 404
+      return Googly.not_found if @status == 404
       [@status, @headers, @body]
     end
   

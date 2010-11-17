@@ -26,11 +26,11 @@ class Googly
   class Sass
     
     # @param app [#call] The Rack application
-    # @param delay [Float] Throttle delay in seconds.  
+    # @param dwell [Float] in seconds.  
     #  As accurate as Time.now.to_f is.
-    def initialize(app, delay = 1)
+    def initialize(app, dwell = 1)
       @app = app
-      @delay = delay
+      @dwell = dwell
       @check_after = Time.now.to_f
     end
 
@@ -41,7 +41,7 @@ class Googly
       if Time.now.to_f > @check_after
         require 'sass/plugin'
         ::Sass::Plugin.check_for_updates
-        @check_after = Time.now.to_f + @delay
+        @check_after = Time.now.to_f + @dwell
       end
       @app.call(env)
     end

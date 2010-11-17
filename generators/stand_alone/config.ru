@@ -3,12 +3,12 @@
 require 'rubygems'
 require 'googly'
 
-Googly.add_route('/', '.')
-Googly.add_route('/goog', :goog)
-Googly.add_route('/myapp', 'myapp')
+Googly.add_source('/goog', :goog)
+Googly.add_source('/myapp', 'myapp')
 Googly.config.makefile = 'makefile.yml'
 
 use Rack::ShowExceptions
-run Googly
+use Googly::Middleware
+run Rack::File.new '.'
 
 print "Running. (silently)\n"

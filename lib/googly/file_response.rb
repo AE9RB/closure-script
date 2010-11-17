@@ -22,8 +22,7 @@ class Googly
       @filename = filename
       @status = 500
       @headers = {}
-      @body = ['500 Internal Server Error (Googly::Response)']
-      @override = nil
+      @body = ['500 Internal Server Error (Googly::FileResponse)']
       
       begin
         raise Errno::EPERM unless File.file?(filename) and File.readable?(filename)

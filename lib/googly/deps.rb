@@ -15,15 +15,15 @@
 
 class Googly
   
+  # @private
   class MultipleClosureBaseError < StandardError
   end
 
+  # @private
   class ClosureBaseNotFoundError < StandardError
   end
 
-  # This class is responsible for scanning source files and calculating dependencies.
-  # Will scan every .js file in every source directory for changes.
-  # It is expected this is shared across threads for performance.
+  # This class is responsible for scanning source files and managing dependencies.
 
   class Deps
     
@@ -31,8 +31,8 @@ class Googly
     PROVIDE_REGEX = Regexp.new(BASE_REGEX_STRING % 'provide')
     REQUIRE_REGEX = Regexp.new(BASE_REGEX_STRING % 'require')
 
-    # @param (Enumerable) sources pairs of path_info and directory_name
-    # @param (Float) dwell throttles how often a full refresh is allowed
+    # @param (#each) sources Pairs of path_info and directory_name.
+    # @param (Float) dwell Throttles how often a full refresh is allowed
     #  to run.  Also sent to browser in cache-control.  Although the scan
     #  is very fast and we lazy load and cache as much as we can, refresh
     #  may still be too slow to be running multiple times per second.
@@ -42,8 +42,10 @@ class Googly
       @semaphore = Mutex.new
       @deps = {}
     end
-    attr :dwell
+    attr_accessor :dwell
     
+    # This cascading rack server will render deps.js in place
+    # of the static file distributed with the Google Closure library.
     # @return (Array)[status, headers, body]
     def call(env, path_info=nil)
       path_info ||= Rack::Utils.unescape(env["PATH_INFO"])
@@ -73,7 +75,8 @@ class Googly
     end
     
 
-    # for use by Googly::Template
+    # Obtain the path_info for where base_js is located.
+    # @return [String]
     def base_js(env={})
       @semaphore.synchronize do
         refresh(env) if never_been_run

@@ -17,16 +17,18 @@ require 'ostruct'
 require 'tmpdir'
 
 # Googlyscript can be run with rackup using a config.ru, installed
-# directly into a Rails 3 route file, or adapted to anything that
+# as middleware into a framework, or adapted to anything that
 # provides a rack environment.
 # @example config.ru
-#   #\ -w -p 9009
+#   #\ -p 9009 -E none
 #   require 'rubygems'
 #   require 'googly'
-#   Googly.script('/goog', :goog)
-#   Googly.script('/myapp', './src/myapp')
+#   Googly.script '/goog', :goog
+#   Googly.script '/myapp', './src/myapp'
+#   use Rack::ShowExceptions
 #   use Googly::Middleware
-#   run Rack::File, './public'
+#   run Rack::File.new './public'
+
 class Googly
   
   googly_lib_path = File.expand_path(File.dirname(__FILE__))
@@ -52,12 +54,11 @@ class Googly
   
   # These need to be set before the rack server is called for the first time.
   # === Attributes:
-  # - (String) *makefile* -- Full path to the yaml makefile.
   # - (String) *java* -- default: "java" -- Your Java executable.
   # - (String) *compiler_jar* -- A compiler.jar to use instead of the one in the gem.
   # - (String) *tmpdir* -- Temp directory to use instead of the OS default.
   # - (Hash) *haml* -- Options hash for haml engine.
-  # - (Array) *engines* -- Options Add new template engines here.
+  # - (Array) *engines* -- Add new template engines here.
   # @return [OpenStruct]
   def config
     return @config if @config
@@ -91,7 +92,7 @@ class Googly
   # @param (String) path 
   #        http server mount point
   # @param (String) directory
-  # @param (Symbol) built_in :goog, :goog_vendor, :googly, :public
+  # @param (Symbol) built_in :goog, :goog_vendor, :googly
   def script(path, directory)
     raise "path must start with /" unless path =~ %r{^/}
     path = '' if path == '/'
@@ -102,6 +103,8 @@ class Googly
     @sources << [path, File.expand_path(directory)]
     @sources.sort! {|a,b| b[0] <=> a[0]}
   end
+
+  # @return [Array]
   attr_reader :sources
   
   # Run Java command in a REPL (read-execute-print-loop).
@@ -120,6 +123,7 @@ class Googly
   # @return [String]
   attr_reader :base_path
 
+  # @return [Deps]
   attr_reader :deps
 
   # Rack interface.
@@ -166,8 +170,8 @@ class Googly
   def not_found
     body = "404 Not Found\n"
     [404, {"Content-Type" => "text/plain",
-       "Content-Length" => body.size.to_s,
-       "X-Cascade" => "pass"},
+           "Content-Length" => body.size.to_s,
+           "X-Cascade" => "pass"},
      [body]]
   end
   

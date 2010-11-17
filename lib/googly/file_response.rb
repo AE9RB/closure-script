@@ -32,21 +32,21 @@ class Googly
       end
       
       # Caching strategy
-      if_mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil
+      mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil
       if env['QUERY_STRING'] =~ /^[0-9]{9,10}$/
         # Files timestamped with unix time in QUERY_STRING are supercharged
         # The automatic deps.js contains filenames in this format.
-        @status = 304 if if_mod_since and File.mtime(filename) == Time.at(env['QUERY_STRING'].to_i)
+        @status = 304 if mod_since and File.mtime(filename) == Time.at(env['QUERY_STRING'].to_i)
         @headers["Last-Modified"] = Time.now.httpdate
         @headers["Cache-Control"] = 'max-age=86400, public' # one day
       else
         # Regular files must always revalidate with timestamp
         last_modified = File.mtime(filename)
-        @status = 304 if last_modified == if_mod_since
+        @status = 304 if last_modified == mod_since
         @headers["Last-Modified"] = last_modified.httpdate
         @headers["Cache-Control"] = 'max-age=0, private, must-revalidate'
       end
-      return if @status == 304
+      return if @status == 304 # Not Modified
       
       # Sending the file or reading an unknown length stream to send
       @status = 200
@@ -59,7 +59,9 @@ class Googly
       @headers["Content-Type"] = content_type || Rack::Mime.mime_type(File.extname(filename), 'text/plain')
     end
     
-    # These support using self as a high-performance body
+    # Support using self as a response body.
+    # @yield [String] 8kb blocks
+    # @return [void]
     def each
       File.open(@filename, "rb") { |file|
         while part = file.read(8192)
@@ -67,13 +69,20 @@ class Googly
         end
       }
     end
+
+    # Filename attribute.
+    # Alias is used by some rack servers to detatch from Ruby early.
+    # @return [String]
     attr_reader :filename
     alias :to_path :filename
 
+    # Was the file in the system and ready to be served?
     def found?
       @status == 200 or @status == 304
     end
   
+    # Present the final response for rack.
+    # @return (Array)[status, headers, body]
     def finish
       return Googly.not_found if @status == 404
       [@status, @headers, @body]
@@ -82,6 +91,3 @@ class Googly
   end
 
 end
-
-
-

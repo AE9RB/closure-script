@@ -15,22 +15,23 @@
 
 class Googly
   
+  # @private
   class TemplateNotFoundError < StandardError
   end
 
+  # @private
   class TemplateCallStackTooDeepError < StandardError
   end
   
   # A Googly::Template instance is the context in which Ruby templates are rendered.
   # It inherits everything from Rack::Request and supplies a response instance
   # you can use for redirects, cookies, and other controller actions.
-  # We don't write the template rendering into the response if
-  # the template alters anything other than headers.
   class Template < Rack::Request
     
-    # When redering for http services, use this initializer to get 404
-    # messages instead of exceptions when the file is not found.
-    # Exceptions from internal calls will appear thrown from the
+    # Create a new instance of {Template}.
+    # Using the initializer instead of rendering as a separate step provides
+    # 404 messages instead of exceptions when the file is not found.
+    # Also, exceptions from internal render calls will appear thrown from the
     # render command to help speed up debugging.
     def initialize(env, filename = nil)
       super(env)
@@ -51,14 +52,18 @@ class Googly
       @response.header["Content-Type"] = "text/plain"
     end
     
-    # Object#finish rack response.
+    # After rendering, #finish will be sent to the client.
+    # If you change anything other than the header, the template
+    # rendering will not be added to this response.
+    # @return [Rack::Response]
     attr :response
 
-    # Render another template.  Templates that begin with an underbar are, by convention,
-    # partials and can't be rendered as the root.  The same Googly::Template
-    # instance is used for all internally rendered templates so you can pass information
-    # with instance variables.
-    # @param (String) filename path is relative to current template file if called from one
+    # Render another template.  The same Googly::Template instance is
+    # used for all internally rendered templates so you can pass
+    # information with instance variables.
+    # @example view_test.erb
+    #   <%= render 'util/logger_popup' %>
+    # @param (String) filename Relative to current template.
     def render(filename)
       if @render_call_stack.size > 100
         # Since nobody sane would recurse through here, this mainly
@@ -102,21 +107,36 @@ class Googly
     # The Google Closure base.js script.
     # If you use this instead of a static link, you are free to relocate
     # the Google Closure library without updating every html fixture page.
+    # @example view_test.erb
+    #  <script src="<%= goog_base_js %>"></script>
     def goog_base_js
       Googly.deps.base_js(env)
     end
     
-    #TODO this is going to be the new way of compiling
+    # @todo this is going to be the new way of compiling
+    # Run a compiler job.  Accepts every option that compiler.jar supports.
+    # Also adds support for two new options:
+    # * --ns -- includes all files from a namespace
+    # * --compilation_level CONCATENATION -- A simple concat, now the default.
+    # Please see {Compilation} for more information.
+    # @example myapp.js.erb
+    #   <%= compile %w{--ns myapp.HelloWorld --compilation_level ADVANCED_OPTIMIZATIONS} %>
+    # @param [Array<String>]
+    # @return [Compilation]
     def compile(*args)
-      #Compile.new(*args)
+      #Compilation.new(*args)
     end
 
-    # Escaping urls
+    # Helper for URL escaping.
+    # @param [String]
+    # @return [String]
     def escape(s)
       Rack::Utils.escape(s)
     end
 
-    # Escaping html
+    # Helper and alias for HTML escaping.
+    # @param [String]
+    # @return [String]
     def escape_html(s)
       Rack::Utils.escape_html(s)
     end

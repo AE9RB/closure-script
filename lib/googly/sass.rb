@@ -15,9 +15,10 @@
 
 class Googly
 
-  # This works just like Sass::Plugin::Rack except you can throttle
-  # how often it runs.  Otherwise, compiling Sass on every request
-  # causes significant performance problems.
+  # Googlyscript can easily respond to hundreds of requests
+  # per second, but not with Sass::Plugin::Rack in the stack. 
+  # This works exactly like Sass::Plugin::Rack except you
+  # can throttle how often it runs.  
   # @example config.ru
   #  require 'sass/plugin'
   #  Sass::Plugin.options[:template_location] = {in_dir => out_dir}

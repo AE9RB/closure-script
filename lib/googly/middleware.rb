@@ -14,6 +14,9 @@
 
 
 class Googly
+
+  # Although {Googly} can run as an app or in a cascade,
+  # most installations will use {Middleware}.
   
   class Middleware
     

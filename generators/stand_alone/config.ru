@@ -3,8 +3,8 @@
 require 'rubygems'
 require 'googly'
 
-Googly.add_source('/goog', :goog)
-Googly.add_source('/myapp', 'myapp')
+Googly.script('/goog', :goog)
+Googly.script('/myapp', 'myapp')
 Googly.config.makefile = 'makefile.yml'
 
 use Rack::ShowExceptions

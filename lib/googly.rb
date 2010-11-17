@@ -23,8 +23,8 @@ require 'tmpdir'
 #   #\ -w -p 9009
 #   require 'rubygems'
 #   require 'googly'
-#   Googly.add_source('/goog', :goog)
-#   Googly.add_source('/myapp', './src/myapp')
+#   Googly.script('/goog', :goog)
+#   Googly.script('/myapp', './src/myapp')
 #   use Googly::Middleware
 #   run Rack::File, './public'
 class Googly
@@ -84,15 +84,15 @@ class Googly
   
   # Maps javascript sources to the Googlyscript server and compiler.
   # @example
-  #   Googly.add_source('/goog', :goog)
-  #   Googly.add_source('/myapp', './myapp')
-  # @overload add_source(path, directory)
-  # @overload add_source(path, built_in)
+  #   Googly.script('/goog', :goog)
+  #   Googly.script('/myapp', './myapp')
+  # @overload script(path, directory)
+  # @overload script(path, built_in)
   # @param (String) path 
   #        http server mount point
   # @param (String) directory
   # @param (Symbol) built_in :goog, :goog_vendor, :googly, :public
-  def add_source(path, directory)
+  def script(path, directory)
     raise "path must start with /" unless path =~ %r{^/}
     path = '' if path == '/'
     raise "path must not end with /" if path =~ %r{/$}

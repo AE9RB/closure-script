@@ -4,7 +4,7 @@ class ServerTest < Test::Unit::TestCase
 
   def setup
     Googly.sources.delete_if{true}
-    Googly.add_source '/', File.join(Googly.base_path, 'test', 'fixtures')
+    Googly.script '/', File.join(Googly.base_path, 'test', 'fixtures')
     @request = Rack::MockRequest.new(Googly)
   end
 
@@ -21,6 +21,15 @@ class ServerTest < Test::Unit::TestCase
         assert response =~ /PASS/, msg
       end
     end
+  end
+
+  def test_static_of_template
+    # It is critical we be able to get the raw files
+    response = @request.get('/erb.erb')
+    # It should be plain text (until Rack adds a Mime type)
+    assert_equal 'text/plain', response.content_type
+    # It should not have run as a template
+    assert !(response =~ /PASS/)
   end
 
   def test_file_not_found

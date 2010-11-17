@@ -14,7 +14,7 @@ myapp:
   # 3. --js entries are prepended to satisfy the require namespaces.
   # If you explicitly set js_output_file and create_source_map without
   # any require namespaces, absolutely nothing will be changed -- in
-  # this mode you don't even need to Googly.add_source any source code.
+  # this mode you don't even need to Googly.script any source code.
   # The arrays are flattened before use so get creative with the syntax.
   # You may also embed Ruby.  It's googly: <%= Time.now %>
   require:

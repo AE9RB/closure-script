@@ -8,9 +8,9 @@ Sass::Plugin.options[:template_location] = File.join(Googly.base_path, 'src', 's
 Sass::Plugin.options[:css_location] = File.join(Googly.base_path, 'public', 'stylesheets')
 Sass::Plugin.options[:cache_location] = File.join(Googly.base_path, 'tmp')
 
-Googly.add_source('/goog', :goog)
-Googly.add_source('/goog_vendor', :goog_vendor)
-Googly.add_source('/googly', :googly)
+Googly.script('/goog', :goog)
+Googly.script('/goog_vendor', :goog_vendor)
+Googly.script('/googly', :googly)
 Googly.config.makefile = File.join(Googly.base_path, 'src', 'javascript', 'makefile.yml')
 Googly.config.tmpdir = File.join(Googly.base_path, 'tmp')
 Googly.config.haml[:format] = :html5

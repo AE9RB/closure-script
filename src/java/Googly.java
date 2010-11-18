@@ -19,13 +19,25 @@
 // of this important code which would need to be kept in sync with Google's
 // releases, I use a SecurityManager to trap the System.exit() calls.
 // BeanShell can't extend SecurityManager so this must be compiled.
+// Oh, and CLosure like to close STDOUT when no --js_output_file is
+// specified, so we have to hack around that too.
 
 // Once loaded up in a BeanShell or other REPL:
-//   java -classpath bsh-2.0b4.jar:Googly.jar:../closure-compiler/compiler.jar bsh.Interpreter
+//   java -classpath bsh-core-2.0b4.jar:Googly.jar:../closure-compiler/compiler.jar bsh.Interpreter
 // You may repeatedly request javascript compilations:
 //   Googly.compile_js(new String[]{"--js", "../app/javascripts/test.js", "--js_output_file", "out.js", "--compilation_level", "ADVANCED_OPTIMIZATIONS"});
 
+import java.io.PrintStream;
+
 public class Googly {
+
+  // This PrintStream can not be closed
+  private static class UnclosablePrintStream extends PrintStream {
+    public UnclosablePrintStream(PrintStream out) {
+      super(out);
+    }
+    public void close() {this.flush();}
+  }
 
   // This will be thrown when a captured block tries to System.exit()
   private static class SystemExitException extends SecurityException { }
@@ -42,21 +54,23 @@ public class Googly {
     };
     System.setSecurityManager(securityManager);
   }
-
+  
   // Remove the custom security manager so System.exit() works again
   private static void enableSystemExit() {
     System.setSecurityManager(null);
   }
 
   public static void compile_js(String[] args) {
+    PrintStream savedOut = System.out;
+    System.setOut(new UnclosablePrintStream(System.out));
     disableSystemExit();
     try {
       com.google.javascript.jscomp.CommandLineRunner.main(args);
     } catch( SystemExitException e ) {
     } finally {
-      enableSystemExit() ;
+      enableSystemExit();
+      System.setOut(savedOut);
     }  
   }
-
 
 }

@@ -1,0 +1,21 @@
+!!!
+%html
+  %head
+    %title Compiler Scaffold
+    :ruby
+      options = []
+      options << %w{--summary_detail_level 3}
+      options << %w{--js src/script/test.js}
+      # options << %w{--warning_level VERBOSE}
+      comp = compile(options.flatten)
+  %body
+    %div= goog_base_js
+    - options.each do |opt, val|
+      %div #{opt} #{val}
+    %hr
+    STDOUT:
+    %pre= comp.stdout
+    %hr
+    STDERR:
+    %pre= comp.stderr
+    %hr

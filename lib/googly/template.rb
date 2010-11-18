@@ -77,7 +77,6 @@ class Googly
         filename = File.expand_path(filename)
         raise TemplateNotFoundError if File.basename(filename) =~ /^_/
       end
-      @render_call_stack.push filename
       ext = File.extname(filename)
       files1 = [filename]
       files1 << filename + '.html' if ext == ''
@@ -86,14 +85,15 @@ class Googly
         Googly.config.engines.each do |ext, engine|
           files2 = [filename1+ext]
           files2 << filename1.gsub(/.html$/, ext) if File.extname(filename1) == '.html'
-          unless filename1 =~ /^_/ or @render_call_stack.size == 1
+          unless filename1 =~ /^_/ or @render_call_stack.size == 0
             files2 = files2 + files2.collect {|f| "#{File.dirname(f)}/_#{File.basename(f)}"} 
           end
           files2.each do |filename2|
             if File.file?(filename2) and File.readable?(filename2)
-              if @render_call_stack.size == 1
+              if @render_call_stack.size == 0
                 response.header["Content-Type"] = Rack::Mime.mime_type(File.extname(filename1), 'text/html')
               end
+              @render_call_stack.push filename2
               result = engine.call self, filename2
               @render_call_stack.pop
               return result
@@ -123,8 +123,8 @@ class Googly
     #   <%= compile %w{--ns myapp.HelloWorld --compilation_level ADVANCED_OPTIMIZATIONS} %>
     # @param [Array<String>]
     # @return [Compilation]
-    def compile(*args)
-      #Compilation.new(*args)
+    def compile(args)
+      Compilation.new(args, Googly.deps, @render_call_stack.last, env)
     end
 
     # Helper for URL escaping.

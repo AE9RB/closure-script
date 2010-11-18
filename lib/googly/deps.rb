@@ -89,31 +89,36 @@ class Googly
     # Calculate all required files for an array of namespaces.
     # @param (Array<String>) namespaces 
     # @return (Array<String>) New Array of filenames.
-    def files(namespaces, env={})
+    def files(namespaces, env={}, filenames=nil)
       return [] if namespaces.size == 0
+      ns = nil
       @semaphore.synchronize do
         refresh(env)
-        raise ClosureBaseNotFoundError unless @goog
         # Pivot the deps to a namespace hash
         # @namespace is cleared when any requires or provides changes
-        unless @namespaces
-          @namespaces = {}
+        unless @ns
+          @ns = {}
           @deps.each do |filename, dep|
             dep[:provide].each do |provide|
-              if @namespaces[provide]
+              if @ns[provide]
                 raise "Namespace #{provide.dump} provided more than once."
               end
-              @namespaces[provide] = {
+              @ns[provide] = {
                 :filename => filename,
                 :require => dep[:require]
               }
             end
           end
         end
-        # This has been finely tuned
-        namespaces.inject([@goog[:base_filename]]) do |filenames, namespace|
-          map_filenames(namespace, filenames)
-        end
+        ns = @ns
+        raise ClosureBaseNotFoundError unless @goog
+        filenames ||= [@goog[:base_filename]]
+      end
+      # Since @ns is only unset, not modified, by another thread, we
+      # can work with a local reference.  This has been finely tuned and
+      # runs fast, but it's still nice to release any other threads early.
+      namespaces.inject(filenames) do |filenames, namespace|
+        map_filenames(ns, namespace, filenames)
       end
     end
     
@@ -127,13 +132,13 @@ class Googly
     end
 
     # Namespace recursion with circular stop on the filename
-    def map_filenames(namespace, filenames = [], prev = nil)
-      unless source = @namespaces[namespace]
+    def map_filenames(ns, namespace, filenames = [], prev = nil)
+      unless source = ns[namespace]
         raise "Namespace #{namespace.dump} not found." 
       end
       return if source == prev or filenames.include? source[:filename]
       source[:require].each do |required|
-        map_filenames required, filenames, source
+        map_filenames ns, required, filenames, source
       end
       filenames.push source[:filename]
     end
@@ -211,7 +216,7 @@ class Googly
       end
       # Decide if deps has changed.
       if 0 < added_files.length + changed_files.length + deleted_files.length
-        @namespaces = nil
+        @ns = nil
         STDERR.write "Googlyscript deps cache: #{added_files.length} added, #{changed_files.length} changed, #{deleted_files.length} deleted.\n"
       end
       # Finish

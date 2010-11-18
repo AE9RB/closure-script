@@ -19,7 +19,7 @@
 // of this important code which would need to be kept in sync with Google's
 // releases, I use a SecurityManager to trap the System.exit() calls.
 // BeanShell can't extend SecurityManager so this must be compiled.
-// Oh, and CLosure like to close STDOUT when no --js_output_file is
+// Oh, and Closure likes to close STDOUT when no --js_output_file is
 // specified, so we have to hack around that too.
 
 // Once loaded up in a BeanShell or other REPL:

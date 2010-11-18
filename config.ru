@@ -11,7 +11,7 @@ Sass::Plugin.options[:cache_location] = File.join(Googly.base_path, 'tmp')
 Googly.script('/goog', :goog)
 Googly.script('/goog_vendor', :goog_vendor)
 Googly.script('/googly', :googly)
-Googly.config.makefile = File.join(Googly.base_path, 'src', 'javascript', 'makefile.yml')
+Googly.config.makefile = File.join(Googly.base_path, 'src', 'script', 'makefile.yml')
 Googly.config.tmpdir = File.join(Googly.base_path, 'tmp')
 Googly.config.haml[:format] = :html5
 

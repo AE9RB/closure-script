@@ -41,6 +41,7 @@ class Googly
   autoload(:Deps, 'googly/deps')
   autoload(:FileResponse, 'googly/file_response')
   autoload(:Middleware, 'googly/middleware')
+  autoload(:Compilation, 'googly/compilation')
   
   # Singleton
   class << self
@@ -131,7 +132,7 @@ class Googly
   # @return (Array)[status, headers, body]
   def call(env)
     path_info = Rack::Utils.unescape(env["PATH_INFO"])
-    return forbidden if path_info.include? ".."
+    return not_found if path_info.include? ".." # unsafe
 
     #TODO this is the old compiler, to be remvoed
     return @compiler.call(env) if path_info == '/'
@@ -155,16 +156,6 @@ class Googly
     not_found
   end
   
-  # Status 403 with X-Cascade => pass.
-  # @return (Array)[status, headers, body]
-  def forbidden
-    body = "403 Forbidden\n"
-    [403, {"Content-Type" => "text/plain",
-           "Content-Length" => body.size.to_s,
-           "X-Cascade" => "pass"},
-     [body]]
-  end
-
   # Status 404 with X-Cascade => pass.
   # @return (Array)[status, headers, body]
   def not_found
@@ -191,7 +182,7 @@ class Googly
     {
       :goog => File.join(base_path, 'closure-library', 'closure', 'goog'),
       :goog_vendor => File.join(base_path, 'closure-library', 'third_party', 'closure', 'goog'),
-      :googly => File.join(base_path, 'src', 'javascript'),
+      :googly => File.join(base_path, 'src', 'script'),
     }
   end
   

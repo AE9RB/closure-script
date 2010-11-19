@@ -4,8 +4,7 @@
 # compiler is run and there is an error or warning.
 # Use `--summary_detail_level 3` if you want to see a log
 # on all successful compilations (no errors or warnings).
-# If the js_output_file didn't need an update, a cachable file
-# response is used insetad.
+# If there's no log to display, a cachable file response is used.
 # This is just an example to get you started. There are certainly
 # more elegant ways to display a log and you could easily save
 # it to the filesystem if you wanted to show it every time.
@@ -20,6 +19,9 @@ comp = compile(%w{
 if !comp.stderr or comp.stderr.empty?
   @response = comp.to_response
 else -%>
+<% err_str = comp.stderr.split("\n").last; if err_str.to_i > 0 -%>
+try{console.error(<%= ('Closure Compiler: '+err_str).dump %>)}catch(err){}
+<% end -%>
 try{console.log(<%= comp.stderr.dump %>)}catch(err){}
 <%= comp %>
-<% end %>
+<% end -%>

@@ -66,12 +66,10 @@ class Googly
             js.push value
           when '--externs', '--property_map_input_file', '--variable_map_input_file'
             extras.push value
-          when '--compilation_level'
-            @compilation_level = value
         end
         args_index = args_index + 2
       end
-      # Cleanly insert namespace files
+      # Insert namespace files optimally while avoiding collisions
       ns = []
       ns_index = 0
       args_index = 0
@@ -105,7 +103,7 @@ class Googly
         return if compiled
         File.unlink @js_output_file rescue Errno::ENOENT
       end
-      # Do it
+      # Do it; defensive .to_s.dump allows for bools and nums
       java_opts = @args.collect{|a|a.to_s.dump}.join(', ')
       @stdout, @stderr = Googly.java("Googly.compile_js(new String[]{#{java_opts}});")
     end

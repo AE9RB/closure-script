@@ -118,8 +118,6 @@ class Googly
     # Run a compiler job.  Accepts every argument that compiler.jar supports.
     # Accepts new `--ns namespace` option which literally expands into
     # `--js filename` arguments in place to satisfy the namespace.
-    # @todo A concatenation will be generated if no --compilation_level is specified
-    #  (instead of the usual default of SIMPLE_OPTIMIZATIONS).
     # If you specify a --js_output_file then the compiler will check File.mtime
     # on every source file plus all the templates and skip the compilation
     # if the js_output_file is newest.

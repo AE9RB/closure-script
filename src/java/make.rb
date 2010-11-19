@@ -1,4 +1,4 @@
-#TODO this won't report compile errors and has other bad things too
+# I'm not a Java programmer.
 raise "Remove old .class files before running make" unless Dir.glob("*.class").empty?
 `javac -classpath ../../closure-compiler/compiler.jar:../../beanshell/bsh-core-2.0b4.jar Googly.java`
 `jar cf ../../lib/googly.jar *.class`

@@ -14,7 +14,6 @@
 
 
 require 'ostruct'
-require 'tmpdir'
 
 # Googlyscript can be run with rackup using a config.ru, installed
 # as middleware into a framework, or adapted to anything that
@@ -56,7 +55,6 @@ class Googly
   # === Attributes:
   # - (String) *java* -- default: "java" -- Your Java executable.
   # - (String) *compiler_jar* -- A compiler.jar to use instead of the one in the gem.
-  # - (String) *tmpdir* -- Temp directory to use instead of the OS default.
   # - (Hash) *haml* -- Options hash for haml engine.
   # - (Array) *engines* -- Add new template engines here.
   # @return [OpenStruct]
@@ -65,7 +63,6 @@ class Googly
     @config = OpenStruct.new
     @config.java = 'java'
     @config.compiler_jar = File.join(base_path, 'closure-compiler', 'compiler.jar')
-    @config.tmpdir = Dir.tmpdir
     @config.haml = {}
     @config.engines = [
       ['.erb', Proc.new do |template, filename|
@@ -104,6 +101,7 @@ class Googly
     @sources.sort! {|a,b| b[0] <=> a[0]}
   end
 
+  # Path and directory pairs configured with Googly.script().
   # @return [Array]
   attr_reader :sources
   
@@ -117,12 +115,20 @@ class Googly
     @beanshell.run(command)
   end
 
+  # Access to the compiler for rake tasks and the like.
+  # @return (Compilation)
+  def compile(args)
+    Compilation.new args, @deps
+  end
+
   # Filesystem location of the Googlyscript install.
   # Typically, where the gem was installed.  This is mainly used
   # internally but may be useful for experimental configurations.
   # @return [String]
   attr_reader :base_path
 
+  # An instance of {Deps} initialized with all the sources
+  # that you added with Googly.script() for you to use.
   # @return [Deps]
   attr_reader :deps
 

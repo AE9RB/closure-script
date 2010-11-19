@@ -109,6 +109,8 @@ class Googly
     # The Google Closure base.js script.
     # If you use this instead of a static link, you are free to relocate relative
     # to the Google Closure library without updating every html fixture page.
+    # Unfortunately, the better caching can't be used because of the way
+    # base.js explores the DOM looking for where to load deps.js.
     # @example view_test.erb
     #  <script src="<%= goog_base_js %>"></script>
     def goog_base_js

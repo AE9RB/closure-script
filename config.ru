@@ -12,7 +12,6 @@ Googly.script('/goog', :goog)
 Googly.script('/goog_vendor', :goog_vendor)
 Googly.script('/googly', :googly)
 Googly.config.makefile = File.join(Googly.base_path, 'src', 'script', 'makefile.yml')
-Googly.config.tmpdir = File.join(Googly.base_path, 'tmp')
 Googly.config.haml[:format] = :html5
 
 # use Rack::CommonLogger # slow, adds ~20% to goog.editor Demo page load

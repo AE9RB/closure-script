@@ -46,7 +46,6 @@ public class Googly {
   private static void disableSystemExit() {
     final SecurityManager securityManager = new SecurityManager() {
       public void checkPermission(java.security.Permission permission) {
-        //TODO catch number
         if (permission.getName().contains("exitVM")) {
           throw new SystemExitException();
         }

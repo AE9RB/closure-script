@@ -4,4 +4,4 @@ googly.test = function() {
   document.write('The code in test.js ran.')
 }
 
-googly.test(); 
+googly.test();

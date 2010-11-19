@@ -149,6 +149,21 @@ class Googly
     end
     alias :h :escape_html
     
+    # Helper for relative filenames.
+    # @param [String]
+    # @return [String]
+    def expand_path(s)
+      File.expand_path(s, File.dirname(@render_call_stack.last))
+    end
+
+    # Helper to add file mtime as query for caching.
+    # @param [String]
+    # @return [String]
+    def expand_src(s)
+      "#{s}?#{File.mtime(expand_path(s)).to_i}"
+    end
+    
+    
   end
   
 end

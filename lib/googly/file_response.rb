@@ -15,6 +15,8 @@
 
 class Googly
   
+  # Can be used as a Rack::Response.  Provides advanced cache control.
+  
   class FileResponse
     
     def initialize(env, filename, content_type = nil)

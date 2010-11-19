@@ -53,7 +53,6 @@ class Googly
       args_index = 0
       while args_index < args.length
         option, value = @args[args_index, 2]
-        raise "compiler options must all be -- format" unless option =~ /^--/
         if FILE_OPTIONS.include? option
           value = @args[args_index+1] = File.expand_path(*[value, base].compact)
           unless %w{--externs --js}.include? option
@@ -111,7 +110,7 @@ class Googly
       @stdout, @stderr = Googly.java("Googly.compile_js(new String[]{#{java_opts}});")
     end
     
-    # Allows a caching response of the js_output_file.  In templates:
+    # Allows easy http caching of the js_output_file.  In templates:
     # <% @response = compile(args).to_response %> is preferred over <%= compile(args) %>.
     # @return (FileResponse) 
     def to_response
@@ -134,6 +133,7 @@ class Googly
     attr_reader :stdout
     
     # Results from compiler.jar.  The log, when there is one, is found here.
+    # Use `--summary_detail_level 3` to see log when no errors or warnings.
     attr_reader :stderr
     
     # Compiler arguments after fixups.  Use to inspect the actual

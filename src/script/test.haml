@@ -1,0 +1,15 @@
+!!!
+%html
+  %head
+    - if params.has_key? 'build'
+      %script{:src => 'c.js'}
+    - else  
+      %script{:src => goog_base_js}
+      :javascript
+        goog.require('googly.test');
+  %body
+    - if params.has_key? 'build'
+      %a(href = '?') Click For Require...
+    - else  
+      %a(href = '?build') Click For Build...
+    

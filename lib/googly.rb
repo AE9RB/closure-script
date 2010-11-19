@@ -35,7 +35,6 @@ class Googly
   $LOAD_PATH.unshift(googly_lib_path) if !$LOAD_PATH.include?(googly_lib_path)
   
   autoload(:BeanShell, 'googly/beanshell')
-  autoload(:Compiler, 'googly/compiler')
   autoload(:Sass, 'googly/sass')
   autoload(:Template, 'googly/template')
   autoload(:Deps, 'googly/deps')
@@ -71,7 +70,7 @@ class Googly
     @config.engines = [
       ['.erb', Proc.new do |template, filename|
         require 'erb'
-        erb = ::ERB.new(File.read(filename))
+        erb = ::ERB.new(File.read(filename), nil, '-')
         erb.filename = filename
         erb.result(template.send(:binding))
       end],
@@ -134,9 +133,6 @@ class Googly
     path_info = Rack::Utils.unescape(env["PATH_INFO"])
     return not_found if path_info.include? ".." # unsafe
 
-    #TODO this is the old compiler, to be remvoed
-    return @compiler.call(env) if path_info == '/'
-
     # Check for deps.js
     status, headers, body = @deps.call(env, path_info)
     return [status, headers, body] unless headers["X-Cascade"] == "pass"
@@ -174,7 +170,6 @@ class Googly
     @base_path = File.expand_path(File.join(File.dirname(__FILE__), '..'))
     @sources = Array.new
     @deps = Deps.new(@sources)
-    @compiler = Compiler.new(@deps, config)
   end
   
 

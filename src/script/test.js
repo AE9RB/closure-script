@@ -1,8 +1,7 @@
 goog.provide('googly.test');
 
 googly.test = function() {
-  this.bar = 'foo';
-  window.location = "123";
+  document.write('The code in test.js ran.')
 }
 
 googly.test(); 

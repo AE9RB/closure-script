@@ -36,10 +36,11 @@ class Googly
     def initialize(env, filename = nil)
       super(env)
       @render_call_stack = []
+      @render_visited = []
       @response = original_response = Rack::Response.new
       if filename
         rendering = render(filename)
-        if @response == original_response and @response.status == 200 and @response.empty?
+        if @response == original_response and @response.empty?
           @response.write rendering
         end
       end
@@ -53,10 +54,10 @@ class Googly
     end
     
     # After rendering, #finish will be sent to the client.
-    # If you change anything other than the header, the template
-    # rendering will not be added to this response.
+    # If you replace the response or add to the response#body, 
+    # the template rendering will not be added to this response.
     # @return [Rack::Response]
-    attr :response
+    attr_accessor :response
 
     # Render another template.  The same Googly::Template instance is
     # used for all internally rendered templates so you can pass
@@ -85,14 +86,15 @@ class Googly
         Googly.config.engines.each do |ext, engine|
           files2 = [filename1+ext]
           files2 << filename1.gsub(/.html$/, ext) if File.extname(filename1) == '.html'
-          unless filename1 =~ /^_/ or @render_call_stack.size == 0
+          unless filename1 =~ /^_/ or @render_call_stack.empty?
             files2 = files2 + files2.collect {|f| "#{File.dirname(f)}/_#{File.basename(f)}"} 
           end
           files2.each do |filename2|
             if File.file?(filename2) and File.readable?(filename2)
-              if @render_call_stack.size == 0
+              if @render_call_stack.empty?
                 response.header["Content-Type"] = Rack::Mime.mime_type(File.extname(filename1), 'text/html')
               end
+              @render_visited << filename2 unless @render_visited.include? filename2
               @render_call_stack.push filename2
               result = engine.call self, filename2
               @render_call_stack.pop
@@ -105,26 +107,33 @@ class Googly
     end
     
     # The Google Closure base.js script.
-    # If you use this instead of a static link, you are free to relocate
-    # the Google Closure library without updating every html fixture page.
+    # If you use this instead of a static link, you are free to relocate relative
+    # to the Google Closure library without updating every html fixture page.
     # @example view_test.erb
     #  <script src="<%= goog_base_js %>"></script>
     def goog_base_js
       Googly.deps.base_js(env)
     end
     
-    # @todo this is going to be the new way of compiling
-    # Run a compiler job.  Accepts every option that compiler.jar supports.
-    # Also adds support for two new options:
-    # * --ns -- includes all files from a namespace
-    # * --compilation_level CONCATENATION -- A simple concat, now the default.
-    # Please see {Compilation} for more information.
+    # Run a compiler job.  Accepts every argument that compiler.jar supports.
+    # Accepts new `--ns namespace` option which literally expands into
+    # `--js filename` arguments in place to satisfy the namespace.
+    # @todo A concatenation will be generated if no --compilation_level is specified
+    #  (instead of the usual default of SIMPLE_OPTIMIZATIONS).
+    # If you specify a --js_output_file then the compiler will check File.mtime
+    # on every source file plus all the templates and skip the compilation
+    # if the js_output_file is newest.
+    # Paths are relative to the template calling #compile.
     # @example myapp.js.erb
-    #   <%= compile %w{--ns myapp.HelloWorld --compilation_level ADVANCED_OPTIMIZATIONS} %>
-    # @param [Array<String>]
+    #   <% @response = compile(%w{
+    #     --js_output_file ../public/myapp.js
+    #     --ns myapp.HelloWorld
+    #     --compilation_level ADVANCED_OPTIMIZATIONS
+    #   }).to_response %>
+    # @param [Array<String>] args
     # @return [Compilation]
     def compile(args)
-      Compilation.new(args, Googly.deps, @render_call_stack.last, env)
+      Compilation.new(args, Googly.deps, @render_visited, File.dirname(@render_call_stack.last), env)
     end
 
     # Helper for URL escaping.

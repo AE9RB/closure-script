@@ -90,7 +90,7 @@ class Googly
     # @param (Array<String>) namespaces 
     # @return (Array<String>) New Array of filenames.
     def files(namespaces, env={}, filenames=nil)
-      return [] if namespaces.size == 0
+      return [] if namespaces.empty?
       ns = nil
       @semaphore.synchronize do
         refresh(env)
@@ -111,8 +111,11 @@ class Googly
           end
         end
         ns = @ns
-        raise ClosureBaseNotFoundError unless @goog
-        filenames ||= [@goog[:base_filename]]
+        if !filenames or filenames.empty?
+          raise ClosureBaseNotFoundError unless @goog
+          filenames ||= []
+          filenames << @goog[:base_filename]
+        end
       end
       # Since @ns is only unset, not modified, by another thread, we
       # can work with a local reference.  This has been finely tuned and
@@ -191,11 +194,10 @@ class Googly
             end
             dep[:mtime] = mtime
             # Record @goog as we pass by
-            if dep[:provide].length + dep[:require].length == 0
+            if dep[:provide].empty? and dep[:require].empty?
               if File.basename(filename) == 'base.js'
                 if file =~ /^var goog = goog \|\| \{\};/
                   if @goog or previous_goog
-                    # invalidate everything
                     @goog = nil
                     @deps = {} 
                     raise MultipleClosureBaseError

@@ -35,8 +35,7 @@ class Googly
     # render command to help speed up debugging.
     def initialize(env, filename = nil)
       super(env)
-      @render_call_stack = []
-      @render_visited = []
+      @googly_template_render = {:stack => [], :visited => []}
       @response = original_response = Rack::Response.new
       if filename
         rendering = render(filename)
@@ -46,7 +45,7 @@ class Googly
       end
     rescue TemplateCallStackTooDeepError, TemplateNotFoundError => e
       e.set_backtrace e.backtrace[1..-1]
-      raise e if @render_call_stack.size > 1
+      raise e if @googly_template_render[:stack].size > 1
       @response.status = 404
       @response.write "404 Not Found\n"
       @response.header["X-Cascade"] = "pass"
@@ -66,13 +65,13 @@ class Googly
     #   <%= render 'util/logger_popup' %>
     # @param (String) filename Relative to current template.
     def render(filename)
-      if @render_call_stack.size > 100
+      if @googly_template_render[:stack].size > 100
         # Since nobody sane would recurse through here, this mainly
         # finds a render self that you might get after a copy and paste
         raise TemplateCallStackTooDeepError 
-      elsif @render_call_stack.size > 0
+      elsif @googly_template_render[:stack].size > 0
         # Hooray for relative paths and easily movable files
-        filename = File.expand_path(filename, File.dirname(@render_call_stack.last))
+        filename = File.expand_path(filename, File.dirname(@googly_template_render[:stack].last))
       else
         # Underbar templates are partials by convention; keep them from rendering at root
         filename = File.expand_path(filename)
@@ -86,18 +85,20 @@ class Googly
         Googly.config.engines.each do |ext, engine|
           files2 = [filename1+ext]
           files2 << filename1.gsub(/.html$/, ext) if File.extname(filename1) == '.html'
-          unless filename1 =~ /^_/ or @render_call_stack.empty?
+          unless filename1 =~ /^_/ or @googly_template_render[:stack].empty?
             files2 = files2 + files2.collect {|f| "#{File.dirname(f)}/_#{File.basename(f)}"} 
           end
           files2.each do |filename2|
             if File.file?(filename2) and File.readable?(filename2)
-              if @render_call_stack.empty?
+              if @googly_template_render[:stack].empty?
                 response.header["Content-Type"] = Rack::Mime.mime_type(File.extname(filename1), 'text/html')
               end
-              @render_visited << filename2 unless @render_visited.include? filename2
-              @render_call_stack.push filename2
+              unless @googly_template_render[:visited].include? filename2
+                @googly_template_render[:visited] << filename2
+              end
+              @googly_template_render[:stack].push filename2
               result = engine.call self, filename2
-              @render_call_stack.pop
+              @googly_template_render[:stack].pop
               return result
             end
           end
@@ -133,7 +134,11 @@ class Googly
     # @param [Array<String>] args
     # @return [Compilation]
     def compile(args)
-      Compilation.new(args, Googly.deps, @render_visited, File.dirname(@render_call_stack.last), env)
+      Compilation.new(args,
+                      Googly.deps,
+                      @googly_template_render[:visited],
+                      File.dirname(@googly_template_render[:stack].last),
+                      env)
     end
 
     # Helper for URL escaping.
@@ -155,10 +160,13 @@ class Googly
     # @param [String]
     # @return [String]
     def expand_path(s)
-      File.expand_path(s, File.dirname(@render_call_stack.last))
+      File.expand_path(s, File.dirname(@googly_template_render[:stack].last))
     end
 
-    # Helper to add file mtime as query for caching.
+    # Helper to add file mtime as query for future-expiry caching.
+    # This generally won't work across mount points i.e. linking
+    # to /goog files from /myapp.
+    # @todo Use Googly.sources to cross mounts.
     # @param [String]
     # @return [String]
     def expand_src(s)

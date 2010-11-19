@@ -65,12 +65,15 @@ class Googly
             @deps_body << "goog.addDependency(#{path.inspect}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
           end
           @deps_content_length = @deps_body.inject(0){|sum, s| sum + s.length }.to_s
+          @deps_last_modified = Time.now
         end
-        # We allow caching for frames and iframes all needing a deps.js
+        mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil
+        return [304, {}, []]  if mod_since and mod_since.to_i == @deps_last_modified.to_i
         [200, {'Content-Type' => 'text/javascript',
-           'Content-Length' => @deps_content_length,
-           'Cache-Control' => "max-age=#{@dwell}, private"},
-          @deps_body]
+               'Content-Length' => @deps_content_length,
+               'Last-Modified' => @deps_last_modified.httpdate,
+               'Cache-Control' => "max-age=#{@dwell}, private"},
+         @deps_body]
       end
     end
     

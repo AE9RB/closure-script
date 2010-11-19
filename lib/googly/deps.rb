@@ -57,11 +57,12 @@ class Googly
         # @deps_body is cleared on any mtime change
         refresh(env)
         unless @deps_body
+          goog_pathname = Pathname.new File.dirname(@goog[:base_js])
           @deps_body = []
           @deps_body << "// This deps.js was brought to you by Googlyscript\n"
-          @deps_body << "goog.basePath = '';\n"
           @deps.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
-            path = "#{dep[:path]}?#{dep[:mtime].to_i}"
+            path = Pathname.new(dep[:path]).relative_path_from(goog_pathname)
+            path = "#{path}?#{dep[:mtime].to_i}"
             @deps_body << "goog.addDependency(#{path.inspect}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
           end
           @deps_content_length = @deps_body.inject(0){|sum, s| sum + s.length }.to_s

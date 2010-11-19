@@ -114,7 +114,7 @@ class Googly
     # <% @response = compile(args).to_response %> is preferred over <%= compile(args) %>.
     # @return (FileResponse) 
     def to_response
-      FileResponse.new @env, js_output_file
+      FileResponse.new @env, js_output_file, 'application/javascript'
     end
 
     # Always returns the compiled javascript, or possibly an empty string.

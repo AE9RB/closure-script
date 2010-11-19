@@ -41,6 +41,8 @@ class Googly
       @dwell = dwell
       @semaphore = Mutex.new
       @deps = {}
+      @goog = nil
+      @last_been_run = nil
     end
     attr_accessor :dwell
     
@@ -63,7 +65,7 @@ class Googly
           @deps.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
             path = Pathname.new(dep[:path]).relative_path_from(goog_pathname)
             path = "#{path}?#{dep[:mtime].to_i}"
-            @deps_body << "goog.addDependency(#{path.inspect}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
+            @deps_body << "goog.addDependency(#{path.dump}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
           end
           @deps_content_length = @deps_body.inject(0){|sum, s| sum + s.length }.to_s
           @deps_last_modified = Time.now

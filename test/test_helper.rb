@@ -2,7 +2,7 @@ require 'test/unit'
 require 'rubygems'
 require 'rack/mock'
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'googly'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'googlyscript'))
 
 # Run all tests if someone executes this script directly
 if $0 == __FILE__

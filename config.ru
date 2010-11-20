@@ -2,7 +2,7 @@
 # This is the rackup for developers working on (not with) Googlyscript.
 # Turn on -w with unicorn once in a while.  Haml/sass is too chatty to leave this on.
 
-require File.join(File.dirname(__FILE__), 'lib', 'googly.rb')
+require File.join(File.dirname(__FILE__), 'lib', 'googlyscript.rb')
 require 'sass/plugin'
 
 Sass::Plugin.options[:template_location] = File.join(Googly.base_path, 'src', 'stylesheet')

@@ -6,7 +6,7 @@ Googlyscript - An experience with Google Closure.
 * Every Google Closure compiler option is supported.
 * Easy to install rack middleware.  Works in frameworks or stand-alone.
 * Thread-safe.  Can handle hundreds of requests per second on a single Mongrel.
-* Performance tuned caching strategy that won't manifest stale pages in development.
+* Performance-tuned caching strategy that won't manifest stale pages in development.
 * On-the-fly deps.js generation with source change detection.  Never think about this again.
 * Compiler checks File.mtime and won't run if you haven't modified source.
 * Completely replaces python tools.  Only dependencies are Java, Ruby and Rack.

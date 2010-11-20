@@ -3,7 +3,7 @@
 Gemfile:
 
     group :development do
-      gem 'googlyscript', :require => 'googly'
+      gem 'googlyscript'
     end
 
 config/environments/development.rb:
@@ -18,7 +18,7 @@ Restart the server and test: `http://localhost:3000/goog/demos/index`
 
 config/environments/development.rb:
 
-    config.gem 'googlyscript', :require => 'googly'
+    config.gem 'googlyscript'
     config.middleware.use Googly::Middleware
     Googly.script '/goog', :goog
     Googly.script '/myapp', 'app/javascripts'

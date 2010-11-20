@@ -33,8 +33,9 @@ class Googly
     # 404 messages instead of exceptions when the file is not found.
     # Also, exceptions from internal render calls will appear thrown from the
     # render command to help speed up debugging.
-    def initialize(env, filename = nil)
+    def initialize(env, deps, filename = nil)
       super(env)
+      @deps = deps
       @googly_template_render = {:stack => [], :visited => []}
       @response = original_response = Rack::Response.new
       if filename
@@ -57,6 +58,11 @@ class Googly
     # the template rendering will not be added to this response.
     # @return [Rack::Response]
     attr_accessor :response
+
+    # Advanced users can access the dependencies here.  You'll find
+    # an array of all the source paths as well as a method to calculate
+    # all required files for a namespace.
+    attr_accessor :deps
 
     # Render another template.  The same Googly::Template instance is
     # used for all internally rendered templates so you can pass
@@ -115,7 +121,7 @@ class Googly
     # @example view_test.erb
     #  <script src="<%= goog_base_js %>"></script>
     def goog_base_js
-      Googly.deps.base_js(env)
+      @deps.base_js(env)
     end
     
     # Run a compiler job.  Accepts every argument that compiler.jar supports.
@@ -135,7 +141,7 @@ class Googly
     # @return [Compilation]
     def compile(args)
       Compilation.new(args,
-                      Googly.deps,
+                      @deps,
                       @googly_template_render[:visited],
                       File.dirname(@googly_template_render[:stack].last),
                       env)
@@ -164,13 +170,11 @@ class Googly
     end
 
     # Helper to add file mtime as query for future-expiry caching.
-    # This generally won't work across mount points i.e. linking
-    # to /goog files from /myapp.
-    # @todo Use Googly.sources to cross mounts.
     # @param [String]
     # @return [String]
     def expand_src(s)
-      "#{s}?#{File.mtime(expand_path(s)).to_i}"
+      # If the file can't be read, simply skip the cache string.
+      "#{s}?#{File.mtime(expand_path(s)).to_i}" rescue s
     end
     
     

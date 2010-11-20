@@ -3,9 +3,8 @@ require 'test_helper'
 class ServerTest < Test::Unit::TestCase
 
   def setup
-    Googly.sources.delete_if{true}
-    Googly.script '/', File.join(Googly.base_path, 'test', 'fixtures')
-    @request = Rack::MockRequest.new(Googly)
+    sources = [['', File.join(Googly.base_path, 'test', 'fixtures')]]
+    @request = Rack::MockRequest.new(Googly::Server.new(Googly::Deps.new(sources)))
   end
 
   def test_basics

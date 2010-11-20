@@ -29,7 +29,12 @@ class Googly
       begin
         raise Errno::EPERM unless File.file?(filename) and File.readable?(filename)
       rescue SystemCallError
+        body = "404 Not Found\n"
         @status = 404
+        @headers["Content-Length"] = body.size.to_s
+        @headers["Content-Type"] = "text/plain"
+        @headers["X-Cascade"] = "pass"
+        @body = [body]
         return
       end
       
@@ -86,7 +91,6 @@ class Googly
     # Present the final response for rack.
     # @return (Array)[status, headers, body]
     def finish
-      return Googly.not_found if @status == 404
       [@status, @headers, @body]
     end
   

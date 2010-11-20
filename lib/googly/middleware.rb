@@ -15,17 +15,18 @@
 
 class Googly
 
-  # Although {Googly} can run as an app or in a cascade,
-  # most installations will use {Middleware}.
+  # Although {Googly} can run as an app or in a cascade, most installations
+  # will use this {Middleware} that is configured with Googly.script().
   
   class Middleware
     
-    def initialize(app)
+    def initialize(app, dwell = 1)
       @app = app
+      @server = Server.new(Deps.new(Googly.sources, dwell))
     end
 
     def call(env)
-      status, headers, body = Googly.call(env)
+      status, headers, body = @server.call(env)
       return @app.call(env) if headers["X-Cascade"] == "pass"
       [status, headers, body]
     end

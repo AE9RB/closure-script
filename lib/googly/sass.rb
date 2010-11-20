@@ -20,6 +20,7 @@ class Googly
   # This works exactly like Sass::Plugin::Rack except you
   # can throttle how often it runs.  
   # @example config.ru
+  #  require 'googlyscript'
   #  require 'sass/plugin'
   #  Sass::Plugin.options[:template_location] = {in_dir => out_dir}
   #  use Googly::Sass, 1.500

@@ -20,8 +20,10 @@ class Googly
   # This way we don't pay the Java startup costs on every compile job.
   class BeanShell
     
-    def initialize
+    # @param classpath (Array)<string>
+    def initialize(classpath=[])
       @semaphore = Mutex.new
+      @classpath = classpath
     end
     
     # Run any Java command that BeanShell supports.
@@ -50,9 +52,7 @@ class Googly
       err = ''
       @semaphore.synchronize do
         unless $cmdin
-          classpath = [Googly.config.compiler_jar]
-          classpath << File.join(Googly.base_path, 'beanshell', 'bsh-core-2.0b4.jar')
-          classpath << File.join(Googly.base_path, 'lib', 'googly.jar')
+          classpath = [@classpath, File.join(Googly.base_path, 'beanshell', 'bsh-core-2.0b4.jar')].flatten
           java_repl = "#{Googly.config.java} -classpath #{classpath.join(':').dump} bsh.Interpreter"
           $cmdin, $cmdout, $cmderr = Open3::popen3(java_repl)
           eat_startup = ''

@@ -30,14 +30,16 @@ require 'ostruct'
 
 class Googly
   
+  autoload(:VERSION, 'googly/version')
   autoload(:BeanShell, 'googly/beanshell')
   autoload(:Sass, 'googly/sass')
   autoload(:Template, 'googly/template')
-  autoload(:Deps, 'googly/deps')
+  autoload(:Sources, 'googly/sources')
   autoload(:FileResponse, 'googly/file_response')
   autoload(:Middleware, 'googly/middleware')
   autoload(:Compilation, 'googly/compilation')
   autoload(:Server, 'googly/server')
+  autoload(:Goog, 'googly/goog')
   
 
   # Filesystem location of the Googlyscript install.
@@ -71,20 +73,14 @@ class Googly
   # @param (Symbol) built_in
   def self.script(path, directory)
     directory = BUILT_INS[directory] if directory.kind_of? Symbol
-    raise "path must start with /" unless path =~ %r{^/}
-    path = '' if path == '/'
-    raise "path must not end with /" if path =~ %r{/$}
-    raise "path already exists" if sources.find{|s|s[0]==path}
-    raise "directory already exists" if sources.find{|s|s[1]==directory}
-    sources << [path, File.expand_path(directory)]
-    sources.sort! {|a,b| b[0] <=> a[0]}
+    sources.add path, directory
   end
 
 
   # Path and directory pairs configured with Googly.script().
   # @return [Array]
   def self.sources
-    @@sources ||= Array.new
+    @@sources ||= Sources.new config.dwell
   end
   
   
@@ -113,6 +109,7 @@ class Googly
     @@config ||= OpenStruct.new({
       :java => 'java',
       :compiler_jar => File.join(base_path, 'closure-compiler', 'compiler.jar'),
+      :dwell => 1,
       :haml => {},
       :engines => [
         ['.erb', Proc.new do |template, filename|

@@ -17,8 +17,8 @@ class Googly
   
   class Server
     
-    def initialize(deps)
-      @deps = deps
+    def initialize(sources)
+      @sources = sources
     end
     
     # Rack interface.
@@ -27,19 +27,22 @@ class Googly
     def call(env)
       path_info = Rack::Utils.unescape(env["PATH_INFO"])
       return not_found if path_info.include? ".." # unsafe
-
-      # Check for deps.js
-      return @deps.finish(env) if path_info == @deps.deps_js rescue ClosureBaseNotFoundError
-
+      # Replace the deps.js in detected Closure Library
+      begin
+        if path_info == @sources.deps_js(env)
+          return @sources.deps_response(env).finish
+        end
+      rescue ClosureBaseNotFoundError
+      end
       # Then check all the sources
-      @deps.sources.each do |path, dir|
+      @sources.each do |path, dir|
         if path_info =~ %r{^#{Regexp.escape(path)}(/.*|)$}
           filename = File.join(dir, $1)
           response = FileResponse.new(env, filename)
           if !response.found? and File.extname(path_info) == ''
             response = FileResponse.new(env, filename + '.html')
           end
-          response = Template.new(env, @deps, filename).response unless response.found?
+          response = Template.new(env, @sources, filename).response unless response.found?
           return response.finish
         end
       end

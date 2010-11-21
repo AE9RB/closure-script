@@ -28,25 +28,18 @@ class Googly
   # you can use for redirects, cookies, and other controller actions.
   class Template < Rack::Request
     
-    # Create a new instance of {Template}.
-    # Using the initializer instead of rendering as a separate step provides
-    # 404 messages instead of exceptions when the file is not found.
-    # Also, exceptions from internal render calls will appear thrown from the
-    # render command to help speed up debugging.
-    def initialize(env, deps, filename = nil)
+    def initialize(env, sources, filename)
       super(env)
-      @deps = deps
-      @googly_template_render = {:stack => [], :visited => []}
+      @googly_template_render_stack = []
+      @goog = Goog.new(env, sources, @googly_template_render_stack)
       @response = original_response = Rack::Response.new
-      if filename
-        rendering = render(filename)
-        if @response == original_response and @response.empty?
-          @response.write rendering
-        end
+      rendering = render(filename)
+      if @response == original_response and @response.empty?
+        @response.write rendering
       end
     rescue TemplateCallStackTooDeepError, TemplateNotFoundError => e
       e.set_backtrace e.backtrace[1..-1]
-      raise e if @googly_template_render[:stack].size > 1
+      raise e if @googly_template_render_stack.size > 1
       @response.status = 404
       @response.write "404 Not Found\n"
       @response.header["X-Cascade"] = "pass"
@@ -59,10 +52,8 @@ class Googly
     # @return [Rack::Response]
     attr_accessor :response
 
-    # Advanced users can access the dependencies here.  You'll find
-    # an array of all the source paths as well as a method to calculate
-    # all required files for a namespace.
-    attr_accessor :deps
+    # All the cool stuff lives here.
+    attr_accessor :goog
 
     # Render another template.  The same Googly::Template instance is
     # used for all internally rendered templates so you can pass
@@ -71,13 +62,13 @@ class Googly
     #   <%= render 'util/logger_popup' %>
     # @param (String) filename Relative to current template.
     def render(filename)
-      if @googly_template_render[:stack].size > 100
+      if @googly_template_render_stack.size > 100
         # Since nobody sane would recurse through here, this mainly
         # finds a render self that you might get after a copy and paste
         raise TemplateCallStackTooDeepError 
-      elsif @googly_template_render[:stack].size > 0
+      elsif @googly_template_render_stack.size > 0
         # Hooray for relative paths and easily movable files
-        filename = File.expand_path(filename, File.dirname(@googly_template_render[:stack].last))
+        filename = File.expand_path(filename, File.dirname(@googly_template_render_stack.last))
       else
         # Underbar templates are partials by convention; keep them from rendering at root
         filename = File.expand_path(filename)
@@ -91,20 +82,18 @@ class Googly
         Googly.config.engines.each do |ext, engine|
           files2 = [filename1+ext]
           files2 << filename1.gsub(/.html$/, ext) if File.extname(filename1) == '.html'
-          unless filename1 =~ /^_/ or @googly_template_render[:stack].empty?
+          unless filename1 =~ /^_/ or @googly_template_render_stack.empty?
             files2 = files2 + files2.collect {|f| "#{File.dirname(f)}/_#{File.basename(f)}"} 
           end
           files2.each do |filename2|
             if File.file?(filename2) and File.readable?(filename2)
-              if @googly_template_render[:stack].empty?
+              if @googly_template_render_stack.empty?
                 response.header["Content-Type"] = Rack::Mime.mime_type(File.extname(filename1), 'text/html')
               end
-              unless @googly_template_render[:visited].include? filename2
-                @googly_template_render[:visited] << filename2
-              end
-              @googly_template_render[:stack].push filename2
+              @goog.add_dependency filename2
+              @googly_template_render_stack.push filename2
               result = engine.call self, filename2
-              @googly_template_render[:stack].pop
+              @googly_template_render_stack.pop
               return result
             end
           end
@@ -113,40 +102,6 @@ class Googly
       raise TemplateNotFoundError
     end
     
-    # The Google Closure base.js script.
-    # If you use this instead of a static link, you are free to relocate relative
-    # to the Google Closure library without updating every html fixture page.
-    # Unfortunately, the better caching can't be used because of the way
-    # base.js explores the DOM looking for where to load deps.js.
-    # @example view_test.erb
-    #  <script src="<%= goog_base_js %>"></script>
-    def goog_base_js
-      @deps.base_js(env)
-    end
-    
-    # Run a compiler job.  Accepts every argument that compiler.jar supports.
-    # Accepts new `--ns namespace` option which literally expands into
-    # `--js filename` arguments in place to satisfy the namespace.
-    # If you specify a --js_output_file then the compiler will check File.mtime
-    # on every source file plus all the templates and skip the compilation
-    # if the js_output_file is newest.
-    # Paths are relative to the template calling #compile.
-    # @example myapp.js.erb
-    #   <% @response = compile(%w{
-    #     --js_output_file ../public/myapp.js
-    #     --ns myapp.HelloWorld
-    #     --compilation_level ADVANCED_OPTIMIZATIONS
-    #   }).to_response %>
-    # @param [Array<String>] args
-    # @return [Compilation]
-    def compile(args)
-      Compilation.new(args,
-                      @deps,
-                      @googly_template_render[:visited],
-                      File.dirname(@googly_template_render[:stack].last),
-                      env)
-    end
-
     # Helper for URL escaping.
     # @param [String]
     # @return [String]
@@ -166,7 +121,7 @@ class Googly
     # @param [String]
     # @return [String]
     def expand_path(s)
-      File.expand_path(s, File.dirname(@googly_template_render[:stack].last))
+      File.expand_path(s, File.dirname(@googly_template_render_stack.last))
     end
 
     # Helper to add file mtime as query for future-expiry caching.

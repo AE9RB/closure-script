@@ -18,76 +18,47 @@ class Googly
   class Compilation
     
     # Java won't let you change working directories and the Closure Compiler
-    # doesn't allow setting a base path.  If a new base path is specified,
-    # these options are expanded there.  Except for js and externs, each
-    # of these are available as instance variables and accessors when
-    # supplied in the arguments.
-    FILE_OPTIONS = %w{
+    # doesn't allow setting a base path.  No problem, we can do it.
+    
+    # These are filename options and will be expanded to a new base.
+    # If supplied as arguments, output options are available as instance
+    # variables and attributes that have been expanded to the new base.
+    OUTPUT_OPTIONS = %w{
       --create_source_map
-      --externs
-      --js
       --js_output_file
       --output_manifest
-      --property_map_input_file
       --property_map_output_file
-      --variable_map_input_file
       --variable_map_output_file
     }
     
-    #TODO the --module option is really hard to use no matter what the tools.
-    # We could probably make it namespace-friendly by allowing a substitution of
-    # the file count to mean "the number of files up to this point since last time"
-    # --js file --ns namesp --module app:# --ns goog.editor --module edit:#:app
-
-    # @param (String) args Arguments for the compiler.
-    # @param (String) deps {Deps} instance for your source scripts.
-    # @param (String) others Any other files to check mtime on, like makefiles.
+    # These are filename options and will be expanded to a new base.
+    # These will have their modifification times checked against js_output_file.
+    INPUT_OPTIONS = %w{
+      --js
+      --externs
+      --property_map_input_file
+      --variable_map_input_file
+    }
+    
+    # @param (Array) args Arguments for the compiler.
     # @param (String) base All filenames will be expanded to this location.
-    # @param (String) env Rack environment.
-    def initialize(args, deps, others = [], base=nil, env={})
-      @args = Array.new args
+    # @param (Array) dependencies Any other files to check mtime on, like makefiles.
+    # @param (Hash) env Rack environment.  If you want the response to be cachable.
+    def initialize(args, base, dependencies = [], env={})
       @env = env
-      js = []
-      extras = []
+      args = Array.new args
+      files = []
       # Scan to expand paths and extract critical options
       args_index = 0
       while args_index < args.length
-        option, value = @args[args_index, 2]
-        if FILE_OPTIONS.include? option
-          value = @args[args_index+1] = File.expand_path(*[value, base].compact)
-          unless %w{--externs --js}.include? option
-            var_name = option.sub(/^--/, '')
-            instance_variable_set "@#{var_name}", value
-            eval "def self.#{var_name}; @#{var_name}; end"
-          end
+        option, value = args[args_index, 2]
+        if INPUT_OPTIONS.include?(option)
+          files << args[args_index+1] = File.expand_path(value, base)
         end
-        case option
-          when '--js'
-            js.push value
-          when '--externs', '--property_map_input_file', '--variable_map_input_file'
-            extras.push value
-        end
-        args_index = args_index + 2
-      end
-      # Insert namespace files optimally while avoiding collisions
-      ns = []
-      ns_index = 0
-      args_index = 0
-      while args_index < args.length
-        option, value = @args[args_index, 2]
-        if option == '--ns'
-          deps.files(value, env, ns)
-          replacement = []
-          while ns_index < ns.length
-            cur_ns = ns[ns_index]
-            unless js.include? cur_ns
-              js.push cur_ns
-              replacement.push '--js'
-              replacement.push cur_ns
-            end
-            ns_index = ns_index + 1
-          end
-          @args[args_index, 2] = replacement
+        if OUTPUT_OPTIONS.include?(option)
+          var_name = option.sub(/^--/, '')
+          instance_variable_set "@#{var_name}", args[args_index+1] = File.expand_path(value, base)
+          eval "def self.#{var_name}; @#{var_name}; end"
         end
         args_index = args_index + 2
       end
@@ -95,7 +66,7 @@ class Googly
       if @js_output_file
         js_mtime = File.mtime @js_output_file rescue Errno::ENOENT
         compiled = !!File.size?(@js_output_file) # catches empty files too
-        (js + extras + others).each do |filename|
+        (files + dependencies).each do |filename|
           break unless compiled
           mtime = File.mtime filename
           compiled = false if !mtime or mtime > js_mtime
@@ -104,15 +75,22 @@ class Googly
         File.unlink @js_output_file rescue Errno::ENOENT
       end
       # Do it; defensive .to_s.dump allows for bools and nums
-      java_opts = @args.collect{|a|a.to_s.dump}.join(', ')
+      java_opts = args.collect{|a|a.to_s.dump}.join(', ')
       @stdout, @stderr = Googly.java("Googly.compile_js(new String[]{#{java_opts}});")
     end
     
     # Allows easy http caching of the js_output_file.  In templates:
-    # <% @response = compile(args).to_response %> is preferred over <%= compile(args) %>.
-    # @return (FileResponse) 
+    # <% @response = goog.compile(args).to_response %> is preferred over <%= goog.compile(args) %>.
+    # @return (#finish) 
     def to_response
-      FileResponse.new @env, js_output_file, 'application/javascript'
+      if @js_output_file
+        FileResponse.new @env, @js_output_file, 'application/javascript'
+      else
+        response = Rack::Response.new
+        response.headers['Content-Type'] = 'application/javascript'
+        response.write @stdout
+        response
+      end
     end
 
     # Always returns the compiled javascript, or possibly an empty string.
@@ -128,15 +106,13 @@ class Googly
     # Results from compiler.jar.  If you didn't specify a --js_output_file
     # then this will be the compiled script.  Otherwise, it's usually empty
     # but may contain output depending on the arguments.
+    # If nil, compilation was skipped because js_output_file was up to date.
     attr_reader :stdout
     
     # Results from compiler.jar.  The log, when there is one, is found here.
     # Use `--summary_detail_level 3` to see log when no errors or warnings.
+    # If nil, compilation was skipped because js_output_file was up to date.
     attr_reader :stderr
-    
-    # Compiler arguments after fixups.  Use to inspect the actual
-    # arguments passed to compiler.jar.
-    attr_reader :args
     
   end
   

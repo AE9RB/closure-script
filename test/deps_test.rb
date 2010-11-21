@@ -12,12 +12,13 @@ class DepsTest < Test::Unit::TestCase
 
   CLOSUREBUILDER = File.join(CLOSURE_LIBRARY, 'closure', 'bin', 'build', 'closurebuilder.py')
   CALCDEPS = File.join(CLOSURE_LIBRARY, 'closure', 'bin', 'calcdeps.py')
-  GOOG_SOURCE = Googly::Deps.new([['/goog', CLOSURE_LIBRARY]])
+  GOOG_SOURCE = Googly::Sources.new 60
+  GOOG_SOURCE.add '/goog', CLOSURE_LIBRARY
 
   def test_files_against_closurebuilder
     closurebuilder_files = `#{CLOSUREBUILDER} --root=#{CLOSURE_LIBRARY.dump} -n #{NAMESPACES[0].dump} -n #{NAMESPACES[1].dump} 2>/dev/null`
     closurebuilder_files = closurebuilder_files.split
-    compiler_files = GOOG_SOURCE.files(NAMESPACES)
+    compiler_files = GOOG_SOURCE.files_for({}, NAMESPACES)
     assert_equal closurebuilder_files.length, compiler_files.length
     # Closurebuilder.py uses sets instead of arrays so dependency order can't be verified.
     assert_equal closurebuilder_files.sort, compiler_files.sort
@@ -29,7 +30,7 @@ class DepsTest < Test::Unit::TestCase
     # We can run this with explicit filenames.
     calcdeps_files = `#{CALCDEPS} --path=#{CLOSURE_LIBRARY.dump} -i #{FIELD_JS.dump} -i #{JSONDATASOURCE_JS.dump} 2>/dev/null`
     calcdeps_files = calcdeps_files.split
-    compiler_files = GOOG_SOURCE.files(NAMESPACES)
+    compiler_files = GOOG_SOURCE.files_for({}, NAMESPACES)
     assert_equal calcdeps_files.length, compiler_files.length
     # Calcdeps generates the same ordering we do.  Yay!
     assert_equal calcdeps_files, compiler_files

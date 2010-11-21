@@ -23,7 +23,7 @@ class Googly
   #  require 'googlyscript'
   #  require 'sass/plugin'
   #  Sass::Plugin.options[:template_location] = {in_dir => out_dir}
-  #  use Googly::Sass, 1.500
+  #  use Googly::Sass, 10
 
   class Sass
     

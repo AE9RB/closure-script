@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 class Googly
   
   # @private
@@ -22,36 +21,51 @@ class Googly
   # @private
   class ClosureBaseNotFoundError < StandardError
   end
-
+  
   # This class is responsible for scanning source files and managing dependencies.
 
-  class Deps
+  class Sources
     
     BASE_REGEX_STRING = '^\s*goog\.%s\s*\(\s*[\'"]([^\)]+)[\'"]\s*\)'
     PROVIDE_REGEX = Regexp.new(BASE_REGEX_STRING % 'provide')
     REQUIRE_REGEX = Regexp.new(BASE_REGEX_STRING % 'require')
-
-    # @param (#each) sources Pairs of path_info and directory_name.
-    #  This needs to follow the rules that Googly.script() implements.
+    
     # @param (Float) dwell Throttles how often a full refresh is allowed
     #  to run.  Also sent to browser in cache-control.  Although the scan
     #  is very fast and we lazy load and cache as much as we can, refresh
     #  may still be too slow to be running multiple times per second.
-    def initialize(sources, dwell = 1)
-      @sources = sources
+    def initialize(dwell)
+      @sources = []
       @dwell = dwell
       @semaphore = Mutex.new
-      @deps = {}
+      @files = {}
       @goog = nil
       @last_been_run = nil
+      @deps = {}
     end
-    attr_accessor :dwell
-    attr_accessor :sources
     
     
-    # Obtain the path_info for where base_js is located.
+    def add(path, directory)
+      raise "path must start with /" unless path =~ %r{^/}
+      path = '' if path == '/'
+      raise "path must not end with /" if path =~ %r{/$}
+      raise "path already exists" if @sources.find{|s|s[0]==path}
+      raise "directory already exists" if @sources.find{|s|s[1]==directory}
+      @sources << [path, File.expand_path(directory)]
+      @sources.sort! {|a,b| b[0] <=> a[0]}
+      self
+    end
+    
+
+    def each
+      @sources.each { |path, directory| yield path, directory }
+      self
+    end
+    
+    
+    # Determine the path_info for where base_js is located.
     # @return [String]
-    def base_js(env={})
+    def base_js(env)
       @semaphore.synchronize do
         refresh(env) if never_been_run
         raise ClosureBaseNotFoundError unless @goog
@@ -60,9 +74,9 @@ class Googly
     end
     
 
-    # Obtain the path_info for where deps_js is located.
+    # Determine the path_info for where deps_js is located.
     # @return [String]
-    def deps_js(env={})
+    def deps_js(env)
       @semaphore.synchronize do
         refresh(env) if never_been_run
         raise ClosureBaseNotFoundError unless @goog
@@ -71,41 +85,45 @@ class Googly
     end
     
 
-    # Allows use as a Rack::Response
-    def finish(env={})
+    # Builds a Rack::Response to serve a dynamic base.js
+    # @return (Rack::Response) 
+    def deps_response(env, base=nil)
       @semaphore.synchronize do
-        # @deps_body is cleared on any mtime change
         refresh(env)
-        unless @deps_body
-          goog_pathname = Pathname.new File.dirname(@goog[:base_js])
-          @deps_body = []
-          @deps_body << "// This deps.js was brought to you by Googlyscript\n"
-          @deps.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
-            path = Pathname.new(dep[:path]).relative_path_from(goog_pathname)
+        unless base
+          raise ClosureBaseNotFoundError unless @goog
+          base = File.dirname(@goog[:base_js])
+        end
+        base = Pathname.new(base)
+        unless @deps[base]
+          response = @deps[base] ||= Rack::Response.new
+          response.write "// This deps.js was brought to you by Googlyscript\n"
+          @files.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
+            path = Pathname.new(dep[:path]).relative_path_from(base)
             path = "#{path}?#{dep[:mtime].to_i}"
-            @deps_body << "goog.addDependency(#{path.dump}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
+            response.write "goog.addDependency(#{path.dump}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
           end
-          @deps_content_length = @deps_body.inject(0){|sum, s| sum + s.length }.to_s
-          @deps_last_modified = Time.now
+          response.headers['Content-Type'] = 'application/javascript'
+          response.headers['Cache-Control'] = "max-age=#{@dwell}, private"
+          response.headers['Last-Modified'] = Time.now.httpdate
         end
         mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil
-        return [304, {}, []]  if mod_since and mod_since.to_i == @deps_last_modified.to_i
-        [200, {'Content-Type' => 'text/javascript',
-               'Content-Length' => @deps_content_length,
-               'Last-Modified' => @deps_last_modified.httpdate,
-               'Cache-Control' => "max-age=#{@dwell}, private"},
-         @deps_body]
+        if mod_since == Time.httpdate(@deps[base].headers['Last-Modified'])
+          response = Rack::Response.new [], 304
+        else
+          @deps[base]
+        end
       end
     end
-
+    
 
     # Calculate all required files for an array of namespaces.
     # If you need to do complicated thing with modules or namespaces,
-    # this can be used to build compiler arguments from your templates.
+    # this can be used by your build templates to build compiler arguments.
     # {Googly::Compilation} uses it to convert --ns options to --js.
     # @param (Array<String>) namespaces 
     # @return (Array<String>) New Array of filenames.
-    def files(namespaces, env={}, filenames=nil)
+    def files_for(env, namespaces, filenames=nil)
       return [] if namespaces.empty?
       ns = nil
       @semaphore.synchronize do
@@ -114,7 +132,7 @@ class Googly
         # @ns is cleared when any requires or provides changes
         unless @ns
           @ns = {}
-          @deps.each do |filename, dep|
+          @files.each do |filename, dep|
             dep[:provide].each do |provide|
               if @ns[provide]
                 raise "Namespace #{provide.dump} provided more than once."
@@ -137,7 +155,7 @@ class Googly
       # can work with a local reference.  This has been finely tuned and
       # runs fast, but it's still nice to release any other threads early.
       namespaces.inject(filenames) do |filenames, namespace|
-        map_filenames(ns, namespace, filenames)
+        calcdeps(ns, namespace, filenames)
       end
     end
     
@@ -151,13 +169,13 @@ class Googly
     end
 
     # Namespace recursion with circular stop on the filename
-    def map_filenames(ns, namespace, filenames = [], prev = nil)
+    def calcdeps(ns, namespace, filenames, prev = nil)
       unless source = ns[namespace]
         raise "Namespace #{namespace.dump} not found." 
       end
       return if source == prev or filenames.include? source[:filename]
       source[:require].each do |required|
-        map_filenames ns, required, filenames, source
+        calcdeps ns, required, filenames, source
       end
       filenames.push source[:filename]
     end
@@ -179,12 +197,12 @@ class Googly
       previous_goog = @goog
       @goog = nil
       # Mark everything for deletion.
-      @deps.each {|f, dep| dep[:not_found] = true}
+      @files.each {|f, dep| dep[:not_found] = true}
       # Scan filesystem for changes.
       @sources.each do |path, dir|
         dir_range = (dir.length..-1)
         Dir.glob(File.join(dir,'**','*.js')).each do |filename|
-          dep = (@deps[filename] ||= {})
+          dep = (@files[filename] ||= {})
           dep.delete(:not_found)
           mtime = File.mtime(filename)
           if previous_goog_base_filename == filename
@@ -193,7 +211,7 @@ class Googly
             previous_goog_base_filename = nil
           end
           if dep[:mtime] != mtime
-            @deps_body = nil
+            @deps = {}
             file = File.read filename
             old_dep_provide = dep[:provide]
             dep[:provide] = file.scan(PROVIDE_REGEX).flatten.uniq
@@ -215,7 +233,7 @@ class Googly
                 if file =~ /^var goog = goog \|\| \{\};/
                   if @goog or previous_goog
                     @goog = nil
-                    @deps = {} 
+                    @files = {} 
                     raise MultipleClosureBaseError
                   end
                   @goog = {:base_filename => filename,
@@ -228,9 +246,9 @@ class Googly
         end
       end
       # Sweep to delete not-found files.
-      @deps.select{|f, dep| dep[:not_found]}.each do |filename, o|
+      @files.select{|f, dep| dep[:not_found]}.each do |filename, o|
         deleted_files << filename
-        @deps.delete(filename)
+        @files.delete(filename)
       end
       # Decide if deps has changed.
       if 0 < added_files.length + changed_files.length + deleted_files.length

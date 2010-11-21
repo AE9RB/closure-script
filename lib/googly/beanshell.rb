@@ -24,6 +24,7 @@ class Googly
     def initialize(classpath=[])
       @semaphore = Mutex.new
       @classpath = classpath
+      $cmdin = nil
     end
     
     # Run any Java command that BeanShell supports.

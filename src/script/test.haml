@@ -4,7 +4,7 @@
     - if params.has_key? 'build'
       %script{:src => 'c.js'}
     - else  
-      %script{:src => goog_base_js}
+      %script{:src => goog.base_js}
       :javascript
         goog.require('googly.test');
   %body

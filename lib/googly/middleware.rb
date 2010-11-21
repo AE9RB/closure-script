@@ -20,9 +20,9 @@ class Googly
   
   class Middleware
     
-    def initialize(app, dwell = 1)
+    def initialize(app)
       @app = app
-      @server = Server.new(Deps.new(Googly.sources, dwell))
+      @server = Server.new(Googly.sources)
     end
 
     def call(env)

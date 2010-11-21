@@ -49,9 +49,8 @@ class Googly
 
 
     # @return (Float) 
-    # Defaults to one second.
-    # Throttles how often a full refresh is allowed to run;
-    # blocked threads sometimes trigger unneeded refreshes.
+    # Defaults to one second.  Limits how often a full refresh is allowed
+    # to run; blocked threads sometimes trigger unneeded refreshes.
     # Also sent to browser in cache-control for frames performance.
     # Caching, lazy loading, and flagging (of env) make up the remaining
     # techniques for good performance.
@@ -117,7 +116,7 @@ class Googly
             response.write "goog.addDependency(#{path.dump}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
           end
           response.headers['Content-Type'] = 'application/javascript'
-          response.headers['Cache-Control'] = "max-age=#{@dwell}, private"
+          response.headers['Cache-Control'] = "max-age=#{[1,@dwell.floor].max}, private"
           response.headers['Last-Modified'] = Time.now.httpdate
         end
         mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil

@@ -18,7 +18,7 @@ class Googly
   # Googlyscript can easily respond to hundreds of requests
   # per second, but not with Sass::Plugin::Rack in the stack. 
   # This works exactly like Sass::Plugin::Rack except you
-  # can throttle how often it runs.  
+  # can limit how often it runs.  
   # @example config.ru
   #  require 'googlyscript'
   #  require 'sass/plugin'
@@ -29,8 +29,7 @@ class Googly
     
     # @param app [#call] The Rack application
     # @param dwell [Float] in seconds.  
-    #  As accurate as Time.now.to_f is.
-    def initialize(app, dwell = 1)
+    def initialize(app, dwell = 1.0)
       @app = app
       @dwell = dwell
       @check_after = Time.now.to_f

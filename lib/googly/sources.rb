@@ -27,24 +27,35 @@ class Googly
 
   class Sources
     
+    # Using regular expressions may seem clunky, but the Python scripts
+    # did it this way and I've not see it fail in practice.
     GOOG_REGEX_STRING = '^\s*goog\.%s\s*\(\s*[\'"]([^\)]+)[\'"]\s*\)'
     PROVIDE_REGEX = Regexp.new(GOOG_REGEX_STRING % 'provide')
     REQUIRE_REGEX = Regexp.new(GOOG_REGEX_STRING % 'require')
+
+    # Google Closure Library base.js is the file with no provides,
+    # no requires, and defines goog a particular way.
     BASE_JS_REGEX = /^var goog = goog \|\| \{\};/
     
-    # @param (Float) dwell Throttles how often a full refresh is allowed
-    #  to run.  Also sent to browser in cache-control.  Although the scan
-    #  is very fast and we lazy load and cache as much as we can, refresh
-    #  may still be too slow to be running multiple times per second.
-    def initialize(dwell)
+    def initialize
       @sources = []
-      @dwell = dwell
+      @dwell = 1.0
       @semaphore = Mutex.new
       @files = {}
       @goog = nil
       @last_been_run = nil
       @deps = {}
     end
+
+
+    # @return (Float) 
+    # Defaults to one second.
+    # Throttles how often a full refresh is allowed to run;
+    # blocked threads sometimes trigger unneeded refreshes.
+    # Also sent to browser in cache-control for frames performance.
+    # Caching, lazy loading, and flagging (of env) make up the remaining
+    # techniques for good performance.
+    attr_accessor :dwell
     
     
     def add(path, directory)

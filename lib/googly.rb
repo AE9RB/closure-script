@@ -80,7 +80,7 @@ class Googly
   # Path and directory pairs configured with Googly.script().
   # @return [Array]
   def self.sources
-    @@sources ||= Sources.new config.dwell
+    @@sources ||= Sources.new
   end
   
   
@@ -102,7 +102,6 @@ class Googly
   # === Attributes:
   # - (String) *java* -- default: "java" -- Your Java executable.
   # - (String) *compiler_jar* -- A compiler.jar to use instead of the one in the gem.
-  # - (Float) *dwell* -- default: 1 -- Lockout time, in seconds, for refreshing the sources.
   # - (String) *home_page* -- File to serve at the root.  Handy for stand-alone projects.
   #   You can use a template, even in non-source folders, by using the url extension
   #   e.g. 'index.html' not the actual filename of 'index.haml'.
@@ -113,7 +112,6 @@ class Googly
     @@config ||= OpenStruct.new({
       :java => 'java',
       :compiler_jar => File.join(base_path, 'closure-compiler', 'compiler.jar'),
-      :dwell => 1,
       :home_page => nil,
       :haml => {},
       :engines => [

@@ -3,7 +3,7 @@ require 'test_helper'
 class ServerTest < Test::Unit::TestCase
 
   def setup
-    sources = Googly::Sources.new 60
+    sources = Googly::Sources.new
     sources.add '/', File.join(Googly.base_path, 'test', 'fixtures')
     @request = Rack::MockRequest.new(Googly::Server.new(sources))
   end

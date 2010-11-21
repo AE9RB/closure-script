@@ -14,7 +14,7 @@ class SourcesTest < Test::Unit::TestCase
   CALCDEPS = File.join(CLOSURE_LIBRARY, 'closure', 'bin', 'calcdeps.py')
 
   FILES = []
-  sources = Googly::Sources.new 60
+  sources = Googly::Sources.new
   sources.add '/goog', CLOSURE_LIBRARY
   sources.files_for({}, NAMESPACES[0], FILES)
   sources.files_for({}, NAMESPACES[1], FILES)

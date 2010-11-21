@@ -23,12 +23,14 @@ class Googly
   end
   
   # This class is responsible for scanning source files and managing dependencies.
+  # Lasciate ogne speranza, voi ch'intrate.
 
   class Sources
     
-    BASE_REGEX_STRING = '^\s*goog\.%s\s*\(\s*[\'"]([^\)]+)[\'"]\s*\)'
-    PROVIDE_REGEX = Regexp.new(BASE_REGEX_STRING % 'provide')
-    REQUIRE_REGEX = Regexp.new(BASE_REGEX_STRING % 'require')
+    GOOG_REGEX_STRING = '^\s*goog\.%s\s*\(\s*[\'"]([^\)]+)[\'"]\s*\)'
+    PROVIDE_REGEX = Regexp.new(GOOG_REGEX_STRING % 'provide')
+    REQUIRE_REGEX = Regexp.new(GOOG_REGEX_STRING % 'require')
+    BASE_JS_REGEX = /^var goog = goog \|\| \{\};/
     
     # @param (Float) dwell Throttles how often a full refresh is allowed
     #  to run.  Also sent to browser in cache-control.  Although the scan
@@ -67,7 +69,7 @@ class Googly
     # @return [String]
     def base_js(env)
       @semaphore.synchronize do
-        refresh(env) if never_been_run
+        refresh(env) unless @last_been_run
         raise ClosureBaseNotFoundError unless @goog
         @goog[:base_js]
       end
@@ -78,7 +80,7 @@ class Googly
     # @return [String]
     def deps_js(env)
       @semaphore.synchronize do
-        refresh(env) if never_been_run
+        refresh(env) unless @last_been_run
         raise ClosureBaseNotFoundError unless @goog
         @goog[:deps_js]
       end
@@ -109,7 +111,7 @@ class Googly
         end
         mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil
         if mod_since == Time.httpdate(@deps[base].headers['Last-Modified'])
-          response = Rack::Response.new [], 304
+          response = Rack::Response.new [], 304 # Not Modified
         else
           @deps[base]
         end
@@ -121,10 +123,9 @@ class Googly
     # If you need to do complicated thing with modules or namespaces,
     # this can be used by your build templates to build compiler arguments.
     # {Googly::Compilation} uses it to convert --ns options to --js.
-    # @param (Array<String>) namespaces 
+    # @param (String) namespace
     # @return (Array<String>) New Array of filenames.
-    def files_for(env, namespaces, filenames=nil)
-      return [] if namespaces.empty?
+    def files_for(env, namespace, filenames=nil)
       ns = nil
       @semaphore.synchronize do
         refresh(env)
@@ -154,20 +155,12 @@ class Googly
       # Since @ns is only unset, not modified, by another thread, we
       # can work with a local reference.  This has been finely tuned and
       # runs fast, but it's still nice to release any other threads early.
-      namespaces.inject(filenames) do |filenames, namespace|
-        calcdeps(ns, namespace, filenames)
-      end
+      calcdeps(ns, namespace, filenames)
     end
     
 
     protected
     
-    # For some things, like checking @goog, we don't need a
-    # refresh unless one has never been run.
-    def never_been_run
-      !@last_been_run
-    end
-
     # Namespace recursion with circular stop on the filename
     def calcdeps(ns, namespace, filenames, prev = nil)
       unless source = ns[namespace]
@@ -230,7 +223,7 @@ class Googly
             # Record @goog as we pass by
             if dep[:provide].empty? and dep[:require].empty?
               if File.basename(filename) == 'base.js'
-                if file =~ /^var goog = goog \|\| \{\};/
+                if file =~ BASE_JS_REGEX
                   if @goog or previous_goog
                     @goog = nil
                     @files = {} 

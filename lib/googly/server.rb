@@ -17,8 +17,9 @@ class Googly
   
   class Server
     
-    def initialize(sources)
+    def initialize(sources, home_page = nil)
       @sources = sources
+      @home_page = home_page
     end
     
     # Rack interface.
@@ -27,6 +28,12 @@ class Googly
     def call(env)
       path_info = Rack::Utils.unescape(env["PATH_INFO"])
       return not_found if path_info.include? ".." # unsafe
+      # Stand-alone projects will find this useful
+      if @home_page and path_info == '/'
+        response = FileResponse.new(env, @home_page)
+        response = Template.new(env, @sources, @home_page).response unless response.found?
+        return response.finish
+      end
       # Replace the deps.js in detected Closure Library
       begin
         if path_info == @sources.deps_js(env)

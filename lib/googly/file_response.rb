@@ -22,19 +22,18 @@ class Googly
     def initialize(env, filename, content_type = nil)
       @env = env
       @filename = filename
-      @status = 500
+      @status = 200
       @headers = {}
-      @body = ['500 Internal Server Error (Googly::FileResponse)']
+      @body = []
       
       begin
         raise Errno::EPERM unless File.file?(filename) and File.readable?(filename)
       rescue SystemCallError
-        body = "404 Not Found\n"
-        @status = 404
-        @headers["Content-Length"] = body.size.to_s
+        @body = ["404 Not Found\n"]
+        @headers["Content-Length"] = @body.first.size.to_s
         @headers["Content-Type"] = "text/plain"
         @headers["X-Cascade"] = "pass"
-        @body = [body]
+        @status = 404
         return
       end
       
@@ -56,7 +55,6 @@ class Googly
       return if @status == 304 # Not Modified
       
       # Sending the file or reading an unknown length stream to send
-      @status = 200
       @body = self
       unless size = File.size?(filename)
         @body = [File.read(filename)]
@@ -67,14 +65,14 @@ class Googly
     end
     
     # Support using self as a response body.
-    # @yield [String] 8kb blocks
+    # @yield [String] 8k blocks
     # @return [void]
     def each
-      File.open(@filename, "rb") { |file|
+      File.open(@filename, "rb") do |file|
         while part = file.read(8192)
           yield part
         end
-      }
+      end
     end
 
     # Filename attribute.

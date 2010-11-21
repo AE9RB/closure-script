@@ -22,7 +22,7 @@ class Googly
     
     def initialize(app)
       @app = app
-      @server = Server.new(Googly.sources)
+      @server = Server.new(Googly.sources, Googly.config.home_page)
     end
 
     def call(env)

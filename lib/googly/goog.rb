@@ -15,6 +15,10 @@
 
 class Googly
   
+  # Templates render with an instance named goog in the context.
+  # @example file_list.erb
+  #  <%= goog.files_for %w{myapp.Calendar} %>
+  
   class Goog
     
     def initialize(env, sources, render_stack)
@@ -74,8 +78,13 @@ class Googly
     end
 
     # Calculate files needed to satisfy a namespace.
-    def files_for(namespaces, filenames=nil)
-      @sources.files_for(@env, namespaces, filenames)
+    # This will be especially useful for module generation.
+    # If you pass the filenames returned from last run,
+    # additional files (if any) will be appended to satisfy
+    # the new namespace.
+    # @return (Array)
+    def files_for(namespace, filenames=nil)
+      @sources.files_for(@env, namespace, filenames)
     end
 
     # The Google Closure base.js script.
@@ -95,7 +104,7 @@ class Googly
     end
 
     # You can serve a deps.js from anywhere you want to drop a template.
-    # @example depzz.js.erb
+    # @example deps.jazz.erb
     #  <% @response = goog.deps_response %>
     # @return (Rack::Response)
     def deps_response

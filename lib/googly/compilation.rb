@@ -88,6 +88,7 @@ class Googly
       else
         response = Rack::Response.new
         response.headers['Content-Type'] = 'application/javascript'
+        response.headers["Cache-Control"] = "no-cache"
         response.write @stdout
         response
       end

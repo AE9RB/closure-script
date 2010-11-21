@@ -56,7 +56,7 @@ class Googly
   BUILT_INS = {
     :goog => File.join(base_path, 'closure-library', 'closure', 'goog'),
     :goog_vendor => File.join(base_path, 'closure-library', 'third_party', 'closure', 'goog'),
-    :googly => File.join(base_path, 'src', 'script'),
+    :googly => File.join(base_path, 'src', 'script')
   }
   
   
@@ -98,10 +98,14 @@ class Googly
   end
   
   
-  # These need to be set before the rack server is called for the first time.
+  # Most of these need to be set before the rack server is called for the first time.
   # === Attributes:
   # - (String) *java* -- default: "java" -- Your Java executable.
   # - (String) *compiler_jar* -- A compiler.jar to use instead of the one in the gem.
+  # - (Float) *dwell* -- default: 1 -- Lockout time, in seconds, for refreshing the sources.
+  # - (String) *home_page* -- File to serve at the root.  Handy for stand-alone projects.
+  #   You can use a template, even in non-source folders, by using the url extension
+  #   e.g. 'index.html' not the actual filename of 'index.haml'.
   # - (Hash) *haml* -- Options hash for haml engine.
   # - (Array) *engines* -- Add new template engines here.
   # @return [OpenStruct]
@@ -110,6 +114,7 @@ class Googly
       :java => 'java',
       :compiler_jar => File.join(base_path, 'closure-compiler', 'compiler.jar'),
       :dwell => 1,
+      :home_page => nil,
       :haml => {},
       :engines => [
         ['.erb', Proc.new do |template, filename|
@@ -120,9 +125,9 @@ class Googly
         end],
         ['.haml', Proc.new do |template, filename|
           require 'haml'
-          options = Googly.config.haml.merge(:filename => filename)
+          options = config.haml.merge(:filename => filename)
           ::Haml::Engine.new(File.read(filename), options).render(template)
-        end],
+        end]
       ]
     })
   end

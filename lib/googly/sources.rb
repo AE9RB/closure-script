@@ -38,6 +38,9 @@ class Googly
     # no requires, and defines goog a particular way.
     BASE_JS_REGEX = /^var goog = goog \|\| \{\};/
     
+    # Flag env so that refresh is never run more than once per request
+    ENV_FLAG = 'googly.sources_fresh'
+    
     # @param (Float) dwell in seconds.  
     def initialize(dwell = 1.0)
       @dwell = dwell
@@ -62,7 +65,7 @@ class Googly
     # Adds a new directory of source files.
     # @param (String) path Where to mount on the http server.
     # @param (String) directory Filesystem location of your sources.
-    # @return (Sources) 
+    # @return (Sources) self
     def add(path, directory)
       raise "path must start with /" unless path =~ %r{^/}
       path = '' if path == '/'
@@ -77,10 +80,8 @@ class Googly
 
     # Yields path and directory for each of the added sources.
     # @yield (path, directory) 
-    # @return (Sources) 
     def each
       @sources.each { |path, directory| yield path, directory }
-      self
     end
     
     
@@ -125,7 +126,7 @@ class Googly
             response.write "goog.addDependency(#{path.dump}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
           end
           response.headers['Content-Type'] = 'application/javascript'
-          response.headers['Cache-Control'] = "max-age=#{[1,@dwell.floor].max}, private"
+          response.headers['Cache-Control'] = "max-age=#{[1,@dwell.floor].max}, private, must-revalidate"
           response.headers['Last-Modified'] = Time.now.httpdate
         end
         mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil
@@ -191,10 +192,8 @@ class Googly
     
     
     def refresh(env)
-      # Use env so that refresh is never run more than once per request
-      env_key = 'googly.deps_refreshed'
-      return if env[env_key]
-      env[env_key] = true
+      return if env[ENV_FLAG]
+      env[ENV_FLAG] = true
       # Having been run within the dwell period is good enough
       return if @last_been_run and Time.now - @last_been_run < @dwell
       # verbose loggers

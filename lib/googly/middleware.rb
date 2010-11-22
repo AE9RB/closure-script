@@ -16,17 +16,22 @@
 class Googly
 
   # Although {Googly} can run as an app or in a cascade, most installations
-  # will use this {Middleware} that is configured with Googly.script().
+  # will use this {Middleware} configured with Googly.script().
   # @example config.ru
   #  require 'googlyscript'
   #  Googly.script '/myapp', '../src'
   #  use Googly::Middleware
+  # @example config.ru (advanced)
+  #  require 'googlyscript'
+  #  sources = Googly::Sources.new
+  #  sources.add '/myapp', '../src'
+  #  use Googly::Middleware, Googly::Server.new(sources)
   
   class Middleware
     
-    def initialize(app)
+    def initialize(app, server=nil)
       @app = app
-      @server = Server.new(Googly.sources, Googly.config.home_page)
+      @server = server || Server.new(Googly.sources, Googly.config.home_page)
     end
 
     def call(env)

@@ -21,6 +21,18 @@ use Rack::Lint
 use Rack::ShowExceptions
 use Googly::Sass
 use Googly::Middleware
+
+# Yard will have a better Middleware in a future release.
+# This maps /(root), /docs and /list (maybe others).
+# Googly::Middleware serves the home page because it's run first.
+require 'yard'
+`rm -r .yardoc 2>/dev/null` # Because Yard doesn't mark and sweep for deletes.
+YARD::CLI::Yardoc.new.run('-c', '-n', '--no-stats') # Must be run once before starting.
+use YARD::Server::RackMiddleware, {
+  :libraries => {'googly' => [YARD::Server::LibraryVersion.new('googly', nil, '.yardoc')]},
+  :options => {:incremental => true}
+}
+
 run Rack::File.new File.join(Googly.base_path, 'public')
 
 print "Scripting engaged.  Caution: Googlies bond instantly to skin.\n"

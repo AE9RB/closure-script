@@ -16,8 +16,6 @@
 class Googly
   
   # Templates render with an instance named goog in the context.
-  # @example file_list.erb
-  #  <%= goog.files_for %w{myapp.Calendar} %>
   
   class Goog
     
@@ -82,6 +80,8 @@ class Googly
     # If you pass the filenames returned from last run,
     # additional files (if any) will be appended to satisfy
     # the new namespace.
+    # @example cal_file_list.erb
+    #  <%= goog.files_for %w{myapp.Calendar} %>
     # @return (Array)
     def files_for(namespace, filenames=nil)
       @sources.files_for(@env, namespace, filenames)
@@ -98,7 +98,8 @@ class Googly
       @sources.base_js(@env)
     end
     
-    # This is where base.js looks to find deps.js by default.
+    # This is where base.js looks to find deps.js by default.  You will always
+    # be served a Googlyscript generated deps.js from this location.
     def deps_js
       @sources.deps_js(@env)
     end

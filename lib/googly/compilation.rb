@@ -48,7 +48,7 @@ class Googly
       @env = env
       args = Array.new args
       files = []
-      # Scan to expand paths and extract critical options
+      # Scan to expand paths and extend self with output options
       args_index = 0
       while args_index < args.length
         option, value = args[args_index, 2]
@@ -62,7 +62,7 @@ class Googly
         end
         args_index = args_index + 2
       end
-      # We won't bother compiling if the output file is newer than all sources
+      # We don't bother compiling if we can detect that no sources were modified
       if @js_output_file
         js_mtime = File.mtime @js_output_file rescue Errno::ENOENT
         compiled = !!File.size?(@js_output_file) # catches empty files too

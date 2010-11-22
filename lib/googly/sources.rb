@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 class Googly
   
   # @private
@@ -56,7 +57,11 @@ class Googly
     # techniques for good performance.
     attr_accessor :dwell
     
-    
+
+    # Adds a new directory of source files.
+    # @param (String) path Where to mount on the http server.
+    # @param (String) directory Filesystem location of your sources.
+    # @return (Sources) 
     def add(path, directory)
       raise "path must start with /" unless path =~ %r{^/}
       path = '' if path == '/'
@@ -69,6 +74,9 @@ class Googly
     end
     
 
+    # Yields path and directory for each of the added sources.
+    # @yield (path, directory) 
+    # @return (Sources) 
     def each
       @sources.each { |path, directory| yield path, directory }
       self
@@ -97,7 +105,7 @@ class Googly
     end
     
 
-    # Builds a Rack::Response to serve a dynamic base.js
+    # Builds a Rack::Response to serve a dynamic deps.js
     # @return (Rack::Response) 
     def deps_response(env, base=nil)
       @semaphore.synchronize do
@@ -109,7 +117,7 @@ class Googly
         base = Pathname.new(base)
         unless @deps[base]
           response = @deps[base] ||= Rack::Response.new
-          response.write "// This deps.js was brought to you by Googlyscript\n"
+          response.write "// Deps by Googlyscript\n"
           @files.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
             path = Pathname.new(dep[:path]).relative_path_from(base)
             path = "#{path}?#{dep[:mtime].to_i}"
@@ -121,7 +129,7 @@ class Googly
         end
         mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil
         if mod_since == Time.httpdate(@deps[base].headers['Last-Modified'])
-          response = Rack::Response.new [], 304 # Not Modified
+          Rack::Response.new [], 304 # Not Modified
         else
           @deps[base]
         end
@@ -129,10 +137,7 @@ class Googly
     end
     
 
-    # Calculate all required files for an array of namespaces.
-    # If you need to do complicated thing with modules or namespaces,
-    # this can be used by your build templates to build compiler arguments.
-    # {Googly::Compilation} uses it to convert --ns options to --js.
+    # Calculate all required files for a namespace.
     # @param (String) namespace
     # @return (Array<String>) New Array of filenames.
     def files_for(env, namespace, filenames=nil)

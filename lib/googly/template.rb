@@ -48,11 +48,12 @@ class Googly
     
     # After rendering, #finish will be sent to the client.
     # If you replace the response or add to the response#body, 
-    # the template rendering will not be added to this response.
+    # the template rendering will not be added.
     # @return [Rack::Response]
     attr_accessor :response
 
     # All the cool stuff lives here.
+    # @return [Goog]
     attr_accessor :goog
 
     # Render another template.  The same Googly::Template instance is

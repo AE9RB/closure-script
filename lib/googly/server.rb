@@ -34,7 +34,7 @@ class Googly
         response = Template.new(env, @sources, @home_page).response unless response.found?
         return response.finish
       end
-      # Replace the deps.js in detected Closure Library
+      # Usurp the deps.js in detected Closure Library
       begin
         if path_info == @sources.deps_js(env)
           return @sources.deps_response(env).finish
@@ -55,6 +55,8 @@ class Googly
       end
       not_found
     end
+    
+    private
     
     # Status 404 with X-Cascade => pass.
     # @return (Array)[status, headers, body]

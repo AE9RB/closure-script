@@ -15,9 +15,8 @@
 
 require 'ostruct'
 
-# Googlyscript can be run with rackup using a config.ru, installed
-# as middleware into a framework, or adapted to anything that
-# provides a rack environment.
+# Googlyscript can be run with rackup using a config.ru, installed as
+# middleware into a framework, or adapted to anything with a rack environment.
 # @example config.ru
 #   #\ -p 9009 -E none
 #   require 'rubygems'
@@ -51,8 +50,9 @@ class Googly
   end
   
 
-  # Scripts that are distributed with the gem.  These will help get you started quickly
-  # but feel free to use other versions and check them into your repository.
+  # Scripts that are distributed with the gem.  These will help get you started quickly.
+  # Googlyscript isn't tied to any Google Closure release, so feel free to use whatever
+  # version you want and check it in to your repository.
   BUILT_INS = {
     :goog => File.join(base_path, 'closure-library', 'closure', 'goog'),
     :goog_vendor => File.join(base_path, 'closure-library', 'third_party', 'closure', 'goog'),
@@ -60,16 +60,15 @@ class Googly
   }
   
   
-  # Maps javascript sources for use by {Googlyscript::Middleware}.
-  # This configures a global set of sources for convienence.
+  # Easy config. This adds to the global instance of sources and
+  # supports using the {BUILT_INS}.
   # @example
   #   Googly.script('/goog', :goog)
   #   Googly.script('/myapp', './myapp')
   # @overload script(path, directory)
   # @overload script(path, built_in)
-  # @param (String) path 
-  #        http server mount point
-  # @param (String) directory
+  # @param (String) path http server mount point.
+  # @param (String) directory Where the scripts are in the filesystem.
   # @param (Symbol) built_in
   def self.script(path, directory)
     directory = BUILT_INS[directory] if directory.kind_of? Symbol
@@ -77,6 +76,8 @@ class Googly
   end
 
 
+  # This is a global instance of sources, configured with Googly.script()
+  # and used for {Googlyscript::Middleware} by default.
   # Path and directory pairs configured with Googly.script().
   # @return [Array]
   def self.sources
@@ -98,13 +99,13 @@ class Googly
   end
   
   
-  # Most of these need to be set before the rack server is called for the first time.
+  # Set these before the rack server is called for the first time.
   # === Attributes:
   # - (String) *java* -- default: "java" -- Your Java executable.
   # - (String) *compiler_jar* -- A compiler.jar to use instead of the one in the gem.
   # - (String) *home_page* -- File to serve at the root.  Handy for stand-alone projects.
   #   You can use a template, even in non-source folders, by using the url extension
-  #   e.g. 'index.html' not the actual filename of 'index.haml'.
+  #   e.g. 'index.html' instead of the actual filename 'index.haml'.
   # - (Hash) *haml* -- Options hash for haml engine.
   # - (Array) *engines* -- Add new template engines here.
   # @return [OpenStruct]

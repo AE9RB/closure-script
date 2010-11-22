@@ -66,7 +66,6 @@ class Googly
     
     # Support using self as a response body.
     # @yield [String] 8k blocks
-    # @return [void]
     def each
       File.open(@filename, "rb") do |file|
         while part = file.read(8192)

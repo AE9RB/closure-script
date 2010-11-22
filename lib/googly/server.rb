@@ -14,9 +14,18 @@
 
 
 class Googly
+
+  # The Googlyscript rack server.  There is {Googly::Middleware} available too.
+  # @example config.ru
+  #  require 'googlyscript'
+  #  sources = Googly::Sources.new
+  #  sources.add '/myapp', '../src'
+  #  run Googly::Server.new sources
   
   class Server
     
+    # @param (Sources) sources An instance configured with your scripts.
+    # @param (home_page) home_page Optional file or template to serve as root.
     def initialize(sources, home_page = nil)
       @sources = sources
       @home_page = home_page
@@ -26,8 +35,8 @@ class Googly
     # @param (Hash) env Rack environment.
     # @return (Array)[status, headers, body]
     def call(env)
-      path_info = Rack::Utils.unescape(env["PATH_INFO"])
-      return not_found if path_info.include? ".." # unsafe
+      path_info = Rack::Utils.unescape(env['PATH_INFO'])
+      return not_found if path_info.include? '..' # unsafe
       # Stand-alone projects will find this useful
       if @home_page and path_info == '/'
         response = FileResponse.new(env, @home_page)
@@ -62,9 +71,9 @@ class Googly
     # @return (Array)[status, headers, body]
     def not_found
       body = "404 Not Found\n"
-      [404, {"Content-Type" => "text/plain",
-             "Content-Length" => body.size.to_s,
-             "X-Cascade" => "pass"},
+      [404, {'Content-Type' => 'text/plain',
+             'Content-Length' => body.size.to_s,
+             'X-Cascade' => 'pass'},
        [body]]
     end
 

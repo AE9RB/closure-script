@@ -15,7 +15,7 @@
 
 class Googly
 
-  # Although {Googly} can run as an app or in a cascade, most installations
+  # Although Googlyscript can run as an app or in a cascade, most installations
   # will use this {Middleware} configured with Googly.script().
   # @example config.ru
   #  require 'googlyscript'

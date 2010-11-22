@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = ">= 1.3"
   s.rubyforge_project         = "googlyscript"
   
-  s.add_dependency 'rack'
+  s.add_dependency 'rack', '>= 1.0.0'
 
   s.files        = `git ls-files`.split("\n")
   s.executables  = `git ls-files`.split("\n").map{|f| f =~ /^bin\/(.*)/ ? $1 : nil}.compact

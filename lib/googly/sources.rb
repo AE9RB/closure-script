@@ -38,9 +38,10 @@ class Googly
     # no requires, and defines goog a particular way.
     BASE_JS_REGEX = /^var goog = goog \|\| \{\};/
     
-    def initialize
+    # @param (Float) dwell in seconds.  
+    def initialize(dwell = 1.0)
+      @dwell = dwell
       @sources = []
-      @dwell = 1.0
       @semaphore = Mutex.new
       @files = {}
       @goog = nil
@@ -50,8 +51,8 @@ class Googly
 
 
     # @return (Float) 
-    # Defaults to one second.  Limits how often a full refresh is allowed
-    # to run; blocked threads sometimes trigger unneeded refreshes.
+    # Limits how often a full refresh is allowed to run.  Blocked
+    # threads can trigger unneeded refreshes in rare scenarios.
     # Also sent to browser in cache-control for frames performance.
     # Caching, lazy loading, and flagging (of env) make up the remaining
     # techniques for good performance.

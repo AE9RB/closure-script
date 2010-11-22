@@ -20,6 +20,9 @@ class Googly
   # This way we don't pay the Java startup costs on every compile job.
   class BeanShell
     
+    PROMPT = /^bsh % $\Z/
+    JAR = File.join(Googly.base_path, 'beanshell', 'bsh-core-2.0b4.jar')
+    
     # @param classpath (Array)<string>
     def initialize(classpath=[])
       @semaphore = Mutex.new
@@ -48,26 +51,28 @@ class Googly
     
     # Executes a command on the REPL and returns the result.
     def execute(command)
-      prompt = /^bsh % $\Z/
       out = ''
       err = ''
       @semaphore.synchronize do
         unless $cmdin
-          classpath = [@classpath, File.join(Googly.base_path, 'beanshell', 'bsh-core-2.0b4.jar')].flatten
+          classpath = [@classpath, JAR].flatten
           java_repl = "#{Googly.config.java} -classpath #{classpath.join(':').dump} bsh.Interpreter"
           $cmdin, $cmdout, $cmderr = Open3::popen3(java_repl)
           eat_startup = ''
-          eat_startup << $cmdout.readpartial(8192) until eat_startup =~ prompt
+          eat_startup << $cmdout.readpartial(8192) until eat_startup =~ PROMPT
         end
         $cmdin << command
-        until out =~ prompt
-          #TODO make threaded; this will save ~0.025 seconds per execution
-          sleep 0.05 # wait at start and collect results 20 times per second
-          out << $cmdout.read_nonblock(8192) while true rescue Errno::EAGAIN
-          err << $cmderr.read_nonblock(8192) while true rescue Errno::EAGAIN
-        end
+        
+        # Make sure you test this extensively if you think you can do better
+        err_reader = Thread.new { err << $cmderr.readpartial(8192) while true }
+        out << $cmdout.readpartial(8192) until out =~ PROMPT
+        sleep 0.01 until err_reader.status == "sleep"
+        err_reader.terminate
+        err_reader.join
+        err << $cmderr.read_nonblock(8192) while true rescue Errno::EAGAIN
+        
       end
-      [out.sub(prompt, ''), err]
+      [out.sub(PROMPT, ''), err]
     end
 
     

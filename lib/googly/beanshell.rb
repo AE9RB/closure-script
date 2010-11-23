@@ -62,15 +62,15 @@ class Googly
           eat_startup << $cmdout.readpartial(8192) until eat_startup =~ PROMPT
         end
         $cmdin << command
-        
-        # Make sure you test this extensively if you think you can do better
-        err_reader = Thread.new { err << $cmderr.readpartial(8192) while true }
+        # An extra thread collects stderr while we watch stdout for completion.
+        running = true
+        err_reader = Thread.new { err << $cmderr.readpartial(8192) while running }
         out << $cmdout.readpartial(8192) until out =~ PROMPT
-        sleep 0.01 until err_reader.status == "sleep"
-        err_reader.terminate
+        running = false
+        Thread.exclusive { err_reader.terminate if err_reader.status == "sleep" }
         err_reader.join
+        # Funny thing is, stdout sometimes finishes sending before stderr begins.
         err << $cmderr.read_nonblock(8192) while true rescue Errno::EAGAIN
-        
       end
       [out.sub(PROMPT, ''), err]
     end

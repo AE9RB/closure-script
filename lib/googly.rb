@@ -103,9 +103,6 @@ class Googly
   # === Attributes:
   # - (String) *java* -- default: "java" -- Your Java executable.
   # - (String) *compiler_jar* -- A compiler.jar to use instead of the one in the gem.
-  # - (String) *home_page* -- File to serve at the root.  Handy for stand-alone projects.
-  #   You can use a template, even in non-source folders, by using the url extension
-  #   e.g. 'index.html' instead of the actual filename 'index.haml'.
   # - (Hash) *haml* -- Options hash for haml engine.
   # - (Array) *engines* -- Add new template engines here.
   # @return [OpenStruct]
@@ -113,7 +110,6 @@ class Googly
     @@config ||= OpenStruct.new({
       :java => 'java',
       :compiler_jar => File.join(base_path, 'closure-compiler', 'compiler.jar'),
-      :home_page => nil,
       :haml => {},
       :engines => [
         ['.erb', Proc.new do |template, filename|

@@ -20,18 +20,16 @@ class Googly
   # @example config.ru
   #  require 'googlyscript'
   #  Googly.script '/myapp', '../src'
-  #  use Googly::Middleware
-  # @example config.ru (advanced)
-  #  require 'googlyscript'
-  #  sources = Googly::Sources.new
-  #  sources.add '/myapp', '../src'
-  #  use Googly::Middleware, Googly::Server.new(sources)
+  #  use Googly::Middleware, '../public/index.html'
   
   class Middleware
     
-    def initialize(app, server=nil)
+    # @param (String) home_page File to serve at the root.  Handy for stand-alone projects.
+    #   You can use a template, even in non-source folders, by using the url extension
+    #   e.g. 'index.html' instead of the actual filename 'index.haml'.
+    def initialize(app, home_page=nil)
       @app = app
-      @server = server || Server.new(Googly.sources, Googly.config.home_page)
+      @server = Server.new(Googly.sources, home_page)
     end
 
     def call(env)

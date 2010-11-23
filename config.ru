@@ -13,14 +13,13 @@ Googly.script '/goog', :goog
 Googly.script '/goog_vendor', :goog_vendor
 Googly.script '/googly', :googly
 Googly.config.haml[:format] = :html5
-Googly.config.home_page = File.join(Googly.base_path, 'public', 'index.html')
 
 # use Rack::CommonLogger # slow, adds ~20% to goog.editor Demo page load
 use Rack::Reloader, 1
 use Rack::Lint
 use Rack::ShowExceptions
 use Googly::Sass
-use Googly::Middleware
+use Googly::Middleware, File.join(Googly.base_path, 'public', 'index.html')
 
 # Yard will have a better Middleware in a future release.
 # This maps /(root), /docs and /list (maybe others).

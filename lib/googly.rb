@@ -39,6 +39,7 @@ class Googly
   autoload(:Compilation, 'googly/compilation')
   autoload(:Server, 'googly/server')
   autoload(:Goog, 'googly/goog')
+  autoload(:Soy, 'googly/soy')
   
 
   # Filesystem location of the Googlyscript install.
@@ -56,6 +57,7 @@ class Googly
   BUILT_INS = {
     :goog => File.join(base_path, 'closure-library', 'closure', 'goog'),
     :goog_vendor => File.join(base_path, 'closure-library', 'third_party', 'closure', 'goog'),
+    :soy_js => File.join(base_path, 'closure-templates'),
     :googly => File.join(base_path, 'src', 'script')
   }
   
@@ -93,6 +95,7 @@ class Googly
   def self.java(command)
     @@beanshell ||= BeanShell.new [
       config.compiler_jar,
+      config.soy_js_jar,
       File.join(base_path, 'lib', 'googly.jar')
     ]
     @@beanshell.run(command)
@@ -110,6 +113,7 @@ class Googly
     @@config ||= OpenStruct.new({
       :java => 'java',
       :compiler_jar => File.join(base_path, 'closure-compiler', 'compiler.jar'),
+      :soy_js_jar => File.join(base_path, 'closure-templates', 'SoyToJsSrcCompiler.jar'),
       :haml => {},
       :engines => [
         ['.erb', Proc.new do |template, filename|

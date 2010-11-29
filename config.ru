@@ -11,6 +11,7 @@ Sass::Plugin.options[:cache_location] = File.join(Googly.base_path, 'tmp')
 
 Googly.script '/goog', :goog
 Googly.script '/goog_vendor', :goog_vendor
+Googly.script '/soy', :soy_js
 Googly.script '/googly', :googly
 Googly.config.haml[:format] = :html5
 
@@ -19,6 +20,13 @@ use Rack::Reloader, 1
 use Rack::Lint
 use Rack::ShowExceptions
 use Googly::Sass
+use Googly::Soy, %w{
+  --shouldProvideRequireSoyNamespaces
+  --cssHandlingScheme goog
+  --shouldGenerateJsdoc
+  --outputPathFormat {INPUT_DIRECTORY}{INPUT_FILE_NAME_NO_EXT}.js
+  src/script/** *.soy
+}
 use Googly::Middleware, File.join(Googly.base_path, 'public', 'index.html')
 
 # Yard will have a better Middleware in a future release.

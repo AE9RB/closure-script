@@ -58,7 +58,7 @@ class Googly
       @body = self
       unless size = File.size?(filename)
         @body = [File.read(filename)]
-        size = body.first.respond_to?(:bytesize) ? body.first.bytesize : body.first.size
+        size = @body.first.respond_to?(:bytesize) ? @body.first.bytesize : @body.first.size
       end
       @headers["Content-Length"] = size.to_s
       @headers["Content-Type"] = content_type || Rack::Mime.mime_type(File.extname(filename), 'text/plain')

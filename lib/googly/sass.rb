@@ -17,7 +17,9 @@ class Googly
 
   # Googlyscript can easily respond to hundreds of requests
   # per second, but not with Sass::Plugin::Rack in the stack. 
-  # Use this instead of Sass::Plugin::Rack.
+  # This change has been submitted to and accepted by the Sass team.
+  # Don't use Sass::Plugin::Rack until you are on a version that
+  # has the dwell option.  Use Googly::Sass in the meantime.
   # @example config.ru
   #  require 'googlyscript'
   #  require 'sass/plugin'

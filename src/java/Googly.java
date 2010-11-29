@@ -72,4 +72,18 @@ public class Googly {
     }  
   }
 
+  public static void compile_soy_to_js_src(String[] args) {
+    PrintStream savedOut = System.out;
+    System.setOut(new UnclosablePrintStream(System.out));
+    disableSystemExit();
+    try {
+      com.google.template.soy.SoyToJsSrcCompiler.main(args);
+    } catch( SystemExitException e ) {
+    } catch( java.io.IOException e) {
+    } finally {
+      enableSystemExit();
+      System.setOut(savedOut);
+    }  
+  }
+
 }

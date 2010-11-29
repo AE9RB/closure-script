@@ -37,6 +37,11 @@ class Googly
   
   class Soy
     
+    # Logs in env['googly.soy.errors'] will persist until the errors are fixed.
+    # It will be nil when no errors or a string with the Java exception.
+    # It will be an array if you have multiple Soy middlewares running.
+    ENV_ERRORS = 'googly.soy.errors'
+    
     # @param app [#call] The Rack application
     # @param dwell [Float] in seconds.  
     def initialize(app, args, dwell = 1.0)
@@ -46,6 +51,7 @@ class Googly
       @check_after = Time.now.to_f
       @mtimes = {}
       @semaphore = Mutex.new
+      @errors = nil
     end
     
     # @return (Float) 
@@ -56,7 +62,7 @@ class Googly
     # @return (Array)[status, headers, body]
     def call(env)
       # This lock will block all other threads until soy is compiled
-      # (it is not to synchronize globals like in sources)
+      # (it is not to synchronize globals like in Googly::Sources)
       @semaphore.synchronize do
         if Time.now.to_f > @check_after
           args = @args.dup
@@ -65,13 +71,20 @@ class Googly
           mode = :start
           args_index = 0
           while args_index < args.length
-            arg = args[args_index]
-            args_index += 1
-            mode = :out and next if arg == '--outputPathFormat'
-            if mode == :expand and arg =~ /\/\*\*$/
-              args[args_index-1,2] = Dir.glob(File.join(arg, args[args_index]))
+            if mode == :start
+              if args[args_index] == '--outputPathFormat'
+                mode = :expand
+                args_index += 1
+              end
+              args_index += 1
+            else 
+              arg = args[args_index]
+              if arg =~ /\/\*\*$/
+                args[args_index,2] = Dir.glob(File.join(arg, args[args_index+1]))
+              else
+                args_index += 1
+              end
             end
-            mode = :expand if mode == :out
           end
           # extract filenames
           mode = :start
@@ -97,13 +110,27 @@ class Googly
             java_opts = args.collect{|a|a.to_s.dump}.join(', ')
             puts "compiling soy: #{java_opts}"
             out, err = Googly.java("Googly.compile_soy_to_js_src(new String[]{#{java_opts}});")
-            #TODO find a better way to get this to the developer
-            # perhaps pass it down env and Googly::Server can persist it?
-            puts err unless err.empty?
+            if err.empty?
+              @errors = nil
+            else
+              puts err
+              @errors = err
+            end
           end
           @check_after = Time.now.to_f + @dwell
         end
       end
+      # Make always available the errors from every Soy in the stack
+      if env[ENV_ERRORS].kind_of?(Array)
+        env[ENV_ERRORS] << @errors
+      else
+        if env.has_key? ENV_ERRORS
+          env[ENV_ERRORS] = [env[ENV_ERRORS], @errors]
+        else
+          env[ENV_ERRORS] = @errors
+        end
+      end
+      # Onward
       @app.call(env)
     end
     

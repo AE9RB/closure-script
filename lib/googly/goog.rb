@@ -66,8 +66,9 @@ class Googly
             files_index = files_index + 1
           end
           args[args_index, 2] = replacement
+        else
+          args_index = args_index + 2
         end
-        args_index = args_index + 2
       end
       Compilation.new(args,
                       File.dirname(@render_stack.last),

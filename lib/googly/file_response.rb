@@ -39,20 +39,14 @@ class Googly
       
       # Caching strategy
       mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil
-      if env['QUERY_STRING'] =~ /^[0-9]{9,10}$/
-        # Files timestamped with unix time in QUERY_STRING are supercharged
-        # The automatic deps.js contains filenames in this format.
-        @status = 304 if mod_since and File.mtime(filename) == Time.at(env['QUERY_STRING'].to_i)
-        @headers["Last-Modified"] = Time.now.httpdate
+      last_modified = File.mtime(filename)
+      @status = 304 and return if last_modified == mod_since
+      @headers["Last-Modified"] = last_modified.httpdate
+      if env['QUERY_STRING'] =~ /^[0-9]{9,10}$/ and last_modified == Time.at(env['QUERY_STRING'].to_i)
         @headers["Cache-Control"] = 'max-age=86400, public' # one day
       else
-        # Regular files must always revalidate with timestamp
-        last_modified = File.mtime(filename)
-        @status = 304 if last_modified == mod_since
-        @headers["Last-Modified"] = last_modified.httpdate
         @headers["Cache-Control"] = 'max-age=0, private, must-revalidate'
       end
-      return if @status == 304 # Not Modified
       
       # Sending the file or reading an unknown length stream to send
       @body = self

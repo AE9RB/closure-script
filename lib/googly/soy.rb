@@ -43,6 +43,7 @@ class Googly
     ENV_ERRORS = 'googly.soy.errors'
     
     # @param app [#call] The Rack application
+    # @param args [Array] Arguments for SoyToJsSrcCompiler.jar.  Supports globbing.
     # @param dwell [Float] in seconds.  
     def initialize(app, args, dwell = 1.0)
       @app = app
@@ -79,8 +80,8 @@ class Googly
               args_index += 1
             else 
               arg = args[args_index]
-              if arg =~ /\/\*\*$/
-                args[args_index,2] = Dir.glob(File.join(arg, args[args_index+1]))
+              if arg =~ /\/\*\*\//
+                args[args_index,1] = Dir.glob arg
               else
                 args_index += 1
               end
@@ -106,7 +107,7 @@ class Googly
             end
           end
           # compile as needed
-          unless compiled
+          if !compiled or @errors
             java_opts = args.collect{|a|a.to_s.dump}.join(', ')
             puts "compiling soy: #{java_opts}"
             out, err = Googly.java("Googly.compile_soy_to_js_src(new String[]{#{java_opts}});")

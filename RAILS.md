@@ -8,7 +8,7 @@ Gemfile:
 
 config/environments/development.rb:
 
-    config.middleware.use Googly::Middleware
+    config.middleware.insert_before ActionDispatch::Static, Googly::Middleware
     Googly.script '/goog', :goog
     Googly.script '/myapp', 'app/javascripts'
 
@@ -16,12 +16,27 @@ Restart the server and test: `http://localhost:3000/goog/demos/index`
 
 ## Rails 2
 
-config/environments/development.rb:
+app/metal/jsdev.rb:
 
-    config.gem 'googlyscript'
-    config.middleware.use Googly::Middleware
-    Googly.script '/goog', :goog
-    Googly.script '/myapp', 'app/javascripts'
+    require 'googlyscript'
+    begin
+      Googly.script '/goog', :goog 
+    rescue Exception => e
+    end
+
+    class Jsdev
+
+      @@server ||= Googly::Server.new(Googly.sources)
+  
+      def self.call(env)
+        if RAILS_ENV == 'development'
+          @@server.call env
+        else
+          [404, {}, []]
+        end
+      end
+
+    end
     
 Restart the server and test: `http://localhost:3000/goog/demos/index`
 

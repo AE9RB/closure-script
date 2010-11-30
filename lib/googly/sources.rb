@@ -28,6 +28,8 @@ class Googly
 
   class Sources
     
+    include Enumerable
+    
     # Using regular expressions may seem clunky, but the Python scripts
     # did it this way and I've not see it fail in practice.
     GOOG_REGEX_STRING = '^\s*goog\.%s\s*\(\s*[\'"]([^\)]+)[\'"]\s*\)'

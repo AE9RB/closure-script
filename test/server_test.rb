@@ -4,7 +4,7 @@ class ServerTest < Test::Unit::TestCase
 
   def setup
     sources = Googly::Sources.new
-    sources.add '/', File.join(Googly.base_path, 'test', 'fixtures')
+    sources.add '/', File.join(Googly.base_path, 'scripts', 'fixtures')
     @request = Rack::MockRequest.new(Googly::Server.new(sources))
   end
 

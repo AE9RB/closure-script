@@ -1,33 +1,26 @@
 #\ -p 9009 -E none
 # This is the rackup for developers working on (not with) Googlyscript.
-# Turn on -w with unicorn once in a while.  Haml/sass is too chatty to leave this on.
 
 require File.join(File.dirname(__FILE__), 'lib', 'googlyscript.rb')
-require 'sass/plugin'
-
-Sass::Plugin.options[:template_location] = File.join(Googly.base_path, 'src', 'stylesheet')
-Sass::Plugin.options[:css_location] = File.join(Googly.base_path, 'public', 'stylesheets')
-Sass::Plugin.options[:cache_location] = File.join(Googly.base_path, 'tmp')
 
 Googly.script '/goog', :goog
 Googly.script '/goog_vendor', :goog_vendor
-Googly.script '/soy', :soy_js
-Googly.script '/googly', :googly
+Googly.script '/soy_js', :soy_js
+Googly.script '/', File.join(Googly.base_path, 'scripts')
 Googly.config.haml[:format] = :html5
 
-# use Rack::CommonLogger # slow, adds ~20% to goog.editor Demo page load
+use Rack::CommonLogger # slow
 use Rack::Reloader, 1
-use Rack::Lint
+use Rack::Lint # slow
 use Rack::ShowExceptions
-use Googly::Sass
 use Googly::Soy, %w{
   --shouldProvideRequireSoyNamespaces
   --cssHandlingScheme goog
   --shouldGenerateJsdoc
   --outputPathFormat {INPUT_DIRECTORY}{INPUT_FILE_NAME_NO_EXT}.js
-  src/script/** *.soy
+  scripts/**/*.soy
 }
-use Googly::Middleware, File.join(Googly.base_path, 'public', 'index.html')
+use Googly::Middleware, File.join(Googly.base_path, 'scripts', 'index.html')
 
 # Yard will have a better Middleware in a future release.
 # This maps /(root), /docs and /list (maybe others).
@@ -40,6 +33,6 @@ use YARD::Server::RackMiddleware, {
   :options => {:incremental => true}
 }
 
-run Rack::File.new File.join(Googly.base_path, 'public')
+run Rack::File.new File.join(Googly.base_path, 'scripts')
 
 print "Scripting engaged.  Caution: Googlies bond instantly to skin.\n"

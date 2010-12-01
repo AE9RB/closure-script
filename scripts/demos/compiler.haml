@@ -2,14 +2,16 @@
 %html
   %head
     - if params.has_key? 'build'
-      %script{:src => 'c.js'}
+      %script{:src => 'compile.js'}
     - else  
       %script{:src => goog.base_js}
       :javascript
-        goog.require('googly.test');
+        goog.require('googly.demos.compiler');
   %body
     - if params.has_key? 'build'
-      %a(href = '?') Click For Require...
+      %p (build mode)
     - else  
-      %a(href = '?build') Click For Build...
+      %p (require mode)
+    :javascript
+      run_test();
     

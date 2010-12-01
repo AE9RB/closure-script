@@ -10,11 +10,12 @@
 # it to the filesystem if you wanted to show it every time.
 
 comp = goog.compile(%w{
-  --summary_detail_level 3
-  --ns googly.test
-  --warning_level VERBOSE
-  --js_output_file js.out
   --compilation_level ADVANCED_OPTIMIZATIONS    
+  --js_output_file compile.out
+  --summary_detail_level 3
+  --define goog.DEBUG=false
+  --warning_level VERBOSE
+  --ns googly.demos.compiler
 })
 if !comp.stderr or comp.stderr.empty?
   @response = comp.to_response

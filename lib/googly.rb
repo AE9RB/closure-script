@@ -58,7 +58,7 @@ class Googly
     :goog => File.join(base_path, 'closure-library', 'closure', 'goog'),
     :goog_vendor => File.join(base_path, 'closure-library', 'third_party', 'closure', 'goog'),
     :soy_js => File.join(base_path, 'closure-templates'),
-    :googly => File.join(base_path, 'src', 'script')
+    :googly => File.join(base_path, 'scripts', 'dist')
   }
   
   

@@ -4,13 +4,13 @@
     %title The Hello World of Closure Templates
     %script{:src => goog.base_js}
     :javascript
-      goog.require('examples.simple');
+      goog.require('googly.demos.soy.helloworld');
   %body
     :javascript
       // Exercise the .helloWorld template
-      document.write(examples.simple.helloWorld());
+      document.write(googly.demos.soy.helloworld.helloWorld());
       // Exercise the .helloName template
-      document.write('<hr>' + examples.simple.helloName({name: 'Ana'}));
+      document.write('<hr>' + googly.demos.soy.helloworld.helloName({name: 'Ana'}));
       // Exercise the .helloNames template
-      document.write('<hr>' + examples.simple.helloNames(
+      document.write('<hr>' + googly.demos.soy.helloworld.helloNames(
           {name: 'Ana', additionalNames: ['Bob', 'Cid', 'Dee']}));

@@ -1,0 +1,17 @@
+<% 
+comp = goog.compile(%w{
+  --compilation_level ADVANCED_OPTIMIZATIONS    
+  --js_output_file compile.out
+  --summary_detail_level 3
+  --define goog.DEBUG=false
+  --ns googly.rails
+})
+if !comp.stderr or comp.stderr.empty?
+  @response = comp.to_response
+else -%>
+<% err_str = comp.stderr.split("\n").last; if err_str.to_i > 0 -%>
+try{console.error(<%= ('Closure Compiler: '+err_str).dump %>)}catch(err){}
+<% end -%>
+try{console.log(<%= comp.stderr.dump %>)}catch(err){}
+<%= comp %>
+<% end -%>

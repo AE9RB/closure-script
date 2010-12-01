@@ -48,10 +48,8 @@ class Googly
       @dwell = dwell
       @sources = []
       @semaphore = Mutex.new
-      @files = {}
-      @goog = nil
       @last_been_run = nil
-      @deps = {}
+      reset_all_computed_instance_vars
     end
 
 
@@ -133,7 +131,7 @@ class Googly
           response.write "// Deps by Googlyscript\n"
           @files.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
             path = Pathname.new(dep[:path]).relative_path_from(base)
-            path = "#{path}.#{dep[:mtime].to_i}"
+            path = "#{path}?#{dep[:mtime].to_i}"
             response.write "goog.addDependency(#{path.dump}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
           end
           response.headers['Content-Type'] = 'application/javascript'
@@ -278,9 +276,15 @@ class Googly
     
     # We can't trust anything if we see more than one goog
     def multiple_base_js_failure
-      @goog = nil
-      @files = {}
+      reset_all_computed_instance_vars
       raise MultipleClosureBaseError
+    end
+    
+    def reset_all_computed_instance_vars
+      @files = {}
+      @deps = {}
+      @ns = nil
+      @goog = nil
     end
 
   end

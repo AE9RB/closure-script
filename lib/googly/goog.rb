@@ -55,25 +55,30 @@ class Googly
       files = []
       files_index = 0
       args_index = 0
-      while args_index < args.length
-        option, value = args[args_index, 2]
-        if option == '--ns'
-          files_for(value, files)
-          replacement = []
-          while files_index < files.length
-            replacement.push '--js'
-            replacement.push files[files_index]
-            files_index = files_index + 1
+      comp = Compilation.new @env
+      begin
+        while args_index < args.length
+          option, value = args[args_index, 2]
+          if option == '--ns'
+            files_for(value, files)
+            replacement = []
+            while files_index < files.length
+              replacement.push '--js'
+              replacement.push files[files_index]
+              files_index = files_index + 1
+            end
+            args[args_index, 2] = replacement
+          else
+            args_index = args_index + 2
           end
-          args[args_index, 2] = replacement
-        else
-          args_index = args_index + 2
         end
+        comp = Compilation.new @env
+        comp.compile_js args, File.dirname(@render_stack.last), @dependencies
+      rescue Exception => e
+        # Namespace problems are Ruby exceptions
+        comp.stderr = "#{e.inspect}\n\n1 error(s)"
       end
-      Compilation.new(args,
-                      File.dirname(@render_stack.last),
-                      @dependencies,
-                      @env)
+      comp
     end
 
     # Calculate files needed to satisfy a namespace.

@@ -40,12 +40,16 @@ class Googly
       --variable_map_input_file
     }
     
+    # @param (Hash) env Rack environment.  If you want the response to be cachable.
+    def initialize(env={})
+      @env = env
+    end
+    
+    
     # @param (Array) args Arguments for the compiler.
     # @param (String) base All filenames will be expanded to this location.
     # @param (Array) dependencies Any other files to check mtime on, like makefiles.
-    # @param (Hash) env Rack environment.  If you want the response to be cachable.
-    def initialize(args, base, dependencies = [], env={})
-      @env = env
+    def compile_js(args, base, dependencies = [])
       args = Array.new args
       files = []
       # Scan to expand paths and extend self with output options
@@ -77,6 +81,12 @@ class Googly
       # Do it; defensive .to_s.dump allows for bools and nums
       java_opts = args.collect{|a|a.to_s.dump}.join(', ')
       @stdout, @stderr = Googly.java("Googly.compile_js(new String[]{#{java_opts}});")
+    end
+    
+    # Compilation state is an error
+    def stderr=(e)
+      @stdout = ''
+      @stderr = e.to_s
     end
     
     # Allows easy http caching of the js_output_file.  In templates:

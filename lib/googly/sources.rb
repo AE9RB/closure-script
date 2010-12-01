@@ -90,8 +90,11 @@ class Googly
     # Determine the path_info for where base_js is located.
     # @return [String]
     def base_js(env)
+      if (goog = @goog) and @last_been_run
+        return goog[:base_js]
+      end
       @semaphore.synchronize do
-        refresh(env) unless @last_been_run
+        refresh(env)
         raise ClosureBaseNotFoundError unless @goog
         @goog[:base_js]
       end
@@ -101,8 +104,14 @@ class Googly
     # Determine the path_info for where deps_js is located.
     # @return [String]
     def deps_js(env)
+      # Because Server uses this on every call, it's best to never lock.
+      # We grab a local goog so we don't need the lock if everything looks good.
+      # This works because #refresh won't unset @goog while it's running anymore.
+      if (goog = @goog) and @last_been_run
+        return goog[:deps_js]
+      end
       @semaphore.synchronize do
-        refresh(env) unless @last_been_run
+        refresh(env)
         raise ClosureBaseNotFoundError unless @goog
         @goog[:deps_js]
       end
@@ -124,7 +133,7 @@ class Googly
           response.write "// Deps by Googlyscript\n"
           @files.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
             path = Pathname.new(dep[:path]).relative_path_from(base)
-            path = "#{path}?#{dep[:mtime].to_i}"
+            path = "#{path}.#{dep[:mtime].to_i}"
             response.write "goog.addDependency(#{path.dump}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
           end
           response.headers['Content-Type'] = 'application/javascript'
@@ -204,8 +213,7 @@ class Googly
       deleted_files = []
       # Prepare to find a moving base_js
       previous_goog_base_filename = @goog ? @goog[:base_filename] : nil
-      previous_goog = @goog
-      @goog = nil
+      goog = nil
       # Mark everything for deletion.
       @files.each {|f, dep| dep[:not_found] = true}
       # Scan filesystem for changes.
@@ -216,8 +224,10 @@ class Googly
           dep.delete(:not_found)
           mtime = File.mtime(filename)
           if previous_goog_base_filename == filename
-            @goog = previous_goog if dep[:mtime] == mtime
-            previous_goog = nil
+            if dep[:mtime] == mtime
+              multiple_base_js_failure if goog
+              goog = @goog 
+            end
             previous_goog_base_filename = nil
           end
           if dep[:mtime] != mtime
@@ -237,16 +247,12 @@ class Googly
               changed_files << filename
             end
             dep[:mtime] = mtime
-            # Record @goog as we pass by
+            # Record goog as we pass by
             if dep[:provide].empty? and dep[:require].empty?
               if File.basename(filename) == 'base.js'
                 if file =~ BASE_JS_REGEX
-                  if @goog or previous_goog
-                    @goog = nil
-                    @files = {} 
-                    raise MultipleClosureBaseError
-                  end
-                  @goog = {:base_filename => filename,
+                  multiple_base_js_failure if goog
+                  goog = {:base_filename => filename,
                            :base_js => dep[:path],
                            :deps_js => dep[:path].gsub(/base.js$/, 'deps.js')}
                 end
@@ -266,9 +272,16 @@ class Googly
         STDERR.write "Googlyscript deps cache: #{added_files.length} added, #{changed_files.length} changed, #{deleted_files.length} deleted.\n"
       end
       # Finish
+      @goog = goog
       @last_been_run = Time.now
     end
     
+    # We can't trust anything if we see more than one goog
+    def multiple_base_js_failure
+      @goog = nil
+      @files = {}
+      raise MultipleClosureBaseError
+    end
 
   end
   

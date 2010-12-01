@@ -1,5 +1,5 @@
 <% 
-# This template demonstrates how to get at the compiler log.
+# This template demonstrates how to get at the compiler logs.
 # You will see the log on the browser console any time the
 # compiler is run and there is an error or warning.
 # Use `--summary_detail_level 3` if you want to see a log
@@ -9,20 +9,28 @@
 # more elegant ways to display a log and you could easily save
 # it to the filesystem if you wanted to show it every time.
 
-comp = goog.compile(%w{
-  --compilation_level ADVANCED_OPTIMIZATIONS    
-  --js_output_file compile.out
-  --summary_detail_level 3
-  --define goog.DEBUG=false
-  --warning_level VERBOSE
-  --ns googly.demos.compiler
-})
+soy_errors = [env[Googly::Soy::ENV_ERRORS]].flatten.compact
+if !soy_errors.empty? -%>
+try{console.error('Soy Compiler: <%= soy_errors.size %> error(s)', "\n\n", <%= soy_errors.join("\n").dump %>)}catch(err){}
+<% else
+  comp = goog.compile(%w{
+    --compilation_level ADVANCED_OPTIMIZATIONS    
+    --js_output_file compile.out
+    --summary_detail_level 3
+    --define goog.DEBUG=false
+    --warning_level VERBOSE
+    --ns googly.demos.compiler
+  })
 if !comp.stderr or comp.stderr.empty?
   @response = comp.to_response
-else -%>
-<% err_str = comp.stderr.split("\n").last; if err_str.to_i > 0 -%>
-try{console.error(<%= ('Closure Compiler: '+err_str).dump %>)}catch(err){}
-<% end -%>
+else 
+  err_log = comp.stderr.split("\n");
+  err_str = err_log.pop;
+  err_log = err_log.join "\n"
+  if err_str.to_i > 0 -%>
+try{console.error(<%= ('Closure Compiler: '+err_str).dump %>, "\n\n", <%= err_log.dump %>)}catch(err){}
+<% else -%>
 try{console.log(<%= comp.stderr.dump %>)}catch(err){}
 <%= comp %>
 <% end -%>
+<% end;end -%>

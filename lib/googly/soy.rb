@@ -114,6 +114,8 @@ class Googly
             if err.empty?
               @errors = nil
             else
+              # Remove confusing "Googly.compile_soy_to_js_src" message
+              err.sub! /\A^.*$\n^.*$\n/, ''
               puts err
               @errors = err
             end

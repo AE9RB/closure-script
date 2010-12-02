@@ -1,10 +1,10 @@
 <% 
 comp = goog.compile(%w{
   --compilation_level ADVANCED_OPTIMIZATIONS    
-  --js_output_file compile.out
+  --js_output_file ../dist/rails_ujs.js
   --summary_detail_level 3
   --define goog.DEBUG=false
-  --ns googly.rails
+  --ns googly.rails.ujs
 })
 if !comp.stderr or comp.stderr.empty?
   @response = comp.to_response

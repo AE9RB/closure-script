@@ -1,5 +1,8 @@
 Licensed under the Apache License, Version 2.0 (the "License"); 
-http://www.apache.org/licenses/LICENSE-2.0
+(http://www.apache.org/licenses/LICENSE-2.0)
+
+Getting Started documentation is on the wiki:
+(https://github.com/dturnbull/googlyscript/wiki)
 
 Googlyscript - An experience with Google Closure.
 

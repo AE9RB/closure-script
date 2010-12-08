@@ -6,15 +6,14 @@ Getting Started documentation is on the wiki:
 
 Googlyscript - An experience with Google Closure.
 
-* Every Google Closure compiler option is supported.
+* Every Google Closure compiler.jar option is supported.
+* Every SoyToJsSrcCompiler.jar option is supported.
 * Easy to install rack middleware.  Works in frameworks or stand-alone.
 * No config files to manage or command line tools to learn.  Complexity removed, not added.
 * On-the-fly deps.js generation with source change detection.  Never think about this again.
-* Compiler checks File.mtime and won't run if you haven't modified source.
+* Compilers check File.mtime and won't run if you haven't modified source.
 * Completely replaces python tools and plovr.
-* Thread-safe.  Can handle hundreds of requests per second on a single Mongrel.
-* Performance-tuned caching strategy that won't manifest stale pages in development.
+* Thread-safe.  Can handle over a thousand requests per second on a single Mongrel.
+* Performance-tuned http caching that won't manifest stale pages in development.
 * Java REPL so you only pay the Java startup cost once.
 * Server-side templates.  ERB and Haml or add your own.
-* Sass-compatible.  See Googly::Sass.
-* Soy (coming soon)

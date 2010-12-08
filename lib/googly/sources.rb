@@ -46,6 +46,7 @@ class Googly
     # @param (Float) dwell in seconds.  
     def initialize(dwell = 1.0)
       @dwell = dwell
+      @files = {}
       @sources = []
       @semaphore = Mutex.new
       @last_been_run = nil
@@ -281,7 +282,6 @@ class Googly
     end
     
     def reset_all_computed_instance_vars
-      @files = {}
       @deps = {}
       @ns = nil
       @goog = nil

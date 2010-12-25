@@ -43,11 +43,11 @@ class Googly
     # if the js_output_file is newest.
     # Paths are relative to the template calling #compile.
     # @example myapp.js.erb
-    #   <% @response = compile(%w{
+    #   <% @response = goog.compile(%w{
     #     --js_output_file ../public/myapp.js
     #     --ns myapp.HelloWorld
     #     --compilation_level ADVANCED_OPTIMIZATIONS
-    #   }).to_response %>
+    #   }).to_response_with_console %>
     # @param [Array<String>] args
     # @return [Compilation]
     def compile(args)

@@ -89,8 +89,10 @@ class Googly
       @stderr = e.to_s
     end
     
-    # Allows easy http caching of the js_output_file.  In templates:
-    # <% @response = goog.compile(args).to_response %> is preferred over <%= goog.compile(args) %>.
+    # Allows http caching of the js_output_file for templates that want to do
+    # their own error checking.
+    # @example
+    #   <% @response = goog.compile(args).to_response %>
     # @return (#finish) 
     def to_response
       if @js_output_file
@@ -103,8 +105,37 @@ class Googly
         response
       end
     end
+    
+    # Checks the compilation status and will log to the javascript console.
+    # This is the best technique for compiling unless you have different
+    # needs for reporting errors.
+    # @example
+    #   <% @response = goog.compile(args).to_response_with_console %>
+    def to_response_with_console
+      return to_response if !stderr or stderr.empty?
+      response = Rack::Response.new
+      response.headers['Content-Type'] = 'application/javascript'
+      response.headers["Cache-Control"] = "no-cache"
+      split_log = stderr.split("\n")
+      if split_log.last =~ /^\d+ err/i
+        error_message = split_log.pop
+      else
+        error_message = split_log.shift
+      end
+      error_log = "Closure Compiler: #{error_message}".dump
+      error_log += ',"\n\n",' + split_log.join("\n").dump unless split_log.empty?
+      if error_message =~ /^0 err/i
+        response.write "try{console.log(#{error_log})}catch(err){};\n"
+      else
+        response.write "try{console.error(#{error_log})}catch(err){};\n"
+      end
+      response.write javascript
+      response
+    end
 
     # Always returns the compiled javascript, or possibly an empty string.
+    # @example
+    #   <%= goog.compile(args) %>
     def javascript
       if @js_output_file
         File.read(@js_output_file) rescue ''

@@ -16,5 +16,5 @@
 class Googly
   # The first two numerics are the Googlyscript major and minor version.  
   # The third numeric is the Closure Library version.
-  VERSION = "1.0.620"
+  VERSION = "1.1.620.pre"
 end

@@ -37,7 +37,6 @@
  * TODO(user): Rename all references of "item" to child since menu is
  * essentially very generic and could, in theory, host a date or color picker.
  *
- *
  * @see ../demos/menu.html
  * @see ../demos/menus.html
  */
@@ -59,6 +58,7 @@ goog.require('goog.ui.MenuSeparator');
 // The dependencies MenuHeader, MenuItem, and MenuSeparator are implicit.
 // There are no references in the code, but we need to load these
 // classes before goog.ui.Menu.
+
 
 
 // TODO(robbyw): Reverse constructor argument order for consistency.
@@ -242,14 +242,18 @@ goog.ui.Menu.prototype.getItemCount = function() {
 
 
 /**
- * Returns the menu items contained in the menu.
+ * Returns an array containing the menu items contained in the menu.
  * @return {Array.<goog.ui.MenuItem>} An array of menu items.
  * @deprecated Use getChildAt, forEachChild, and getChildCount.
  */
 goog.ui.Menu.prototype.getItems = function() {
   // TODO(user): Remove reference to getItems and instead use getChildAt,
   // forEachChild, and getChildCount
-  return this.children_ || [];
+  var children = [];
+  this.forEachChild(function(child) {
+    children.push(child);
+  });
+  return children;
 };
 
 

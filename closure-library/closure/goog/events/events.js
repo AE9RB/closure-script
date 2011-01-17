@@ -34,10 +34,7 @@
  * goog.events.removeAll();
  * </pre>
  *
- *
- *
  *                                            in IE and event object patching]
- *
  *
  * @supported IE6+, FF1.5+, WebKit, Opera.
  * @see ../demos/events.html
@@ -547,7 +544,7 @@ goog.events.getListeners = function(obj, type, capture) {
  * @param {?string} type Event type.
  * @param {boolean} capture Capture phase?.
  * @return {Array.<goog.events.Listener>?} Array of listener objects.
- *     Returns null if object has no lsiteners of that type.
+ *     Returns null if object has no listeners of that type.
  * @private
  */
 goog.events.getListeners_ = function(obj, type, capture) {
@@ -571,10 +568,10 @@ goog.events.getListeners_ = function(obj, type, capture) {
  * Gets the goog.events.Listener for the event or null if no such listener is
  * in use.
  *
- * @param {EventTarget|goog.events.EventTarget} src The node to stop
- *     listening to events on.
+ * @param {EventTarget|goog.events.EventTarget} src The node from which to get
+ *     listeners.
  * @param {?string} type The name of the event without the 'on' prefix.
- * @param {Function|Object} listener The listener function to remove.
+ * @param {Function|Object} listener The listener function to get.
  * @param {boolean=} opt_capt In DOM-compliant browsers, this determines
  *                            whether the listener is fired during the
  *                            capture or bubble phase of the event.

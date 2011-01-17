@@ -3,12 +3,10 @@
 <!--
 Copyright 2008 The Closure Library Authors. All Rights Reserved.
 
-Use of this source code is governed by an Apache 2.0 License.
+Use of this source code is governed by the Apache License, Version 2.0.
 See the COPYING file for details.
 -->
 <!--
-Author: pupius@google.com (Daniel Pupius)
-Author: jananir@google.com (Janani Ravi) (Modified for Closure)
 -->
 <head>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -274,6 +272,47 @@ Author: jananir@google.com (Janani Ravi) (Modified for Closure)
         'setLoaded should only be called once for "d"', 2, calls[1]);
     assertEquals(
         'afterLoad should only be called once for "d"', 2, calls[2]);
+  }
+
+  /**
+   * Tests that multiple callbacks on the same module don't cause
+   * confusion about the active state after the module is finally loaded.
+   */
+  function testUserInitiatedExecOnLoadEventuallyLeavesManagerIdle() {
+    var mm = getModuleManager({'c': [], 'd': []});
+    mm.setLoader(createSuccessfulNonBatchLoader(mm));
+
+    var calledBack1 = false;
+    var calledBack2 = false;
+
+    mm.execOnLoad(
+        'c',
+        function() {
+          calledBack1 = true;
+        },
+        undefined,
+        undefined,
+        true);
+    mm.execOnLoad(
+        'c',
+        function() {
+          calledBack2 = true;
+        },
+        undefined,
+        undefined,
+        true);
+    mm.load('c');
+
+    assertTrue(
+        'Manager should be active while waiting for load', mm.isUserActive());
+
+    clock.tick(5);
+
+    assertTrue('First callback should be called', calledBack1);
+    assertTrue('Second callback should be called', calledBack2);
+    assertFalse(
+        'Manager should be inactive after loading is complete',
+        mm.isUserActive());
   }
 
   /**
@@ -1165,7 +1204,7 @@ Author: jananir@google.com (Janani Ravi) (Modified for Closure)
     assertTrue('Base initialization not called after setModuleContext', called);
     assertEquals('Did not receive module context', appContext, context);
   }
-  
+
   function testSetAllModuleInfoString() {
     var info = 'base/one:0/two:0/three:0,1,2/four:0,3/five:';
     var mm = new goog.module.ModuleManager();
@@ -1186,6 +1225,17 @@ Author: jananir@google.com (Janani Ravi) (Modified for Closure)
         mm.getModuleInfo('five').getDependencies());
   }
 
+  function testSetAllModuleInfoStringWithEmptyString() {
+    var mm = new goog.module.ModuleManager();
+    var called = false;
+    var context;
+    mm.registerInitializationCallback(function(mcontext) {
+      called = true;
+      context = mcontext;
+    });
+    mm.setAllModuleInfoString('');
+    assertTrue('Initialization not called', called);
+  }
 </script>
 </body>
 </html>

@@ -45,6 +45,7 @@ goog.require('goog.object');
 goog.require('goog.userAgent');
 
 
+
 /**
  * goog.events.BrowserEvent expects an Event so we provide one for JSCompiler.
  *
@@ -215,9 +216,10 @@ goog.testing.events.fireNonAsciiKeySequence = function(
 
 
 /**
- * @param {goog.testing.events.Event} e
+ * @param {goog.testing.events.Event} e The event.
  * @return {boolean} Whether this is the Gecko/Mac's Meta-C/V/X, which
  *     is broken and requires special handling.
+ * @private
  */
 goog.testing.events.isBrokenGeckoMacActionKey_ = function(e) {
   return goog.userAgent.MAC && goog.userAgent.GECKO &&
@@ -225,6 +227,7 @@ goog.testing.events.isBrokenGeckoMacActionKey_ = function(e) {
        e.keyCode == goog.events.KeyCodes.X ||
        e.keyCode == goog.events.KeyCodes.V) && e.metaKey;
 };
+
 
 /**
  * Simulates a mouseover event on the given target.
@@ -296,7 +299,7 @@ goog.testing.events.fireMouseDownEvent =
 
   var button = opt_button || goog.events.BrowserEvent.MouseButton.LEFT;
   button = goog.userAgent.IE ?
-      goog.events.BrowserEvent.IEButtonMap_[button] : button;
+      goog.events.BrowserEvent.IEButtonMap[button] : button;
   return goog.testing.events.fireMouseButtonEvent_(
       goog.events.EventType.MOUSEDOWN, target, button, opt_coords,
       opt_eventProperties);
@@ -318,7 +321,7 @@ goog.testing.events.fireMouseUpEvent =
     function(target, opt_button, opt_coords, opt_eventProperties) {
   var button = opt_button || goog.events.BrowserEvent.MouseButton.LEFT;
   button = goog.userAgent.IE ?
-      goog.events.BrowserEvent.IEButtonMap_[button] : button;
+      goog.events.BrowserEvent.IEButtonMap[button] : button;
   return goog.testing.events.fireMouseButtonEvent_(
       goog.events.EventType.MOUSEUP, target, button, opt_coords,
       opt_eventProperties);
@@ -400,11 +403,14 @@ goog.testing.events.fireMouseButtonEvent_ =
  *     called on it, true otherwise.
  */
 goog.testing.events.fireContextMenuEvent = function(target, opt_coords) {
-  var button = goog.events.BrowserEvent.MouseButton.RIGHT;
+  var button = (goog.userAgent.MAC && goog.userAgent.WEBKIT) ?
+      goog.events.BrowserEvent.MouseButton.LEFT :
+      goog.events.BrowserEvent.MouseButton.RIGHT;
   var contextmenu =
       new goog.testing.events.Event(goog.events.EventType.CONTEXTMENU, target);
   contextmenu.button = goog.userAgent.IE ?
-      goog.events.BrowserEvent.IEButtonMap_[button] : button;
+      goog.events.BrowserEvent.IEButtonMap[button] : button;
+  contextmenu.ctrlKey = goog.userAgent.MAC;
   goog.testing.events.setEventClientXY_(contextmenu, opt_coords);
   return goog.testing.events.fireBrowserEvent(contextmenu);
 };
@@ -419,20 +425,54 @@ goog.testing.events.fireContextMenuEvent = function(target, opt_coords) {
  *     was called on any of the events, true otherwise.
  */
 goog.testing.events.fireContextMenuSequence = function(target, opt_coords) {
+  var props = goog.userAgent.MAC ? {ctrlKey: true} : {};
+  var button = (goog.userAgent.MAC && goog.userAgent.WEBKIT) ?
+      goog.events.BrowserEvent.MouseButton.LEFT :
+      goog.events.BrowserEvent.MouseButton.RIGHT;
+
   var result = goog.testing.events.fireMouseDownEvent(target,
-      goog.events.BrowserEvent.MouseButton.RIGHT, opt_coords);
+      button, opt_coords, props);
   if (goog.userAgent.WINDOWS) {
+    // All browsers are consistent on Windows.
     result &= goog.testing.events.fireMouseUpEvent(target,
-                  goog.events.BrowserEvent.MouseButton.RIGHT, opt_coords) &
+                  button, opt_coords) &
               goog.testing.events.fireContextMenuEvent(target, opt_coords);
   } else {
     result &= goog.testing.events.fireContextMenuEvent(target, opt_coords);
-    if (goog.userAgent.GECKO) {
-      result &= goog.testing.events.fireMouseUpEvent(target,
-          goog.events.BrowserEvent.MouseButton.RIGHT, opt_coords);
+
+    // GECKO on Mac and Linux always fires the mouseup after the contextmenu.
+
+    // WEBKIT is really weird.
+    //
+    // On Linux, it sometimes fires mouseup, but most of the time doesn't.
+    // It's really hard to reproduce consistently. I think there's some
+    // internal race condition. If contextmenu is preventDefaulted, then
+    // mouseup always fires.
+    //
+    // On Mac, it always fires mouseup and then fires a click.
+    result &= goog.testing.events.fireMouseUpEvent(target,
+        button, opt_coords, props);
+
+    if (goog.userAgent.WEBKIT && goog.userAgent.MAC) {
+      result &= goog.testing.events.fireClickEvent(
+          target, button, opt_coords, props);
     }
   }
   return !!result;
+};
+
+
+/**
+ * Simulates a popstate event on the given target.
+ * @param {EventTarget} target The target for the event.
+ * @param {Object} state History state object.
+ * @return {boolean} The returnValue of the event: false if preventDefault() was
+ *     called on it, true otherwise.
+ */
+goog.testing.events.firePopStateEvent = function(target, state) {
+  var e = new goog.testing.events.Event(goog.events.EventType.POPSTATE, target);
+  e.state = state;
+  return goog.testing.events.fireBrowserEvent(e);
 };
 
 

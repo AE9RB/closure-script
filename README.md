@@ -6,6 +6,7 @@ Getting Started documentation is on the wiki:
 
 Googlyscript - An experience with Google Closure.
 
+* Server-side templates free you from the browser security model.  ERB and Haml or add your own.
 * Every Google Closure compiler.jar option is supported.
 * Every SoyToJsSrcCompiler.jar option is supported.
 * Easy to install rack middleware.  Works in frameworks or stand-alone.
@@ -16,4 +17,3 @@ Googlyscript - An experience with Google Closure.
 * Thread-safe.  Can handle over a thousand requests per second on a single Mongrel.
 * Performance-tuned http caching that won't manifest stale pages in development.
 * Java REPL so you only pay the Java startup cost once.
-* Server-side templates.  ERB and Haml or add your own.

@@ -15,7 +15,6 @@
 /**
  * @fileoverview Advanced tooltip widget implementation.
  *
- *
  * @see ../demos/advancedtooltip.html
  */
 
@@ -25,6 +24,7 @@ goog.require('goog.events.EventType');
 goog.require('goog.math.Coordinate');
 goog.require('goog.ui.Tooltip');
 goog.require('goog.userAgent');
+
 
 
 /**
@@ -356,7 +356,8 @@ goog.ui.AdvancedTooltip.prototype.handleTooltipMouseOver = function(event) {
  * @return {number} Hide delay to use.
  */
 goog.ui.AdvancedTooltip.prototype.getHideDelayMs = function() {
-  return this.tracking_ ? this.cursorTrackingHideDelayMs_ : this.hideDelayMs_;
+  return this.tracking_ ? this.cursorTrackingHideDelayMs_ :
+      goog.base(this, 'getHideDelayMs');
 };
 
 

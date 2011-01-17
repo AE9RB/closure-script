@@ -3,11 +3,10 @@
 <!--
 Copyright 2010 The Closure Library Authors. All Rights Reserved.
 
-Use of this source code is governed by an Apache 2.0 License.
+Use of this source code is governed by the Apache License, Version 2.0.
 See the COPYING file for details.
 -->
 <!--
-Author: marcosalmeida@google.com (Marcos Almeida)
 -->
 <head>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -110,8 +109,8 @@ Author: marcosalmeida@google.com (Marcos Almeida)
 
   /**
    * Creates and shows the dialog to be tested.
-   * @param {Document} opt_document Document to render the dialog into. Defaults
-   *     to the main window's document.
+   * @param {Document=} opt_document Document to render the dialog into.
+   *     Defaults to the main window's document.
    */
   function createAndShow(opt_document) {
     dialog = new goog.ui.editor.LinkDialog(new goog.dom.DomHelper(opt_document),
@@ -137,8 +136,8 @@ Author: marcosalmeida@google.com (Marcos Almeida)
   /**
    * Tests that when you show the dialog for a new link, the input fields are
    * empty, the web tab is selected and focus is in the url input field.
-   * @param {Document} opt_document Document to render the dialog into. Defaults
-   *     to the main window's document.
+   * @param {Document=} opt_document Document to render the dialog into.
+   *     Defaults to the main window's document.
    */
   function testShowForNewLink(opt_document) {
     mockCtrl.$replayAll();

@@ -3,7 +3,7 @@
 <!--
 Copyright 2006 The Closure Library Authors. All Rights Reserved.
 
-Use of this source code is governed by an Apache 2.0 License.
+Use of this source code is governed by the Apache License, Version 2.0.
 See the COPYING file for details.
 -->
 <head>
@@ -11,6 +11,7 @@ See the COPYING file for details.
 <title>Closure Unit Tests - goog.*</title>
 <script src="base.js"></script>
 <script>
+goog.require('goog.functions');
 // Used to test dynamic loading works, see testRequire*
 goog.require('goog.Timer');
 goog.require('goog.testing.jsunit');
@@ -67,9 +68,11 @@ iframeElement.parentNode.removeChild(iframeElement);
 <script>
 
 var stubs = new goog.testing.PropertyReplacer();
+var originalGoogBind = goog.bind;
 
 function tearDown() {
   stubs.reset();
+  goog.bind = originalGoogBind;
 }
 
 function testLibrary() {
@@ -683,6 +686,38 @@ function testBindWithCall() {
   b.call(obj2);
 }
 
+function testBindJs() {
+  assertEquals(1, goog.bindJs_(add, {valueOf: function() { return 1; }})());
+  assertEquals(3, goog.bindJs_(add, null, 1, 2)());
+}
+
+function testBindNative() {
+  if (Function.prototype.bind &&
+      Function.prototype.bind.toString().indexOf('native code') != -1) {
+    assertEquals(
+        1, goog.bindNative_(add, {valueOf: function() { return 1; }})());
+    assertEquals(3, goog.bindNative_(add, null, 1, 2)());
+
+    assertThrows(function() {
+      goog.bindNative_(null, null);
+    });
+  }
+}
+
+function testBindDefault() {
+  assertEquals(
+      1, goog.bind(add, {valueOf: function() { return 1; }})());
+  assertEquals(3, goog.bind(add, null, 1, 2)());
+}
+
+function add(var_args) {
+  var sum = Number(this) || 0;
+  for (var i = 0; i < arguments.length; i++) {
+    sum += arguments[i];
+  }
+  return sum;
+}
+
 function testPartial() {
   var f = function(x, y) {
     return x + y;
@@ -857,6 +892,24 @@ function testLoadInNonHtmlNotThrows() {
   }
 }
 
+function testLoadBaseWithQueryParamOk() {
+  var savedGoogGlobal = goog.global;
+  try {
+    goog.global = {};
+    goog.global.document = {
+      write: goog.nullFunction,
+      getElementsByTagName: goog.functions.constant(
+          [{src: '/path/to/base.js?zx=5'}])
+    };
+    assertTrue(goog.inHtmlDocument_());
+    goog.findBasePath_();
+    assertEquals('/path/to/', goog.basePath);
+  } finally {
+    // Restore context to respect other tests.
+    goog.global = savedGoogGlobal;
+  }
+}
+
 //=== tests for getmsg ===
 function testGetMsgWithDollarSigns() {
   var msg = goog.getMsg('{$amount} per minute',
@@ -950,6 +1003,12 @@ function testPropertyIsEnumerable_() {
 
 function testGetObjectByName() {
   var m = {
+    'undefined': undefined,
+    'null': null,
+    emptyString: '',
+    'false': false,
+    'true': true,
+    zero: 0,
     one: 1,
     two: {
       three: 3,
@@ -962,6 +1021,12 @@ function testGetObjectByName() {
   };
   goog.global.m = m;
 
+  assertNull(goog.getObjectByName('m.undefined'));
+  assertNull(goog.getObjectByName('m.null'));
+  assertEquals(goog.getObjectByName('m.emptyString'), '');
+  assertEquals(goog.getObjectByName('m.false'), false);
+  assertEquals(goog.getObjectByName('m.true'), true);
+  assertEquals(goog.getObjectByName('m.zero'), 0);
   assertEquals(goog.getObjectByName('m.one'), 1);
   assertEquals(goog.getObjectByName('m.two.three'), 3);
   assertEquals(goog.getObjectByName('m.two.four.five'), 5);
@@ -1040,6 +1105,28 @@ function testBaseMethod() {
 
   delete C.prototype.foo;
   assertEquals(9, d.foo(1, 0));
+}
+
+function testBaseMethodAndBaseCtor() {
+  // This will fail on FF4.0 if the following bug is not fixed:
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=586482
+  function A(x, y) {
+    this.foo(x, y);
+  }
+  A.prototype.foo = function(x, y) {
+    this.bar = x + y;
+  };
+
+  function B(x, y) {
+    goog.base(this, x, y);
+  }
+  goog.inherits(B, A);
+  B.prototype.foo = function(x, y) {
+    goog.base(this, 'foo', x, y);
+    this.bar = this.bar * 2;
+  };
+
+  assertEquals(14, new B(3, 4).bar);
 }
 
 function testBaseClass() {

@@ -14,11 +14,7 @@
 
 
 class Googly
-  VERSION = "0.0.8.dev"
-
-  #TODO Thinking about these...
-  # COMPILER_VERSION = ??
-  # LIBRARY_VERSION = ??
-  # TEMPLATES_VERSION = ??
-  
+  # The first two numerics are the Googlyscript major and minor version.  
+  # The third numeric is the Closure Library version.
+  VERSION = "1.0.620"
 end

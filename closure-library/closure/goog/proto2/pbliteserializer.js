@@ -34,7 +34,6 @@
  * large) will have many (empty) spots and thus, are inefficient.
  *
  *
- *
  */
 
 goog.provide('goog.proto2.PbLiteSerializer');
@@ -59,7 +58,7 @@ goog.inherits(goog.proto2.PbLiteSerializer, goog.proto2.LazyDeserializer);
  *
  * @param {goog.proto2.Message} message The message to be serialized.
  *
- * @return {Object} The serialized form of the message.
+ * @return {!Array} The serialized form of the message.
  */
 goog.proto2.PbLiteSerializer.prototype.serialize = function(message) {
   var descriptor = message.getDescriptor();
@@ -135,6 +134,7 @@ goog.proto2.PbLiteSerializer.prototype.getSerializedValue =
   return goog.proto2.Serializer.prototype.getSerializedValue.apply(this,
                                                                    arguments);
 };
+
 
 /** @inheritDoc */
 goog.proto2.PbLiteSerializer.prototype.getDeserializedValue =

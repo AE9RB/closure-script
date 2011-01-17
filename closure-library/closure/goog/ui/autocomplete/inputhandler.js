@@ -86,9 +86,6 @@
  * and behavior above so that we can avoid regressions. Contact mpd or yuzo
  * if you have questions or concerns.
  *
- *
- *
- *
  */
 
 
@@ -566,7 +563,7 @@ goog.ui.AutoComplete.InputHandler.prototype.disposeInternal = function() {
   this.eh_.dispose();
   delete this.eh_;
   this.activateHandler_.dispose();
-  this.activateHandler_ = null;
+  this.keyHandler_.dispose();
 };
 
 
@@ -762,7 +759,7 @@ goog.ui.AutoComplete.InputHandler.prototype.handleKeyEvent = function(e) {
     // action is also prevented if the input is a multi input, to prevent the
     // user tabbing out of the field.
     case goog.events.KeyCodes.TAB:
-      if (this.ac_.isOpen()) {
+      if (this.ac_.isOpen() && !e.shiftKey) {
         // Ensure the menu is up to date before completing.
         this.update();
         if (this.ac_.selectHilited() && this.preventDefaultOnTab_) {
@@ -776,12 +773,16 @@ goog.ui.AutoComplete.InputHandler.prototype.handleKeyEvent = function(e) {
 
     // On enter, just select the highlighted row.
     case goog.events.KeyCodes.ENTER:
-      // Ensure the menu is up to date before completing.
-      this.update();
-      if (this.ac_.selectHilited()) {
-        e.preventDefault();
-        e.stopPropagation();
-        return true;
+      if (this.ac_.isOpen()) {
+        // Ensure the menu is up to date before completing.
+        this.update();
+        if (this.ac_.selectHilited()) {
+          e.preventDefault();
+          e.stopPropagation();
+          return true;
+        }
+      } else {
+        this.ac_.dismiss();
       }
       break;
 

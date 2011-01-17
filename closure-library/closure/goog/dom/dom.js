@@ -20,8 +20,6 @@
  * to a different document object.  This is useful if you are working with
  * frames or multiple windows.
  *
- *
- *
  */
 
 
@@ -338,6 +336,7 @@ goog.dom.DIRECT_ATTRIBUTE_MAP_ = {
   'width': 'width',
   'usemap': 'useMap',
   'frameborder': 'frameBorder',
+  'maxlength': 'maxLength',
   'type': 'type'
 };
 
@@ -462,6 +461,7 @@ goog.dom.getViewportSize_ = function(win) {
 goog.dom.getDocumentHeight = function() {
   return goog.dom.getDocumentHeight_(window);
 };
+
 
 /**
  * Calculates the height of the document of the given window.
@@ -640,6 +640,7 @@ goog.dom.getWindow_ = function(doc) {
 goog.dom.createDom = function(tagName, opt_attributes, var_args) {
   return goog.dom.createDom_(document, arguments);
 };
+
 
 /**
  * Helper for {@code createDom}.
@@ -1784,6 +1785,21 @@ goog.dom.getAncestorByTagNameAndClass = function(element, opt_tag, opt_class) {
 
 
 /**
+ * Walks up the DOM hierarchy returning the first ancestor that has the passed
+ * class name. If the passed element matches the specified criteria, the
+ * element itself is returned.
+ * @param {Node} element The DOM node to start with.
+ * @param {?string=} opt_class The class name to match (or null/undefined to
+ *     match any node regardless of class name).
+ * @return {Node} The first ancestor that matches the passed criteria, or
+ *     null if none match.
+ */
+goog.dom.getAncestorByClass = function(element, opt_class) {
+  return goog.dom.getAncestorByTagNameAndClass(element, null, opt_class);
+};
+
+
+/**
  * Walks up the DOM hierarchy returning the first ancestor that passes the
  * matcher function.
  * @param {Node} element The DOM node to start with.
@@ -1814,6 +1830,7 @@ goog.dom.getAncestor = function(
   // Reached the root of the DOM without a match
   return null;
 };
+
 
 
 /**

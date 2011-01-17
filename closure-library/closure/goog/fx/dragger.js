@@ -17,7 +17,6 @@
  *
  * Provides extensible functionality for drag & drop behaviour.
  *
- *
  * @see ../demos/drag.html
  * @see ../demos/dragger.html
  */
@@ -37,6 +36,7 @@ goog.require('goog.events.EventType');
 goog.require('goog.math.Coordinate');
 goog.require('goog.math.Rect');
 goog.require('goog.userAgent');
+
 
 
 /**
@@ -332,7 +332,7 @@ goog.fx.Dragger.prototype.startDrag = function(e) {
       // it does not make sense to check for the button if user is already
       // dragging.
       (e.type != goog.events.EventType.MOUSEDOWN ||
-      e.isButton(goog.events.BrowserEvent.MouseButton.LEFT))) {
+          e.isMouseActionButton())) {
     if (this.hysteresisDistanceSquared_ == 0) {
       this.initializeDrag_(e);
       if (this.dragging_) {
@@ -596,6 +596,7 @@ goog.fx.Dragger.prototype.defaultAction = function(x, y) {
   this.target.style.left = x + 'px';
   this.target.style.top = y + 'px';
 };
+
 
 
 /**

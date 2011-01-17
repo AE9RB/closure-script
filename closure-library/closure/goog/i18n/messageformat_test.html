@@ -3,7 +3,7 @@
 <!--
 Copyright 2010 The Closure Library Authors. All Rights Reserved.
 
-Use of this source code is governed by an Apache 2.0 License.
+Use of this source code is governed by the Apache License, Version 2.0.
 See the COPYING file for details.
 -->
 <head>
@@ -74,10 +74,10 @@ function testSimpleSelect() {
 
 function testSimplePlural() {
   var fmt = new goog.i18n.MessageFormat('I see {NUM_PEOPLE, plural, offset:1 ' +
-      '=0 {no one at all} ' +
-      '=1 {{PERSON}} ' +
-      'one {{PERSON} and one other person} ' +
-      'other {{PERSON} and # other people}} in {PLACE}.');
+      '=0 {no one at all in {PLACE}.} ' +
+      '=1 {{PERSON} in {PLACE}.} ' +
+      'one {{PERSON} and one other person in {PLACE}.} ' +
+      'other {{PERSON} and # other people in {PLACE}.}}');
 
   assertEquals('I see no one at all in Belgrade.',
                fmt.format({'NUM_PEOPLE': 0,
@@ -137,6 +137,27 @@ function testSelectNestedInPlural() {
                fmt.format({'GENDER': 'male',
                            'WHO': 'Milan',
                            'CIRCLES': 1234}));
+}
+
+function testPluralNestedInSelect() {
+  // Added offset just for testing purposes. It doesn't make sense
+  // to have it otherwise.
+  var fmt = new goog.i18n.MessageFormat('{GENDER, select, ' +
+      'female {{NUM_GROUPS, plural, ' +
+      '  one {{WHO} added you to her group} ' +
+      '  other {{WHO} added you to her # groups}}} ' +
+      'other {{NUM_GROUPS, plural, offset:1' +
+      '  one {{WHO} added you to his group} ' +
+      '  other {{WHO} added you to his # groups}}}}');
+
+  assertEquals('Jelena added you to her group',
+               fmt.format({'GENDER': 'female',
+                           'WHO': 'Jelena',
+                           'NUM_GROUPS': 1}));
+  assertEquals('Milan added you to his 1,233 groups',
+               fmt.format({'GENDER': 'male',
+                           'WHO': 'Milan',
+                           'NUM_GROUPS': 1234}));
 }
 
 function testLiteralOpenCurlyBrace() {

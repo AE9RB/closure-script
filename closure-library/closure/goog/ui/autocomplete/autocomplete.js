@@ -15,7 +15,6 @@
 /**
  * @fileoverview Gmail-like AutoComplete logic.
  *
- *
  * @see ../../demos/autocomplete-basic.html
  */
 
@@ -564,7 +563,7 @@ goog.ui.AutoComplete.prototype.renderRows = function(rows,
   }
   this.renderer_.renderRows(rendRows, this.token_, this.target_);
 
-  if (this.autoHilite_ && rendRows.length != 0) {
+  if (this.autoHilite_ && rendRows.length != 0 && this.token_) {
     var idToHilite = indexToHilite != null ?
         this.getIdOfIndex_(indexToHilite) : this.firstRowId_;
     this.hiliteId(idToHilite);

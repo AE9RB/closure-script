@@ -2,7 +2,6 @@
 <html>
 <!--
   Copyright 2009 The Closure Library Authors. All Rights Reserved.
-  Author: arv@google.com (Erik Arvidsson)
 -->
 <head>
 <title>Closure Unit Tests - goog.async.Deferred</title>
@@ -53,7 +52,7 @@ function increment(res) {
 }
 
 function throwStuff(res) {
-  throw Error(res);
+  throw res;
 }
 
 function catchStuff(res) {
@@ -370,8 +369,8 @@ function testUnhandledErrors() {
     mockClock.tick();
     neverHappen();
   } catch (ex) {
-    assertTrue('In debug mode, unhandled exceptions should hit the browser.',
-               ex instanceof Error);
+    assertEquals('In debug mode, unhandled exceptions should hit the browser.',
+                 1, ex);
   }
 
   try {
@@ -401,6 +400,27 @@ function testSynchronousErrorCancelling() {
   d.addCallback(assertEqualsCallback('Callback should fire', 1));
 }
 
+function testThrowNonError() {
+  var results = [];
+
+  var d = new Deferred();
+  d.addCallback(function(res) {
+    throw res;
+  });
+  d.addErrback(function(res) {
+    results.push(res);
+    return 6;
+  });
+  d.addCallback(function(res) {
+    results.push(res);
+  });
+
+  d.callback(7);
+  assertArrayEquals(
+      'Errback should have been called with 7, followed by callback with 6.',
+      [7, 6], results);
+}
+
 function testThrownErrorWithNoErrbacks() {
   var d = new Deferred();
   d.addCallback(function() {
@@ -415,6 +435,133 @@ function testThrownErrorWithNoErrbacks() {
 
   assertThrows('A thrown error should be rethrown if there is no ' +
                'errback to catch it.', assertCallback);
+}
+
+function testThrownErrorCallbacksDoNotCancel() {
+  var d = new Deferred();
+  d.addCallback(function() {
+    throw Error('foo');
+  });
+
+  function assertCallback() {
+    d.callback(1);
+    // Add another callback after the fact.  Note this is not an errback!
+    d.addCallback(neverHappen);
+    mockClock.tick(); // Should cause error because throwing is delayed.
+  }
+
+  assertThrows('A thrown error should be rethrown if there is no ' +
+               'errback to catch it.', assertCallback);
+}
+
+function testAwaitDeferred() {
+
+  var results = [];
+
+  function fn(x) {
+    return function() {
+      results.push(x);
+    };
+  }
+
+  var d2 = new Deferred();
+  d2.addCallback(fn('b'));
+
+  // d1 -> a -> (wait for d2) -> c
+  var d1 = new Deferred();
+  d1.addCallback(fn('a'));
+  d1.awaitDeferred(d2);
+  d1.addCallback(fn('c'));
+
+  // calls 'a' then yields for d2.
+  d1.callback(null);
+
+  // will get called after d2.
+  d1.addCallback(fn('d'));
+
+  assertEquals('a', results.join(''));
+
+  // d3 -> w -> (wait for d2) -> x
+  var d3 = new Deferred();
+  d3.addCallback(fn('w'));
+  d3.awaitDeferred(d2);
+  d3.addCallback(fn('x'));
+
+  // calls 'w', then yields for d2.
+  d3.callback();
+
+
+  // will get called after d2.
+  d3.addCallback(fn('y'));
+
+  assertEquals('aw', results.join(''));
+
+  // d1 calls 'd', d3 calls 'y'
+  d2.callback(null);
+
+  assertEquals('awbcdxy', results.join(''));
+
+  // d3 and d2 already called, so 'z' called immediately.
+  d3.addCallback(fn('z'));
+
+  assertEquals('awbcdxyz', results.join(''));
+}
+
+function testAwaitDeferredWithErrors() {
+  var results = [];
+
+  function fn(x) {
+    return function(e) {
+      results.push(x);
+    };
+  }
+
+  var d2 = new Deferred();
+  d2.addErrback(fn('a'));
+
+  var d1 = new Deferred();
+  d1.awaitDeferred(d2);
+  d1.addCallback(fn('x'));
+  d1.addErrback(fn('b'));
+  d1.callback(null);
+
+  assertEquals('', results.join(''));
+
+  d2.addCallback(fn('z'));
+  d2.addErrback(fn('c'));
+  d2.errback(null);
+
+  // First errback added to d2 prints 'a'.
+  // Next 'd' was chained, so execute its err backs, printing 'b'.
+  // Finally 'c' was added last by d2's errback.
+  assertEquals('abc', results.join(''));
+}
+
+function testIsError() {
+  var d = new Deferred();
+  assertFalse(d.isError(null));
+  assertTrue(d.isError(new Error));
+
+  // Replace default isError to treat null as an error instead.
+  d.isError = goog.isNull;
+  assertTrue(d.isError(null));
+  assertFalse(d.isError(new Error));
+
+  var results = [];
+
+  d.addCallback(function(res) {
+    results.push(1);
+  });
+  d.addErrback(function(res) {
+    results.push(2);
+  });
+
+  d.callback(null);
+  mockClock.tick();
+
+  assertArrayEquals(
+      'Only the errback should have been called.',
+      [2], results);
 }
 
 </script>

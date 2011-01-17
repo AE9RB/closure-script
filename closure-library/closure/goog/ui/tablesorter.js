@@ -28,7 +28,9 @@ goog.require('goog.dom.TagName');
 goog.require('goog.dom.classes');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
+goog.require('goog.functions');
 goog.require('goog.ui.Component');
+
 
 
 /**
@@ -170,7 +172,8 @@ goog.ui.TableSorter.prototype.setSortFunction = function(column, sortFunction) {
 goog.ui.TableSorter.prototype.sort_ = function(e) {
   // Determine what column was clicked.
   // TODO(robbyw): If this table cell contains another table, this could break.
-  var th = goog.dom.getAncestorByTagNameAndClass(e.target,
+  var target = /** @type {Node} */ (e.target);
+  var th = goog.dom.getAncestorByTagNameAndClass(target,
       goog.dom.TagName.TH);
   var col = th.cellIndex;
 
@@ -180,8 +183,9 @@ goog.ui.TableSorter.prototype.sort_ = function(e) {
 
   // Perform the sort.
   if (this.dispatchEvent(goog.ui.TableSorter.EventType.BEFORESORT)) {
-    this.sort(col, reverse);
-    this.dispatchEvent(goog.ui.TableSorter.EventType.SORT);
+    if (this.sort(col, reverse)) {
+      this.dispatchEvent(goog.ui.TableSorter.EventType.SORT);
+    }
   }
 };
 
@@ -190,8 +194,14 @@ goog.ui.TableSorter.prototype.sort_ = function(e) {
  * Sort the table contents by the values in the given column.
  * @param {number} column The column to sort by.
  * @param {boolean=} opt_reverse Whether to sort in reverse.
+ * @return {boolean} Whether the sort was executed.
  */
 goog.ui.TableSorter.prototype.sort = function(column, opt_reverse) {
+  var sortFunction = this.getSortFunction(column);
+  if (sortFunction === goog.ui.TableSorter.noSort) {
+    return false;
+  }
+
   // Get some useful DOM nodes.
   var table = this.getElement();
   var tBody = table.tBodies[0];
@@ -222,7 +232,6 @@ goog.ui.TableSorter.prototype.sort = function(column, opt_reverse) {
   }
 
   // Sort the array.
-  var sortFunction = this.getSortFunction(column);
   var multiplier = this.reversed_ ? -1 : 1;
   goog.array.stableSort(values,
                         function(a, b) {
@@ -248,7 +257,18 @@ goog.ui.TableSorter.prototype.sort = function(column, opt_reverse) {
   goog.dom.classes.add(header, this.reversed_ ?
       goog.getCssName('goog-tablesorter-sorted-reverse') :
       goog.getCssName('goog-tablesorter-sorted'));
+
+  return true;
 };
+
+
+/**
+ * Disables sorting on the specified column
+ * @param {*} a First sort value.
+ * @param {*} b Second sort value.
+ * @return {number} Negative if a < b, 0 if a = b, and positive if a > b.
+ */
+goog.ui.TableSorter.noSort = goog.functions.error('no sort');
 
 
 /**

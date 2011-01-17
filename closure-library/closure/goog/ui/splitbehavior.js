@@ -1,4 +1,4 @@
-// Copyright 2010 Google Inc. All Rights Reserved
+// Copyright 2010 The Closure Library Authors. All Rights Reserved
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
 
 /**
  * @fileoverview Behavior for combining two controls.
- *
  *
  * @see ../demos/split.html
  */
@@ -38,6 +37,7 @@ goog.require('goog.ui.Component.Error');
 goog.require('goog.ui.INLINE_BLOCK_CLASSNAME');
 goog.require('goog.ui.decorate');
 goog.require('goog.ui.registry');
+
 
 
 /**

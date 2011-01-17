@@ -36,7 +36,6 @@ proto2.TestAllTypes = function() {
 };
 goog.inherits(proto2.TestAllTypes, goog.proto2.Message);
 
-
 /**
  * Gets the value of the optional_int32 field.
  * @return {?number} The value.
@@ -92,25 +91,25 @@ proto2.TestAllTypes.prototype.clearOptionalInt32 = function() {
 
 /**
  * Gets the value of the optional_int64 field.
- * @return {?number} The value.
+ * @return {?string} The value.
  */
 proto2.TestAllTypes.prototype.getOptionalInt64 = function() {
-  return /** @type {?number} */ (this.get$Value(2));
+  return /** @type {?string} */ (this.get$Value(2));
 };
 
 
 /**
  * Gets the value of the optional_int64 field or the default value if not set.
- * @return {number} The value.
+ * @return {string} The value.
  */
 proto2.TestAllTypes.prototype.getOptionalInt64OrDefault = function() {
-  return /** @type {number} */ (this.get$ValueOrDefault(2));
+  return /** @type {string} */ (this.get$ValueOrDefault(2));
 };
 
 
 /**
  * Sets the value of the optional_int64 field.
- * @param {number} value The value.
+ * @param {string} value The value.
  */
 proto2.TestAllTypes.prototype.setOptionalInt64 = function(value) {
   this.set$Value(2, /** @type {Object} */ (value));
@@ -198,25 +197,25 @@ proto2.TestAllTypes.prototype.clearOptionalUint32 = function() {
 
 /**
  * Gets the value of the optional_uint64 field.
- * @return {?number} The value.
+ * @return {?string} The value.
  */
 proto2.TestAllTypes.prototype.getOptionalUint64 = function() {
-  return /** @type {?number} */ (this.get$Value(4));
+  return /** @type {?string} */ (this.get$Value(4));
 };
 
 
 /**
  * Gets the value of the optional_uint64 field or the default value if not set.
- * @return {number} The value.
+ * @return {string} The value.
  */
 proto2.TestAllTypes.prototype.getOptionalUint64OrDefault = function() {
-  return /** @type {number} */ (this.get$ValueOrDefault(4));
+  return /** @type {string} */ (this.get$ValueOrDefault(4));
 };
 
 
 /**
  * Sets the value of the optional_uint64 field.
- * @param {number} value The value.
+ * @param {string} value The value.
  */
 proto2.TestAllTypes.prototype.setOptionalUint64 = function(value) {
   this.set$Value(4, /** @type {Object} */ (value));
@@ -304,25 +303,25 @@ proto2.TestAllTypes.prototype.clearOptionalSint32 = function() {
 
 /**
  * Gets the value of the optional_sint64 field.
- * @return {?number} The value.
+ * @return {?string} The value.
  */
 proto2.TestAllTypes.prototype.getOptionalSint64 = function() {
-  return /** @type {?number} */ (this.get$Value(6));
+  return /** @type {?string} */ (this.get$Value(6));
 };
 
 
 /**
  * Gets the value of the optional_sint64 field or the default value if not set.
- * @return {number} The value.
+ * @return {string} The value.
  */
 proto2.TestAllTypes.prototype.getOptionalSint64OrDefault = function() {
-  return /** @type {number} */ (this.get$ValueOrDefault(6));
+  return /** @type {string} */ (this.get$ValueOrDefault(6));
 };
 
 
 /**
  * Sets the value of the optional_sint64 field.
- * @param {number} value The value.
+ * @param {string} value The value.
  */
 proto2.TestAllTypes.prototype.setOptionalSint64 = function(value) {
   this.set$Value(6, /** @type {Object} */ (value));
@@ -410,25 +409,25 @@ proto2.TestAllTypes.prototype.clearOptionalFixed32 = function() {
 
 /**
  * Gets the value of the optional_fixed64 field.
- * @return {?number} The value.
+ * @return {?string} The value.
  */
 proto2.TestAllTypes.prototype.getOptionalFixed64 = function() {
-  return /** @type {?number} */ (this.get$Value(8));
+  return /** @type {?string} */ (this.get$Value(8));
 };
 
 
 /**
  * Gets the value of the optional_fixed64 field or the default value if not set.
- * @return {number} The value.
+ * @return {string} The value.
  */
 proto2.TestAllTypes.prototype.getOptionalFixed64OrDefault = function() {
-  return /** @type {number} */ (this.get$ValueOrDefault(8));
+  return /** @type {string} */ (this.get$ValueOrDefault(8));
 };
 
 
 /**
  * Sets the value of the optional_fixed64 field.
- * @param {number} value The value.
+ * @param {string} value The value.
  */
 proto2.TestAllTypes.prototype.setOptionalFixed64 = function(value) {
   this.set$Value(8, /** @type {Object} */ (value));
@@ -516,25 +515,25 @@ proto2.TestAllTypes.prototype.clearOptionalSfixed32 = function() {
 
 /**
  * Gets the value of the optional_sfixed64 field.
- * @return {?number} The value.
+ * @return {?string} The value.
  */
 proto2.TestAllTypes.prototype.getOptionalSfixed64 = function() {
-  return /** @type {?number} */ (this.get$Value(10));
+  return /** @type {?string} */ (this.get$Value(10));
 };
 
 
 /**
  * Gets the value of the optional_sfixed64 field or the default value if not set.
- * @return {number} The value.
+ * @return {string} The value.
  */
 proto2.TestAllTypes.prototype.getOptionalSfixed64OrDefault = function() {
-  return /** @type {number} */ (this.get$ValueOrDefault(10));
+  return /** @type {string} */ (this.get$ValueOrDefault(10));
 };
 
 
 /**
  * Sets the value of the optional_sfixed64 field.
- * @param {number} value The value.
+ * @param {string} value The value.
  */
 proto2.TestAllTypes.prototype.setOptionalSfixed64 = function(value) {
   this.set$Value(10, /** @type {Object} */ (value));
@@ -1022,10 +1021,10 @@ proto2.TestAllTypes.prototype.addRepeatedInt32 = function(value) {
 
 /**
  * Returns the array of values in the repeated_int32 field.
- * @return {Array.<number>} The values in the field.
+ * @return {!Array.<number>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedInt32Array = function() {
-  return /** @type {Array.<number>} */ (this.array$Values(31));
+  return /** @type {!Array.<number>} */ (this.array$Values(31));
 };
 
 
@@ -1058,26 +1057,26 @@ proto2.TestAllTypes.prototype.clearRepeatedInt32 = function() {
 /**
  * Gets the value of the repeated_int64 field at the index given.
  * @param {number} index The index to lookup.
- * @return {?number} The value.
+ * @return {?string} The value.
  */
 proto2.TestAllTypes.prototype.getRepeatedInt64 = function(index) {
-  return /** @type {?number} */ (this.get$Value(32, index));
+  return /** @type {?string} */ (this.get$Value(32, index));
 };
 
 
 /**
  * Gets the value of the repeated_int64 field at the index given or the default value if not set.
  * @param {number} index The index to lookup.
- * @return {number} The value.
+ * @return {string} The value.
  */
 proto2.TestAllTypes.prototype.getRepeatedInt64OrDefault = function(index) {
-  return /** @type {number} */ (this.get$ValueOrDefault(32, index));
+  return /** @type {string} */ (this.get$ValueOrDefault(32, index));
 };
 
 
 /**
  * Adds a value to the repeated_int64 field.
- * @param {number} value The value to add.
+ * @param {string} value The value to add.
  */
 proto2.TestAllTypes.prototype.addRepeatedInt64 = function(value) {
   this.add$Value(32, /** @type {Object} */ (value));
@@ -1086,10 +1085,10 @@ proto2.TestAllTypes.prototype.addRepeatedInt64 = function(value) {
 
 /**
  * Returns the array of values in the repeated_int64 field.
- * @return {Array.<number>} The values in the field.
+ * @return {!Array.<string>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedInt64Array = function() {
-  return /** @type {Array.<number>} */ (this.array$Values(32));
+  return /** @type {!Array.<string>} */ (this.array$Values(32));
 };
 
 
@@ -1150,10 +1149,10 @@ proto2.TestAllTypes.prototype.addRepeatedUint32 = function(value) {
 
 /**
  * Returns the array of values in the repeated_uint32 field.
- * @return {Array.<number>} The values in the field.
+ * @return {!Array.<number>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedUint32Array = function() {
-  return /** @type {Array.<number>} */ (this.array$Values(33));
+  return /** @type {!Array.<number>} */ (this.array$Values(33));
 };
 
 
@@ -1186,26 +1185,26 @@ proto2.TestAllTypes.prototype.clearRepeatedUint32 = function() {
 /**
  * Gets the value of the repeated_uint64 field at the index given.
  * @param {number} index The index to lookup.
- * @return {?number} The value.
+ * @return {?string} The value.
  */
 proto2.TestAllTypes.prototype.getRepeatedUint64 = function(index) {
-  return /** @type {?number} */ (this.get$Value(34, index));
+  return /** @type {?string} */ (this.get$Value(34, index));
 };
 
 
 /**
  * Gets the value of the repeated_uint64 field at the index given or the default value if not set.
  * @param {number} index The index to lookup.
- * @return {number} The value.
+ * @return {string} The value.
  */
 proto2.TestAllTypes.prototype.getRepeatedUint64OrDefault = function(index) {
-  return /** @type {number} */ (this.get$ValueOrDefault(34, index));
+  return /** @type {string} */ (this.get$ValueOrDefault(34, index));
 };
 
 
 /**
  * Adds a value to the repeated_uint64 field.
- * @param {number} value The value to add.
+ * @param {string} value The value to add.
  */
 proto2.TestAllTypes.prototype.addRepeatedUint64 = function(value) {
   this.add$Value(34, /** @type {Object} */ (value));
@@ -1214,10 +1213,10 @@ proto2.TestAllTypes.prototype.addRepeatedUint64 = function(value) {
 
 /**
  * Returns the array of values in the repeated_uint64 field.
- * @return {Array.<number>} The values in the field.
+ * @return {!Array.<string>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedUint64Array = function() {
-  return /** @type {Array.<number>} */ (this.array$Values(34));
+  return /** @type {!Array.<string>} */ (this.array$Values(34));
 };
 
 
@@ -1278,10 +1277,10 @@ proto2.TestAllTypes.prototype.addRepeatedSint32 = function(value) {
 
 /**
  * Returns the array of values in the repeated_sint32 field.
- * @return {Array.<number>} The values in the field.
+ * @return {!Array.<number>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedSint32Array = function() {
-  return /** @type {Array.<number>} */ (this.array$Values(35));
+  return /** @type {!Array.<number>} */ (this.array$Values(35));
 };
 
 
@@ -1314,26 +1313,26 @@ proto2.TestAllTypes.prototype.clearRepeatedSint32 = function() {
 /**
  * Gets the value of the repeated_sint64 field at the index given.
  * @param {number} index The index to lookup.
- * @return {?number} The value.
+ * @return {?string} The value.
  */
 proto2.TestAllTypes.prototype.getRepeatedSint64 = function(index) {
-  return /** @type {?number} */ (this.get$Value(36, index));
+  return /** @type {?string} */ (this.get$Value(36, index));
 };
 
 
 /**
  * Gets the value of the repeated_sint64 field at the index given or the default value if not set.
  * @param {number} index The index to lookup.
- * @return {number} The value.
+ * @return {string} The value.
  */
 proto2.TestAllTypes.prototype.getRepeatedSint64OrDefault = function(index) {
-  return /** @type {number} */ (this.get$ValueOrDefault(36, index));
+  return /** @type {string} */ (this.get$ValueOrDefault(36, index));
 };
 
 
 /**
  * Adds a value to the repeated_sint64 field.
- * @param {number} value The value to add.
+ * @param {string} value The value to add.
  */
 proto2.TestAllTypes.prototype.addRepeatedSint64 = function(value) {
   this.add$Value(36, /** @type {Object} */ (value));
@@ -1342,10 +1341,10 @@ proto2.TestAllTypes.prototype.addRepeatedSint64 = function(value) {
 
 /**
  * Returns the array of values in the repeated_sint64 field.
- * @return {Array.<number>} The values in the field.
+ * @return {!Array.<string>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedSint64Array = function() {
-  return /** @type {Array.<number>} */ (this.array$Values(36));
+  return /** @type {!Array.<string>} */ (this.array$Values(36));
 };
 
 
@@ -1406,10 +1405,10 @@ proto2.TestAllTypes.prototype.addRepeatedFixed32 = function(value) {
 
 /**
  * Returns the array of values in the repeated_fixed32 field.
- * @return {Array.<number>} The values in the field.
+ * @return {!Array.<number>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedFixed32Array = function() {
-  return /** @type {Array.<number>} */ (this.array$Values(37));
+  return /** @type {!Array.<number>} */ (this.array$Values(37));
 };
 
 
@@ -1442,26 +1441,26 @@ proto2.TestAllTypes.prototype.clearRepeatedFixed32 = function() {
 /**
  * Gets the value of the repeated_fixed64 field at the index given.
  * @param {number} index The index to lookup.
- * @return {?number} The value.
+ * @return {?string} The value.
  */
 proto2.TestAllTypes.prototype.getRepeatedFixed64 = function(index) {
-  return /** @type {?number} */ (this.get$Value(38, index));
+  return /** @type {?string} */ (this.get$Value(38, index));
 };
 
 
 /**
  * Gets the value of the repeated_fixed64 field at the index given or the default value if not set.
  * @param {number} index The index to lookup.
- * @return {number} The value.
+ * @return {string} The value.
  */
 proto2.TestAllTypes.prototype.getRepeatedFixed64OrDefault = function(index) {
-  return /** @type {number} */ (this.get$ValueOrDefault(38, index));
+  return /** @type {string} */ (this.get$ValueOrDefault(38, index));
 };
 
 
 /**
  * Adds a value to the repeated_fixed64 field.
- * @param {number} value The value to add.
+ * @param {string} value The value to add.
  */
 proto2.TestAllTypes.prototype.addRepeatedFixed64 = function(value) {
   this.add$Value(38, /** @type {Object} */ (value));
@@ -1470,10 +1469,10 @@ proto2.TestAllTypes.prototype.addRepeatedFixed64 = function(value) {
 
 /**
  * Returns the array of values in the repeated_fixed64 field.
- * @return {Array.<number>} The values in the field.
+ * @return {!Array.<string>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedFixed64Array = function() {
-  return /** @type {Array.<number>} */ (this.array$Values(38));
+  return /** @type {!Array.<string>} */ (this.array$Values(38));
 };
 
 
@@ -1534,10 +1533,10 @@ proto2.TestAllTypes.prototype.addRepeatedSfixed32 = function(value) {
 
 /**
  * Returns the array of values in the repeated_sfixed32 field.
- * @return {Array.<number>} The values in the field.
+ * @return {!Array.<number>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedSfixed32Array = function() {
-  return /** @type {Array.<number>} */ (this.array$Values(39));
+  return /** @type {!Array.<number>} */ (this.array$Values(39));
 };
 
 
@@ -1570,26 +1569,26 @@ proto2.TestAllTypes.prototype.clearRepeatedSfixed32 = function() {
 /**
  * Gets the value of the repeated_sfixed64 field at the index given.
  * @param {number} index The index to lookup.
- * @return {?number} The value.
+ * @return {?string} The value.
  */
 proto2.TestAllTypes.prototype.getRepeatedSfixed64 = function(index) {
-  return /** @type {?number} */ (this.get$Value(40, index));
+  return /** @type {?string} */ (this.get$Value(40, index));
 };
 
 
 /**
  * Gets the value of the repeated_sfixed64 field at the index given or the default value if not set.
  * @param {number} index The index to lookup.
- * @return {number} The value.
+ * @return {string} The value.
  */
 proto2.TestAllTypes.prototype.getRepeatedSfixed64OrDefault = function(index) {
-  return /** @type {number} */ (this.get$ValueOrDefault(40, index));
+  return /** @type {string} */ (this.get$ValueOrDefault(40, index));
 };
 
 
 /**
  * Adds a value to the repeated_sfixed64 field.
- * @param {number} value The value to add.
+ * @param {string} value The value to add.
  */
 proto2.TestAllTypes.prototype.addRepeatedSfixed64 = function(value) {
   this.add$Value(40, /** @type {Object} */ (value));
@@ -1598,10 +1597,10 @@ proto2.TestAllTypes.prototype.addRepeatedSfixed64 = function(value) {
 
 /**
  * Returns the array of values in the repeated_sfixed64 field.
- * @return {Array.<number>} The values in the field.
+ * @return {!Array.<string>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedSfixed64Array = function() {
-  return /** @type {Array.<number>} */ (this.array$Values(40));
+  return /** @type {!Array.<string>} */ (this.array$Values(40));
 };
 
 
@@ -1662,10 +1661,10 @@ proto2.TestAllTypes.prototype.addRepeatedFloat = function(value) {
 
 /**
  * Returns the array of values in the repeated_float field.
- * @return {Array.<number>} The values in the field.
+ * @return {!Array.<number>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedFloatArray = function() {
-  return /** @type {Array.<number>} */ (this.array$Values(41));
+  return /** @type {!Array.<number>} */ (this.array$Values(41));
 };
 
 
@@ -1726,10 +1725,10 @@ proto2.TestAllTypes.prototype.addRepeatedDouble = function(value) {
 
 /**
  * Returns the array of values in the repeated_double field.
- * @return {Array.<number>} The values in the field.
+ * @return {!Array.<number>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedDoubleArray = function() {
-  return /** @type {Array.<number>} */ (this.array$Values(42));
+  return /** @type {!Array.<number>} */ (this.array$Values(42));
 };
 
 
@@ -1790,10 +1789,10 @@ proto2.TestAllTypes.prototype.addRepeatedBool = function(value) {
 
 /**
  * Returns the array of values in the repeated_bool field.
- * @return {Array.<boolean>} The values in the field.
+ * @return {!Array.<boolean>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedBoolArray = function() {
-  return /** @type {Array.<boolean>} */ (this.array$Values(43));
+  return /** @type {!Array.<boolean>} */ (this.array$Values(43));
 };
 
 
@@ -1854,10 +1853,10 @@ proto2.TestAllTypes.prototype.addRepeatedString = function(value) {
 
 /**
  * Returns the array of values in the repeated_string field.
- * @return {Array.<string>} The values in the field.
+ * @return {!Array.<string>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedStringArray = function() {
-  return /** @type {Array.<string>} */ (this.array$Values(44));
+  return /** @type {!Array.<string>} */ (this.array$Values(44));
 };
 
 
@@ -1918,10 +1917,10 @@ proto2.TestAllTypes.prototype.addRepeatedBytes = function(value) {
 
 /**
  * Returns the array of values in the repeated_bytes field.
- * @return {Array.<string>} The values in the field.
+ * @return {!Array.<string>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedBytesArray = function() {
-  return /** @type {Array.<string>} */ (this.array$Values(45));
+  return /** @type {!Array.<string>} */ (this.array$Values(45));
 };
 
 
@@ -1982,10 +1981,10 @@ proto2.TestAllTypes.prototype.addRepeatedgroup = function(value) {
 
 /**
  * Returns the array of values in the repeatedgroup field.
- * @return {Array.<proto2.TestAllTypes.RepeatedGroup>} The values in the field.
+ * @return {!Array.<proto2.TestAllTypes.RepeatedGroup>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedgroupArray = function() {
-  return /** @type {Array.<proto2.TestAllTypes.RepeatedGroup>} */ (this.array$Values(46));
+  return /** @type {!Array.<proto2.TestAllTypes.RepeatedGroup>} */ (this.array$Values(46));
 };
 
 
@@ -2046,10 +2045,10 @@ proto2.TestAllTypes.prototype.addRepeatedNestedMessage = function(value) {
 
 /**
  * Returns the array of values in the repeated_nested_message field.
- * @return {Array.<proto2.TestAllTypes.NestedMessage>} The values in the field.
+ * @return {!Array.<proto2.TestAllTypes.NestedMessage>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedNestedMessageArray = function() {
-  return /** @type {Array.<proto2.TestAllTypes.NestedMessage>} */ (this.array$Values(48));
+  return /** @type {!Array.<proto2.TestAllTypes.NestedMessage>} */ (this.array$Values(48));
 };
 
 
@@ -2110,10 +2109,10 @@ proto2.TestAllTypes.prototype.addRepeatedNestedEnum = function(value) {
 
 /**
  * Returns the array of values in the repeated_nested_enum field.
- * @return {Array.<proto2.TestAllTypes.NestedEnum>} The values in the field.
+ * @return {!Array.<proto2.TestAllTypes.NestedEnum>} The values in the field.
  */
 proto2.TestAllTypes.prototype.repeatedNestedEnumArray = function() {
-  return /** @type {Array.<proto2.TestAllTypes.NestedEnum>} */ (this.array$Values(49));
+  return /** @type {!Array.<proto2.TestAllTypes.NestedEnum>} */ (this.array$Values(49));
 };
 
 
@@ -2161,8 +2160,6 @@ proto2.TestAllTypes.NestedEnum = {
 proto2.TestAllTypes.NestedMessage = function() {
   goog.proto2.Message.apply(this);
 };
-
-
 goog.inherits(proto2.TestAllTypes.NestedMessage, goog.proto2.Message);
 
 /**
@@ -2228,8 +2225,6 @@ proto2.TestAllTypes.NestedMessage.prototype.clearB = function() {
 proto2.TestAllTypes.OptionalGroup = function() {
   goog.proto2.Message.apply(this);
 };
-
-
 goog.inherits(proto2.TestAllTypes.OptionalGroup, goog.proto2.Message);
 
 /**
@@ -2295,8 +2290,6 @@ proto2.TestAllTypes.OptionalGroup.prototype.clearA = function() {
 proto2.TestAllTypes.RepeatedGroup = function() {
   goog.proto2.Message.apply(this);
 };
-
-
 goog.inherits(proto2.TestAllTypes.RepeatedGroup, goog.proto2.Message);
 
 /**
@@ -2330,10 +2323,10 @@ proto2.TestAllTypes.RepeatedGroup.prototype.addA = function(value) {
 
 /**
  * Returns the array of values in the a field.
- * @return {Array.<number>} The values in the field.
+ * @return {!Array.<number>} The values in the field.
  */
 proto2.TestAllTypes.RepeatedGroup.prototype.aArray = function() {
-  return /** @type {Array.<number>} */ (this.array$Values(47));
+  return /** @type {!Array.<number>} */ (this.array$Values(47));
 };
 
 
@@ -2380,8 +2373,8 @@ goog.proto2.Message.set$Metadata(proto2.TestAllTypes, {
   '2' : {
     name: 'optional_int64',
     fieldType: goog.proto2.Message.FieldType.INT64,
-    defaultValue: 1,
-    type: Number
+    defaultValue: '1',
+    type: String
   },
   '3' : {
     name: 'optional_uint32',
@@ -2391,7 +2384,7 @@ goog.proto2.Message.set$Metadata(proto2.TestAllTypes, {
   '4' : {
     name: 'optional_uint64',
     fieldType: goog.proto2.Message.FieldType.UINT64,
-    type: Number
+    type: String
   },
   '5' : {
     name: 'optional_sint32',
@@ -2401,7 +2394,7 @@ goog.proto2.Message.set$Metadata(proto2.TestAllTypes, {
   '6' : {
     name: 'optional_sint64',
     fieldType: goog.proto2.Message.FieldType.SINT64,
-    type: Number
+    type: String
   },
   '7' : {
     name: 'optional_fixed32',
@@ -2411,7 +2404,7 @@ goog.proto2.Message.set$Metadata(proto2.TestAllTypes, {
   '8' : {
     name: 'optional_fixed64',
     fieldType: goog.proto2.Message.FieldType.FIXED64,
-    type: Number
+    type: String
   },
   '9' : {
     name: 'optional_sfixed32',
@@ -2421,7 +2414,7 @@ goog.proto2.Message.set$Metadata(proto2.TestAllTypes, {
   '10' : {
     name: 'optional_sfixed64',
     fieldType: goog.proto2.Message.FieldType.SFIXED64,
-    type: Number
+    type: String
   },
   '11' : {
     name: 'optional_float',
@@ -2476,7 +2469,7 @@ goog.proto2.Message.set$Metadata(proto2.TestAllTypes, {
     name: 'repeated_int64',
     repeated: true,
     fieldType: goog.proto2.Message.FieldType.INT64,
-    type: Number
+    type: String
   },
   '33' : {
     name: 'repeated_uint32',
@@ -2488,7 +2481,7 @@ goog.proto2.Message.set$Metadata(proto2.TestAllTypes, {
     name: 'repeated_uint64',
     repeated: true,
     fieldType: goog.proto2.Message.FieldType.UINT64,
-    type: Number
+    type: String
   },
   '35' : {
     name: 'repeated_sint32',
@@ -2500,7 +2493,7 @@ goog.proto2.Message.set$Metadata(proto2.TestAllTypes, {
     name: 'repeated_sint64',
     repeated: true,
     fieldType: goog.proto2.Message.FieldType.SINT64,
-    type: Number
+    type: String
   },
   '37' : {
     name: 'repeated_fixed32',
@@ -2512,7 +2505,7 @@ goog.proto2.Message.set$Metadata(proto2.TestAllTypes, {
     name: 'repeated_fixed64',
     repeated: true,
     fieldType: goog.proto2.Message.FieldType.FIXED64,
-    type: Number
+    type: String
   },
   '39' : {
     name: 'repeated_sfixed32',
@@ -2524,7 +2517,7 @@ goog.proto2.Message.set$Metadata(proto2.TestAllTypes, {
     name: 'repeated_sfixed64',
     repeated: true,
     fieldType: goog.proto2.Message.FieldType.SFIXED64,
-    type: Number
+    type: String
   },
   '41' : {
     name: 'repeated_float',

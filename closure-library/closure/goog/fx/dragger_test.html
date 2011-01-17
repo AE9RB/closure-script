@@ -3,11 +3,10 @@
 <!--
 Copyright 2008 The Closure Library Authors. All Rights Reserved.
 
-Use of this source code is governed by an Apache 2.0 License.
+Use of this source code is governed by the Apache License, Version 2.0.
 See the COPYING file for details.
 -->
 <!--
-  Author: ajp@google.com (Andy Perelson)
 -->
 <head>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -57,9 +56,9 @@ function testStartDrag() {
   e.type = goog.events.EventType.MOUSEDOWN;
   e.screenX = 1;
   e.screenY = 2;
-  e.isButton(goog.events.BrowserEvent.MouseButton.LEFT).$returns(true);
+  e.isMouseActionButton().$returns(true);
   e.preventDefault();
-  e.isButton(goog.events.BrowserEvent.MouseButton.LEFT).$returns(true);
+  e.isMouseActionButton().$returns(true);
   e.preventDefault();
   e.$replay();
 
@@ -103,7 +102,7 @@ function testStartDrag_Cancel() {
   e.type = goog.events.EventType.MOUSEDOWN;
   e.screenX = 1;
   e.screenY = 2;
-  e.isButton(goog.events.BrowserEvent.MouseButton.LEFT).$returns(true);
+  e.isMouseActionButton().$returns(true);
   e.$replay();
 
   goog.events.listen(dragger, goog.fx.Dragger.EventType.START, function(e) {
@@ -134,7 +133,7 @@ function testStartDrag_LeftMouseDownOnly() {
   e.type = goog.events.EventType.MOUSEDOWN;
   e.screenX = 1;
   e.screenY = 2;
-  e.isButton(goog.events.BrowserEvent.MouseButton.LEFT).$returns(false);
+  e.isMouseActionButton().$returns(false);
   e.$replay();
 
   goog.events.listen(dragger, goog.fx.Dragger.EventType.START, function(e) {
@@ -200,7 +199,7 @@ function testMouseMoved_Cancel() {
   var e = new goog.testing.StrictMock(goog.events.BrowserEvent);
   e.screenX = 1;
   e.screenY = 2;
-  e.isButton(goog.events.BrowserEvent.MouseButton.LEFT).$returns(true).
+  e.isMouseActionButton().$returns(true).
       $anyTimes();
   e.preventDefault();
   e.$replay();
@@ -290,7 +289,7 @@ function testOnWindowMouseOut() {
     e.type = goog.events.EventType.MOUSEDOWN;
     e.screenX = 1;
     e.screenY = 2;
-    e.isButton(goog.events.BrowserEvent.MouseButton.LEFT).$returns(true);
+    e.isMouseActionButton().$returns(true);
     e.preventDefault();
     e.$replay();
     dragger.startDrag(e);
@@ -356,7 +355,7 @@ function testWindowBlur() {
     e.type = goog.events.EventType.MOUSEDOWN;
     e.screenX = 1;
     e.screenY = 2;
-    e.isButton(goog.events.BrowserEvent.MouseButton.LEFT).$returns(true);
+    e.isMouseActionButton().$returns(true);
     e.preventDefault();
     e.$replay();
     dragger.startDrag(e);
@@ -387,7 +386,7 @@ function testBlur() {
     e.type = goog.events.EventType.MOUSEDOWN;
     e.screenX = 1;
     e.screenY = 2;
-    e.isButton(goog.events.BrowserEvent.MouseButton.LEFT).$returns(true);
+    e.isMouseActionButton().$returns(true);
     e.preventDefault();
     e.$replay();
     dragger.startDrag(e);

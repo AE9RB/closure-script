@@ -133,8 +133,14 @@ class Googly
           response.write "// Deps by Googlyscript\n"
           @files.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
             path = Pathname.new(dep[:path]).relative_path_from(base)
-            path = "#{path}?#{dep[:mtime].to_i}"
-            response.write "goog.addDependency(#{path.dump}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
+            if path.to_s =~ /\.externs$/
+              dep[:provide].each do |dep_provide|
+                response.write "goog.provide(#{dep_provide.dump});\n"
+              end
+            else
+              path = "#{path}?#{dep[:mtime].to_i}"
+              response.write "goog.addDependency(#{path.dump}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
+            end
           end
           response.headers['Content-Type'] = 'application/javascript'
           response.headers['Cache-Control'] = "max-age=#{[1,@dwell.floor].max}, private, must-revalidate"
@@ -219,7 +225,7 @@ class Googly
       # Scan filesystem for changes.
       @sources.each do |path, dir|
         dir_range = (dir.length..-1)
-        Dir.glob(File.join(dir,'**','*.js')).each do |filename|
+        Dir.glob(File.join(dir,'**','*.{js,externs}')).each do |filename|
           dep = (@files[filename] ||= {})
           dep.delete(:not_found)
           mtime = File.mtime(filename)
@@ -260,6 +266,8 @@ class Googly
             end
           end
         end
+        
+        
       end
       # Sweep to delete not-found files.
       @files.select{|f, dep| dep[:not_found]}.each do |filename, o|

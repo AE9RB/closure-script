@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'tempfile'
 
 class Googly
   
@@ -56,6 +57,8 @@ class Googly
       files_index = 0
       args_index = 0
       comp = Compilation.new @env
+      deps_js = Tempfile.new 'googlyscript_deps_js'
+      has_externs = false
       begin
         while args_index < args.length
           option, value = args[args_index, 2]
@@ -63,7 +66,12 @@ class Googly
             files_for(value, files)
             replacement = []
             while files_index < files.length
-              replacement.push '--js'
+              if files[files_index] =~ /\.externs$/
+                has_externs = true
+                replacement.push '--externs'
+              else
+                replacement.push '--js'
+              end
               replacement.push files[files_index]
               files_index = files_index + 1
             end
@@ -72,11 +80,26 @@ class Googly
             args_index = args_index + 2
           end
         end
-        comp = Compilation.new @env
+        if has_externs
+          # We may need to compile with a copy of deps.js
+          # to pick up the goog.provides for externs.
+          # File mtime is rolled back to not trigger compilation.
+          deps_js.open
+          @sources.deps_response(@env).each do |s|
+            deps_js.write s
+          end
+          deps_js.close
+          File.utime(Time.now, Time.at(0), deps_js.path)
+          args.unshift deps_js.path
+          args.unshift '--js'
+        end
         comp.compile_js args, File.dirname(@render_stack.last), @dependencies
       rescue Exception => e
         # Namespace problems are Ruby exceptions
+        # TODO we need Compilation to apply this
         comp.stderr = "#{e.inspect}\n\n1 error(s)"
+      ensure
+        deps_js.unlink
       end
       comp
     end

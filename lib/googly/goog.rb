@@ -81,7 +81,7 @@ class Googly
           end
         end
         if has_externs
-          # We may need to compile with a copy of deps.js
+          # We need to compile with a copy of deps.js
           # to pick up the goog.provides for externs.
           # File mtime is rolled back to not trigger compilation.
           deps_js.open
@@ -96,7 +96,6 @@ class Googly
         comp.compile_js args, File.dirname(@render_stack.last), @dependencies
       rescue Exception => e
         # Namespace problems are Ruby exceptions
-        # TODO we need Compilation to apply this
         comp.stderr = "#{e.inspect}\n\n1 error(s)"
       ensure
         deps_js.unlink

@@ -121,7 +121,7 @@ class Googly
     # Unfortunately, the better caching can't be used because of the way
     # base.js explores the DOM looking for where to load deps.js.
     # @example view_test.erb
-    #  <script src="<%= goog_base_js %>"></script>
+    #  <script src="<%= goog.base_js %>"></script>
     def base_js
       @sources.base_js(@env)
     end

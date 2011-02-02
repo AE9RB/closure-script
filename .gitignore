@@ -1,5 +1,5 @@
 .DS_Store
-googlyscript-*.gem
+closure-*.gem
 tmp/*
 .yardoc
 closure-library/closure/bin/*.pyc

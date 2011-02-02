@@ -17,7 +17,7 @@ class Googly
   
   # The arguments to this middleware are the arguments you would use for
   # SoyToJsSrcCompiler.jar (get them using: `java -jar SoyToJsSrcCompiler.jar`).
-  # Googlyscript will expand pairs of filenames that appear to be globs,
+  # Googlyscript will expand filenames that appear to be globs,
   # as shown in the examples.  You may still use static filenames.
   # File modification times are remembered and compilation is run only
   # when source changes are detected.
@@ -31,8 +31,8 @@ class Googly
   #    --cssHandlingScheme goog
   #    --shouldGenerateJsdoc
   #    --outputPathFormat {INPUT_DIRECTORY}{INPUT_FILE_NAME_NO_EXT}.js
-  #    app/javascripts/** *.soy
-  #    vendor/javascripts/** *.soy
+  #    app/javascripts/**/*.soy
+  #    vendor/javascripts/**/*.soy
   #  }
   
   class Soy

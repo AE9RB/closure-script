@@ -3,12 +3,9 @@
   %head
     %meta(name="csrf-param" content="authenticity_token")
     %meta(name="csrf-token" content="cf50faa3fe97702ca1ae&lt;=?")
-    - if params.has_key? 'build'
-      %script{:src => 'rails_ujs.js'}
-    - else  
-      %script{:src => goog.base_js}
-      :javascript
-        goog.require('googly.rails.ujs');
+    %script{:src => goog.base_js}
+    :javascript
+      goog.require('rails.ujs');
   %body
     %ul
       %li

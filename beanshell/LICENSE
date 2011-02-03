@@ -1,4 +1,4 @@
-Googlyscript uses an unmodified version of BeanShell.
+Closure Script uses an unmodified version of BeanShell.
 The BeanShell jar isn't distributed with a license.
 The source code didn't have a license in it either.
 

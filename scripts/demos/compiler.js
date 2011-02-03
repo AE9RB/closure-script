@@ -6,3 +6,7 @@ googly.demos.compiler = function() {
 }
 
 goog.exportProperty(window, 'run_test', googly.demos.compiler);
+
+var f= function(){
+  this.f = 1;
+}

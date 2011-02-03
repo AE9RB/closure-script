@@ -1,4 +1,4 @@
-# Copyright 2010 The Googlyscript Authors
+# Copyright 2011 The Closure Script Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'tempfile'
 
-class Googly
+class Closure
   
-  # Templates render with an instance named goog in the context.
+  # Scripts render with an instance named goog in the context.
   
   class Goog
     
@@ -29,8 +28,8 @@ class Googly
     
     # You can add additional files to have their mtimes scanned.
     # Perhaps you want to use a .yml file to define build options.
-    # Googly::Template calls this for every render so you don't need
-    # to define compiler arguments in the same template that calls compile.
+    # Closure::Script calls this for every render so you don't need
+    # to define compiler arguments in the same script that calls compile.
     def add_dependency(dependency)
       dependency = File.expand_path dependency, @render_stack.last
       @dependencies << dependency unless @dependencies.include? dependency
@@ -40,9 +39,9 @@ class Googly
     # Accepts new `--ns namespace` option which literally expands into
     # `--js filename` arguments in place to satisfy the namespace.
     # If you specify a --js_output_file then the compiler will check File.mtime
-    # on every source file plus all the templates and skip the compilation
+    # on every source file plus all the closure-scripts and skip the compilation
     # if the js_output_file is newest.
-    # Paths are relative to the template calling #compile.
+    # Paths are relative to the script calling #compile.
     # @example myapp.js.erb
     #   <% @response = goog.compile(%w{
     #     --js_output_file ../public/myapp.js
@@ -56,9 +55,8 @@ class Googly
       files = []
       files_index = 0
       args_index = 0
-      comp = Compilation.new @env
-      deps_js = Tempfile.new 'googlyscript_deps_js'
-      has_externs = false
+      temp_deps_js = nil
+      exception = nil
       begin
         while args_index < args.length
           option, value = args[args_index, 2]
@@ -67,7 +65,8 @@ class Googly
             replacement = []
             while files_index < files.length
               if files[files_index] =~ /\.externs$/
-                has_externs = true
+                require 'tempfile'
+                temp_deps_js ||= Tempfile.new 'closure_deps_js'
                 replacement.push '--externs'
               else
                 replacement.push '--js'
@@ -80,27 +79,26 @@ class Googly
             args_index = args_index + 2
           end
         end
-        if has_externs
-          # We need to compile with a copy of deps.js
-          # to pick up the goog.provides for externs.
-          # File mtime is rolled back to not trigger compilation.
-          deps_js.open
-          @sources.deps_response(@env).each do |s|
-            deps_js.write s
+        if temp_deps_js
+          # EXPERIMENTAL: support for goog.provide and require in externs.
+          # This is ugly but I hope it will no longer be necessary
+          # once compiler.jar is made aware of goog.provide in externs.
+          temp_deps_js.open
+          @sources.deps_response(File.dirname(base_js), @env).each do |s|
+            temp_deps_js.write s
           end
-          deps_js.close
-          File.utime(Time.now, Time.at(0), deps_js.path)
-          args.unshift deps_js.path
+          temp_deps_js.close
+          # File mtime is rolled back to not trigger compilation.
+          File.utime(Time.now, Time.at(0), temp_deps_js.path)
+          args.unshift temp_deps_js.path
           args.unshift '--js'
         end
-        comp.compile_js args, File.dirname(@render_stack.last), @dependencies
       rescue Exception => e
-        # Namespace problems are Ruby exceptions
-        comp.stderr = "#{e.inspect}\n\n1 error(s)"
+        exception = e
       ensure
-        deps_js.unlink
+        temp_deps_js.unlink if temp_deps_js
       end
-      comp
+      Compiler.new args, @dependencies, File.dirname(@render_stack.last), @env, exception
     end
 
     # Calculate files needed to satisfy a namespace.
@@ -112,7 +110,7 @@ class Googly
     #  <%= goog.files_for %w{myapp.Calendar} %>
     # @return (Array)
     def files_for(namespace, filenames=nil)
-      @sources.files_for(@env, namespace, filenames)
+      @sources.files_for(namespace, filenames, @env)
     end
 
     # The Google Closure base.js script.
@@ -127,17 +125,17 @@ class Googly
     end
     
     # This is where base.js looks to find deps.js by default.  You will always
-    # be served a Googlyscript generated deps.js from this location.
+    # be served a Closure Script generated deps.js from this location.
     def deps_js
       @sources.deps_js(@env)
     end
 
-    # You can serve a deps.js from anywhere you want to drop a template.
+    # You can serve a deps.js from anywhere you want to drop a script.
     # @example deps.jazz.erb
     #  <% @response = goog.deps_response %>
     # @return (Rack::Response)
     def deps_response
-      @sources.deps_response(@env, File.dirname(Rack::Utils.unescape(@env["PATH_INFO"])))
+      @sources.deps_response(File.dirname(Rack::Utils.unescape(@env["PATH_INFO"])), @env)
     end
     
   end

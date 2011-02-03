@@ -1,24 +1,8 @@
-<% 
-# This template demonstrates how to get at the compiler logs.
-# You will see the log on the browser console any time the
-# compiler is run and there is an error or warning.
-# Use `--summary_detail_level 3` if you want to see a log
-# on all successful compilations (no errors or warnings).
-# If there's no log to display, a cachable file response is used.
-# This is just an example to get you started. There are certainly
-# more elegant ways to display a log and you could easily save
-# it to the filesystem if you wanted to show it every time.
-
-soy_errors = [env[Soy::ENV_ERRORS]].flatten.compact
-if !soy_errors.empty? -%>
-try{console.error('Soy Compiler: <%= soy_errors.size %> error(s)', "\n\n", <%= soy_errors.join("\n").dump %>)}catch(err){}
-<% else
-  @response = goog.compile(%w{
-    --compilation_level ADVANCED_OPTIMIZATIONS    
-    --js_output_file compile.out
-    --summary_detail_level 3
-    --define goog.DEBUG=false
-    --warning_level VERBOSE
-    --ns googly.demos.compiler
-  }).to_response_with_console
-end -%>
+<% @response = goog.compile(%w{
+  --compilation_level ADVANCED_OPTIMIZATIONS    
+  --js_output_file compile.out
+  --summary_detail_level 3
+  --define goog.DEBUG=false
+  --warning_level VERBOSE
+  --ns googly.demos.compiler
+}).to_response_with_console -%>

@@ -1,4 +1,4 @@
-# Copyright 2010 The Googlyscript Authors
+# Copyright 2011 The Closure Script Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
 
 require 'open3'
 
-class Googly
+class Closure
   
-  # Googlyscript will manage a single BeanShell to run the Java tools.
+  # Closure Script will manage a single BeanShell to run the Java tools.
   # This way we don't pay the Java startup costs on every compile job.
   class BeanShell
     
     PROMPT = /^bsh % $\Z/
-    JAR = File.join(Googly.base_path, 'beanshell', 'bsh-core-2.0b4.jar')
+    JAR = File.join(Closure.base_path, 'beanshell', 'bsh-core-2.0b4.jar')
     
     # @param classpath (Array)<string>
     def initialize(classpath=[])
@@ -56,7 +56,7 @@ class Googly
       @semaphore.synchronize do
         unless $cmdin
           classpath = [@classpath, JAR].flatten
-          java_repl = "#{Googly.config.java} -classpath #{classpath.join(':').dump} bsh.Interpreter"
+          java_repl = "#{Closure.config.java} -classpath #{classpath.join(':').dump} bsh.Interpreter"
           $cmdin, $cmdout, $cmderr = Open3::popen3(java_repl)
           eat_startup = ''
           eat_startup << $cmdout.readpartial(8192) until eat_startup =~ PROMPT

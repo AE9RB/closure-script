@@ -2,7 +2,7 @@ require 'test_helper'
 
 class BeanShellTest < Test::Unit::TestCase
   
-  BEANSHELL = Googly::BeanShell.new
+  BEANSHELL = Closure::BeanShell.new
 
   def test_basic_stdout
     5.times do

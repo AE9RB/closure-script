@@ -1,4 +1,4 @@
-# Copyright 2010 The Googlyscript Authors
+# Copyright 2011 The Closure Script Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,23 +13,23 @@
 # limitations under the License.
 
 
-class Googly
+class Closure
 
-  # Although Googlyscript can run as an app or in a cascade, most installations
-  # will use this {Middleware} configured with Googly.script().
+  # Although Closure Script can run as an app or in a cascade, most installations
+  # will use this {Middleware} configured with Closure.add_source().
   # @example config.ru
-  #  require 'googlyscript'
-  #  Googly.script '/myapp', '../src'
-  #  use Googly::Middleware, '../public/index.html'
+  #  require 'closure'
+  #  Closure.add_source '../src/myapp', '/myapp'
+  #  use Closure::Middleware
   
   class Middleware
     
     # @param (String) home_page File to serve at the root.  Handy for stand-alone projects.
-    #   You can use a template, even in non-source folders, by using the url extension
+    #   You can use a closure-script, even in non-source folders, by using the url extension
     #   e.g. 'index.html' instead of the actual filename 'index.haml'.
     def initialize(app, home_page=nil)
       @app = app
-      @server = Server.new(Googly.sources, home_page)
+      @server = Server.new(Closure.sources, home_page)
     end
 
     def call(env)

@@ -1,4 +1,4 @@
-# Copyright 2010 The Googlyscript Authors
+# Copyright 2011 The Closure Script Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,19 +13,19 @@
 # limitations under the License.
 
 
-class Googly
+class Closure
 
-  # The Googlyscript rack server.  There is {Googly::Middleware} available too.
+  # The Closure Script rack server.  There is {Closure::Middleware} available too.
   # @example config.ru
-  #  require 'googlyscript'
-  #  sources = Googly::Sources.new
+  #  require 'closure'
+  #  sources = Closure::Sources.new
   #  sources.add '/myapp', '../src'
-  #  run Googly::Server.new sources
+  #  run Closure::Server.new sources
   
   class Server
     
     # @param (Sources) sources An instance configured with your scripts.
-    # @param (home_page) home_page Optional file or template to serve as root.
+    # @param (home_page) home_page Optional file or closure-script to serve as root.
     def initialize(sources, home_page = nil)
       @sources = sources
       @home_page = home_page
@@ -40,25 +40,26 @@ class Googly
       # Stand-alone projects will find this useful
       if @home_page and path_info == '/'
         response = FileResponse.new(env, @home_page)
-        response = Template.new(env, @sources, @home_page).response unless response.found?
+        response = Script.new(env, @sources, @home_page).response unless response.found?
         return response.finish
       end
       # Usurp the deps.js in detected Closure Library
       begin
         if path_info == @sources.deps_js(env)
-          return @sources.deps_response(env).finish
+          return @sources.deps_response(File.dirname(path_info), env).finish
         end
       rescue ClosureBaseNotFoundError
       end
       # Then check all the sources
-      @sources.each do |path, dir|
+      @sources.each do |dir, path|
+        next unless path
         if path_info =~ %r{^#{Regexp.escape(path)}(/.*|)$}
           filename = File.join(dir, $1)
           response = FileResponse.new(env, filename)
           if !response.found? and File.extname(path_info) == ''
             response = FileResponse.new(env, filename + '.html')
           end
-          response = Template.new(env, @sources, filename).response unless response.found?
+          response = Script.new(env, @sources, filename).response unless response.found?
           return response.finish
         end
       end

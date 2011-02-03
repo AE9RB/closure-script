@@ -1,4 +1,4 @@
-# Copyright 2010 The Googlyscript Authors
+# Copyright 2011 The Closure Script Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,20 +13,20 @@
 # limitations under the License.
 
 
-class Googly
+class Closure
   
   # The arguments to this middleware are the arguments you would use for
   # SoyToJsSrcCompiler.jar (get them using: `java -jar SoyToJsSrcCompiler.jar`).
-  # Googlyscript will expand filenames that appear to be globs,
+  # Closure Script will expand filenames that appear to be globs,
   # as shown in the examples.  You may still use static filenames.
   # File modification times are remembered and compilation is run only
   # when source changes are detected.
   # @example config.ru
-  #  require 'googlyscript'
-  #  Googly.script '/soy', :soy_js
-  #  Googly.script '/app', 'app/javascripts'
-  #  Googly.script '/vendor', 'vendor/javascripts'
-  #  use Googly::Soy, %w{
+  #  require 'closure'
+  #  Closure.add_source :templates, '/soy'
+  #  Closure.add_source 'app/javascripts', '/app'
+  #  Closure.add_source 'vendor/javascripts', '/vendor'
+  #  use Closure::Templates, %w{
   #    --shouldProvideRequireSoyNamespaces
   #    --cssHandlingScheme goog
   #    --shouldGenerateJsdoc
@@ -35,12 +35,23 @@ class Googly
   #    vendor/javascripts/**/*.soy
   #  }
   
-  class Soy
+  class Templates
     
-    # Logs in env['googly.soy.errors'] will persist until the errors are fixed.
+    # Logs in env[ENV_ERRORS] will persist until the errors are fixed.
     # It will be nil when no errors or a string with the Java exception.
     # It will be an array if you have multiple Soy middlewares running.
-    ENV_ERRORS = 'googly.soy.errors'
+    ENV_ERRORS = 'closure.template.errors'
+
+    def self.errors_js(env)
+      errors = [env[ENV_ERRORS]].flatten.compact
+      return nil if errors.empty?
+      out = 'try{console.error('
+      out += "'Closure Templates: #{errors.size} error(s)', "
+      out += '"\n\n", '
+      out += errors.join("\n").dump
+      out += ')}catch(err){}'
+      out
+    end
     
     # @param app [#call] The Rack application
     # @param args [Array] Arguments for SoyToJsSrcCompiler.jar.  Supports globbing.
@@ -63,7 +74,7 @@ class Googly
     # @return (Array)[status, headers, body]
     def call(env)
       # This lock will block all other threads until soy is compiled
-      # (it is not to synchronize globals like in Googly::Sources)
+      # (it is not to synchronize globals like in Closure::Sources)
       @semaphore.synchronize do
         if Time.now.to_f > @check_after
           args = @args.dup
@@ -110,11 +121,11 @@ class Googly
           if !compiled or @errors
             java_opts = args.collect{|a|a.to_s.dump}.join(', ')
             puts "compiling soy: #{java_opts}"
-            out, err = Googly.java("Googly.compile_soy_to_js_src(new String[]{#{java_opts}});")
+            out, err = Closure.java("ClosureScript.compile_soy_to_js_src(new String[]{#{java_opts}});")
             if err.empty?
               @errors = nil
             else
-              # Remove confusing "Googly.compile_soy_to_js_src" message
+              # Remove confusing "ClosureScript.compile_soy_to_js_src" message
               err.sub! /\A^.*$\n^.*$\n/, ''
               puts err
               @errors = err

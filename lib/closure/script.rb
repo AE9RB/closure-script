@@ -1,4 +1,4 @@
-# Copyright 2010 The Googlyscript Authors
+# Copyright 2011 The Closure Script Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,33 +13,33 @@
 # limitations under the License.
 
 
-class Googly
+class Closure
   
   # @private
-  class TemplateNotFoundError < StandardError
+  class ScriptNotFoundError < StandardError
   end
 
   # @private
-  class TemplateCallStackTooDeepError < StandardError
+  class ScriptCallStackTooDeepError < StandardError
   end
   
-  # A Googly::Template instance is the context in which Ruby templates are rendered.
+  # A Closure::Script instance is the context in which scripts are rendered.
   # It inherits everything from Rack::Request and supplies a response instance
   # you can use for redirects, cookies, and other controller actions.
-  class Template < Rack::Request
+  class Script < Rack::Request
     
     def initialize(env, sources, filename)
       super(env)
-      @googly_template_render_stack = []
-      @goog = Goog.new(env, sources, @googly_template_render_stack)
+      @closure_script_render_stack = []
+      @goog = Goog.new(env, sources, @closure_script_render_stack)
       @response = original_response = Rack::Response.new
       rendering = render(filename)
       if @response == original_response and @response.empty?
         @response.write rendering
       end
-    rescue TemplateCallStackTooDeepError, TemplateNotFoundError => e
+    rescue ScriptCallStackTooDeepError, ScriptNotFoundError => e
       e.set_backtrace e.backtrace[1..-1]
-      raise e if @googly_template_render_stack.size > 1
+      raise e if @closure_script_render_stack.size > 1
       @response.status = 404
       @response.write "404 Not Found\n"
       @response.header["X-Cascade"] = "pass"
@@ -48,7 +48,7 @@ class Googly
     
     # After rendering, #finish will be sent to the client.
     # If you replace the response or add to the response#body, 
-    # the template rendering will not be added.
+    # the script engine rendering will not be added.
     # @return [Rack::Response]
     attr_accessor :response
 
@@ -56,51 +56,51 @@ class Googly
     # @return [Goog]
     attr_accessor :goog
 
-    # Render another template.  The same Googly::Template instance is
-    # used for all internally rendered templates so you can pass
+    # Render another script.  The same Closure::Script instance is
+    # used for all internally rendered scripts so you can pass
     # information with instance variables.
     # @example view_test.erb
     #   <%= render 'util/logger_popup' %>
-    # @param (String) filename Relative to current template.
+    # @param (String) filename Relative to current script.
     def render(filename)
-      if @googly_template_render_stack.size > 100
+      if @closure_script_render_stack.size > 100
         # Since nobody sane would recurse through here, this mainly
         # finds a render self that you might get after a copy and paste
-        raise TemplateCallStackTooDeepError 
-      elsif @googly_template_render_stack.size > 0
+        raise ScriptCallStackTooDeepError 
+      elsif @closure_script_render_stack.size > 0
         # Hooray for relative paths and easily movable files
-        filename = File.expand_path(filename, File.dirname(@googly_template_render_stack.last))
+        filename = File.expand_path(filename, File.dirname(@closure_script_render_stack.last))
       else
-        # Underbar templates are partials by convention; keep them from rendering at root
+        # Underbar scripts are partials by convention; keep them from rendering at root
         filename = File.expand_path(filename)
-        raise TemplateNotFoundError if File.basename(filename) =~ /^_/
+        raise ScriptNotFoundError if File.basename(filename) =~ /^_/
       end
       ext = File.extname(filename)
       files1 = [filename]
       files1 << filename + '.html' if ext == ''
       files1 << filename.sub(/.html$/,'') if ext == '.html'
       files1.each do |filename1|
-        Googly.config.engines.each do |ext, engine|
+        Closure.config.engines.each do |ext, engine|
           files2 = [filename1+ext]
           files2 << filename1.gsub(/.html$/, ext) if File.extname(filename1) == '.html'
-          unless filename1 =~ /^_/ or @googly_template_render_stack.empty?
+          unless filename1 =~ /^_/ or @closure_script_render_stack.empty?
             files2 = files2 + files2.collect {|f| "#{File.dirname(f)}/_#{File.basename(f)}"} 
           end
           files2.each do |filename2|
             if File.file?(filename2) and File.readable?(filename2)
-              if @googly_template_render_stack.empty?
+              if @closure_script_render_stack.empty?
                 response.header["Content-Type"] = Rack::Mime.mime_type(File.extname(filename1), 'text/html')
               end
               @goog.add_dependency filename2
-              @googly_template_render_stack.push filename2
+              @closure_script_render_stack.push filename2
               result = engine.call self, filename2
-              @googly_template_render_stack.pop
+              @closure_script_render_stack.pop
               return result
             end
           end
         end
       end
-      raise TemplateNotFoundError
+      raise ScriptNotFoundError
     end
     
     # Helper for URL escaping.
@@ -122,7 +122,7 @@ class Googly
     # @param [String]
     # @return [String]
     def expand_path(s)
-      File.expand_path(s, File.dirname(@googly_template_render_stack.last))
+      File.expand_path(s, File.dirname(@closure_script_render_stack.last))
     end
 
     # Helper to add file mtime as query for future-expiry caching.

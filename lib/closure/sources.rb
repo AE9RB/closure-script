@@ -1,4 +1,4 @@
-# Copyright 2010 The Googlyscript Authors
+# Copyright 2011 The Closure Script Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 require 'pathname'
 
-class Googly
+class Closure
   
   # @private
   class MultipleClosureBaseError < StandardError
@@ -42,7 +42,7 @@ class Googly
     BASE_JS_REGEX = /^var goog = goog \|\| \{\};/
     
     # Flag env so that refresh is never run more than once per request
-    ENV_FLAG = 'googly.sources_fresh'
+    ENV_FLAG = 'closure.sources_fresh'
     
     # @param (Float) dwell in seconds.  
     def initialize(dwell = 1.0)
@@ -68,14 +68,16 @@ class Googly
     # @param (String) path Where to mount on the http server.
     # @param (String) directory Filesystem location of your sources.
     # @return (Sources) self
-    def add(path, directory)
-      raise "path must start with /" unless path =~ %r{^/}
-      path = '' if path == '/'
-      raise "path must not end with /" if path =~ %r{/$}
-      raise "path already exists" if @sources.find{|s|s[0]==path}
+    def add(directory, path=nil)
+      if path
+        raise "path must start with /" unless path =~ %r{^/}
+        path = '' if path == '/'
+        raise "path must not end with /" if path =~ %r{/$}
+        raise "path already exists" if @sources.find{|s|s[0]==path}
+      end
       raise "directory already exists" if @sources.find{|s|s[1]==directory}
-      @sources << [path, File.expand_path(directory)]
-      @sources.sort! {|a,b| b[0] <=> a[0]}
+      @sources << [File.expand_path(directory), path]
+      @sources.sort! {|a,b| (b[1]||'') <=> (a[1]||'')}
       self
     end
     
@@ -83,13 +85,13 @@ class Googly
     # Yields path and directory for each of the added sources.
     # @yield (path, directory) 
     def each
-      @sources.each { |path, directory| yield path, directory }
+      @sources.each { |directory, path| yield directory, path }
     end
     
     
     # Determine the path_info for where base_js is located.
     # @return [String]
-    def base_js(env)
+    def base_js(env={})
       if (goog = @goog) and @last_been_run
         return goog[:base_js]
       end
@@ -103,10 +105,10 @@ class Googly
 
     # Determine the path_info for where deps_js is located.
     # @return [String]
-    def deps_js(env)
+    def deps_js(env={})
       # Because Server uses this on every call, it's best to never lock.
       # We grab a local goog so we don't need the lock if everything looks good.
-      # This works because #refresh won't unset @goog while it's running anymore.
+      # This works because #refresh creates new @goog hashes instead of modifying.
       if (goog = @goog) and @last_been_run
         return goog[:deps_js]
       end
@@ -120,18 +122,14 @@ class Googly
 
     # Builds a Rack::Response to serve a dynamic deps.js
     # @return (Rack::Response) 
-    def deps_response(env, base=nil)
+    def deps_response(base, env={})
       @semaphore.synchronize do
         refresh(env)
-        unless base
-          raise ClosureBaseNotFoundError unless @goog
-          base = File.dirname(@goog[:base_js])
-        end
         base = Pathname.new(base)
         unless @deps[base]
           response = @deps[base] ||= Rack::Response.new
-          response.write "// Deps by Googlyscript\n"
-          @files.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
+          response.write "// Dynamic Deps by Closure Script\n"
+          @files.reject{|a,b|!b[:path]}.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
             path = Pathname.new(dep[:path]).relative_path_from(base)
             if path.to_s =~ /\.externs$/
               dep[:provide].each do |dep_provide|
@@ -146,8 +144,16 @@ class Googly
           response.headers['Cache-Control'] = "max-age=#{[1,@dwell.floor].max}, private, must-revalidate"
           response.headers['Last-Modified'] = Time.now.httpdate
         end
+        templates_errors_js = Templates.errors_js env
         mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil
-        if mod_since == Time.httpdate(@deps[base].headers['Last-Modified'])
+        if templates_errors_js
+          response = Rack::Response.new
+          response.headers['Content-Type'] = 'application/javascript'
+          response.headers['Cache-Control'] = "max-age=0, private, must-revalidate"
+          response.write @deps[base].body
+          response.write templates_errors_js
+          response
+        elsif mod_since == Time.httpdate(@deps[base].headers['Last-Modified'])
           Rack::Response.new [], 304 # Not Modified
         else
           @deps[base]
@@ -159,7 +165,7 @@ class Googly
     # Calculate all required files for a namespace.
     # @param (String) namespace
     # @return (Array<String>) New Array of filenames.
-    def files_for(env, namespace, filenames=nil)
+    def files_for(namespace, filenames=nil, env={})
       ns = nil
       @semaphore.synchronize do
         refresh(env)
@@ -223,7 +229,7 @@ class Googly
       # Mark everything for deletion.
       @files.each {|f, dep| dep[:not_found] = true}
       # Scan filesystem for changes.
-      @sources.each do |path, dir|
+      @sources.each do |dir, path|
         dir_range = (dir.length..-1)
         Dir.glob(File.join(dir,'**','*.{js,externs}')).each do |filename|
           dep = (@files[filename] ||= {})
@@ -243,9 +249,13 @@ class Googly
             dep[:provide] = file.scan(PROVIDE_REGEX).flatten.uniq
             old_dep_require = dep[:require]
             dep[:require] = file.scan(REQUIRE_REGEX).flatten.uniq
-            if !dep[:path]
+            if !dep.has_key? :path
               raise unless filename.index(dir) == 0 # glob sanity
-              dep[:path] = "#{path}#{filename.slice(dir_range)}"
+              if path
+                dep[:path] = "#{path}#{filename.slice(dir_range)}"
+              else
+                dep[:path] = nil
+              end
               added_files << filename
             elsif old_dep_provide != dep[:provide] or old_dep_require != dep[:require]
               # We're changed only if the provides or requires changes.
@@ -258,16 +268,16 @@ class Googly
               if File.basename(filename) == 'base.js'
                 if file =~ BASE_JS_REGEX
                   multiple_base_js_failure if goog
-                  goog = {:base_filename => filename,
-                           :base_js => dep[:path],
-                           :deps_js => dep[:path].gsub(/base.js$/, 'deps.js')}
+                  goog = {:base_filename => filename}
+                  if dep[:path]
+                    goog[:base_js] = dep[:path]
+                    goog[:deps_js] = dep[:path].gsub(/base.js$/, 'deps.js')
+                  end
                 end
               end
             end
           end
         end
-        
-        
       end
       # Sweep to delete not-found files.
       @files.select{|f, dep| dep[:not_found]}.each do |filename, o|
@@ -277,7 +287,7 @@ class Googly
       # Decide if deps has changed.
       if 0 < added_files.length + changed_files.length + deleted_files.length
         @ns = nil
-        STDERR.write "Googlyscript deps cache: #{added_files.length} added, #{changed_files.length} changed, #{deleted_files.length} deleted.\n"
+        STDERR.write "Closure Script deps cache: #{added_files.length} added, #{changed_files.length} changed, #{deleted_files.length} deleted.\n"
       end
       # Finish
       @goog = goog

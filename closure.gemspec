@@ -1,15 +1,15 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path("../lib/googly/version", __FILE__)
+require File.expand_path("../lib/closure/version", __FILE__)
 
 Gem::Specification.new do |s|
-  s.name        = "Closure Script"
-  s.version     = Googly::VERSION
+  s.name        = "closure"
+  s.version     = Closure::VERSION
   s.platform    = Gem::Platform::RUBY
   s.homepage    = "https://github.com/dturnbull/closure-script"
-  s.summary     = "Google Closure build tools"
+  s.summary     = "Closure Script for Google Closure Compiler, Library, and Templates."
 
   s.required_rubygems_version = ">= 1.3"
-  s.rubyforge_project         = "closure"
+  # s.rubyforge_project         = "closure-script"
   
   s.add_dependency 'rack', '>= 1.0.0'
 

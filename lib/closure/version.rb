@@ -1,4 +1,4 @@
-# Copyright 2010 The Googlyscript Authors
+# Copyright 2011 The Closure Script Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,8 +13,8 @@
 # limitations under the License.
 
 
-class Googly
-  # The first two numerics are the Googlyscript major and minor version.  
+class Closure
+  # The first two numerics are the Closure Script major and minor version.  
   # The third numeric is the Closure Library version.
   VERSION = "1.1.620.pre"
 end

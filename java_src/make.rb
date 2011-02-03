@@ -1,4 +1,4 @@
-# Copyright 2010 The Googlyscript Authors
+# Copyright 2011 The Closure Script Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# I'm not a Java programmer.
+# I'm not a Java programmer.  I didn't want to learn ant.
 raise "Remove old .class files before running make" unless Dir.glob("*.class").empty?
-`javac -classpath ../closure-compiler/compiler.jar:../closure-templates/SoyToJsSrcCompiler.jar:../beanshell/bsh-core-2.0b4.jar Googly.java`
-`jar cf ../lib/googly.jar *.class`
-%w{Googly.class Googly$1.class Googly$SystemExitException.class Googly$UnclosablePrintStream.class}.each {|f| File.unlink f rescue nil}
+`javac -classpath ../closure-compiler/compiler.jar:../closure-templates/SoyToJsSrcCompiler.jar:../beanshell/bsh-core-2.0b4.jar ClosureScript.java`
+`jar cf ../lib/closure.jar *.class`
+%w{ClosureScript.class ClosureScript$1.class ClosureScript$SystemExitException.class ClosureScript$UnclosablePrintStream.class}.each {|f| File.unlink f rescue nil}

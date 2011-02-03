@@ -1,4 +1,4 @@
-// Copyright 2010 The Googlyscript Authors
+// Copyright 2011 The Closure Script Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-// The Google Closure javascript compiler calls System.exit() internally.
+// The Google Closure Compiler calls System.exit() internally.
 // I tried subclassing as they suggest, but the main System.exit() was at
 // the end of the critical compiler run function.  Rather than take control
 // of this important code which would need to be kept in sync with Google's
@@ -23,13 +23,13 @@
 // specified, so we have to hack around that too.
 
 // Once loaded up in a BeanShell or other REPL:
-//   java -classpath bsh-core-2.0b4.jar:Googly.jar:../closure-compiler/compiler.jar bsh.Interpreter
+//   java -classpath bsh-core-2.0b4.jar:closure.jar:../closure-compiler/compiler.jar bsh.Interpreter
 // You may repeatedly request javascript compilations:
-//   Googly.compile_js(new String[]{"--js", "../app/javascripts/test.js", "--js_output_file", "out.js", "--compilation_level", "ADVANCED_OPTIMIZATIONS"});
+//   ClosureScript.compile_js(new String[]{"--js", "../app/javascripts/test.js", "--js_output_file", "out.js", "--compilation_level", "ADVANCED_OPTIMIZATIONS"});
 
 import java.io.PrintStream;
 
-public class Googly {
+public class ClosureScript {
 
   // This PrintStream can not be closed
   private static class UnclosablePrintStream extends PrintStream {

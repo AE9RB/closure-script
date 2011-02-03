@@ -4,7 +4,7 @@ require 'test_helper'
 
 class SourcesTest < Test::Unit::TestCase
 
-  CLOSURE_LIBRARY = File.join(Googly.base_path, 'closure-library')
+  CLOSURE_LIBRARY = File.join(Closure.base_path, 'closure-library')
 
   NAMESPACES = ["goog.editor.Field", "goog.ds.JsonDataSource"]
   FIELD_JS = File.join(CLOSURE_LIBRARY, 'closure', 'goog', 'editor', 'field.js')
@@ -14,10 +14,10 @@ class SourcesTest < Test::Unit::TestCase
   CALCDEPS = File.join(CLOSURE_LIBRARY, 'closure', 'bin', 'calcdeps.py')
 
   FILES = []
-  sources = Googly::Sources.new
-  sources.add '/goog', CLOSURE_LIBRARY
-  sources.files_for({}, NAMESPACES[0], FILES)
-  sources.files_for({}, NAMESPACES[1], FILES)
+  sources = Closure::Sources.new
+  sources.add CLOSURE_LIBRARY
+  sources.files_for(NAMESPACES[0], FILES)
+  sources.files_for(NAMESPACES[1], FILES)
 
   def test_files_against_closurebuilder
     closurebuilder_files = `#{CLOSUREBUILDER} --root=#{CLOSURE_LIBRARY.dump} -n #{NAMESPACES[0].dump} -n #{NAMESPACES[1].dump} 2>/dev/null`

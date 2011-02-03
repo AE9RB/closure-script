@@ -1,4 +1,4 @@
-# Copyright 2010 The Googlyscript Authors
+# Copyright 2011 The Closure Script Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,18 +13,18 @@
 # limitations under the License.
 
 
-class Googly
+class Closure
 
-  # Googlyscript can easily respond to hundreds of requests
+  # Closure Script can easily respond to hundreds of requests
   # per second, but not with Sass::Plugin::Rack in the stack. 
   # This change has been submitted to and accepted by the Sass team.
   # Don't use Sass::Plugin::Rack until you are on a version that
-  # has the dwell option.  Use Googly::Sass in the meantime.
+  # has the dwell option.  Use Closure::Sass in the meantime.
   # @example config.ru
-  #  require 'googlyscript'
+  #  require 'closure'
   #  require 'sass/plugin'
   #  Sass::Plugin.options[:template_location] = {in_dir => out_dir}
-  #  use Googly::Sass, 10
+  #  use Closure::Sass, 10
 
   class Sass
     

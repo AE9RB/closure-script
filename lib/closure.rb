@@ -57,7 +57,7 @@ class Closure
   BUILT_INS = {
     :goog => File.join(base_path, 'closure-library', 'closure', 'goog'),
     :goog_vendor => File.join(base_path, 'closure-library', 'third_party', 'closure', 'goog'),
-    :templates => File.join(base_path, 'closure-templates'),
+    :soy => File.join(base_path, 'closure-templates'),
     :examples => File.join(base_path, 'scripts', 'examples')
   }
   

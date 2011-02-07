@@ -43,7 +43,6 @@ class Closure
         $cmdin = nil
       end
       # This "second chance" will not rescue the error.
-      puts "Java BeanShell is restarting (this should not happen)"
       execute command
     end
     

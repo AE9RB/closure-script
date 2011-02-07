@@ -69,7 +69,7 @@ class Closure
     end
 
     # Filename attribute.
-    # Alias is used by some rack servers to detatch from Ruby early.
+    # Alias is used by some rack servers to detach from Ruby early.
     # @return [String]
     attr_reader :filename
     alias :to_path :filename

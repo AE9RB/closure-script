@@ -23,7 +23,7 @@ class Closure
   # when source changes are detected.
   # @example config.ru
   #  require 'closure'
-  #  Closure.add_source :templates, '/soy'
+  #  Closure.add_source :soy, '/soy'
   #  Closure.add_source 'app/javascripts', '/app'
   #  Closure.add_source 'vendor/javascripts', '/vendor'
   #  use Closure::Templates, %w{
@@ -40,8 +40,13 @@ class Closure
     # Logs in env[ENV_ERRORS] will persist until the errors are fixed.
     # It will be nil when no errors or a string with the Java exception.
     # It will be an array if you have multiple Soy middlewares running.
+    # By default, these errors are available on the Javascript console
+    # after loading goog.deps_js or a Compiler#to_response_with_console.
     ENV_ERRORS = 'closure.template.errors'
-
+    
+    # Creates javascript for errors in a Rack environment.
+    # @private - flagged for possible refactoring.
+    # @param (Hash) env Rack environment.
     def self.errors_js(env)
       errors = [env[ENV_ERRORS]].flatten.compact
       return nil if errors.empty?
@@ -120,14 +125,12 @@ class Closure
           # compile as needed
           if !compiled or @errors
             java_opts = args.collect{|a|a.to_s.dump}.join(', ')
-            puts "compiling soy: #{java_opts}"
             out, err = Closure.java("ClosureScript.compile_soy_to_js_src(new String[]{#{java_opts}});")
             if err.empty?
               @errors = nil
             else
               # Remove confusing "ClosureScript.compile_soy_to_js_src" message
               err.sub! /\A^.*$\n^.*$\n/, ''
-              puts err
               @errors = err
             end
           end

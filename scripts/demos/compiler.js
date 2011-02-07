@@ -8,5 +8,5 @@ googly.demos.compiler = function() {
 goog.exportProperty(window, 'run_test', googly.demos.compiler);
 
 var f= function(){
-  this.f = 1;
+  this.demonstrates = 'warnings and errors in the Javascript console';
 }

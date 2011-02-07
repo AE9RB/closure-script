@@ -51,6 +51,7 @@ goog.require('goog.net.ErrorCode');
 goog.require('goog.net.EventType');
 goog.require('goog.net.XmlHttp');
 goog.require('goog.net.xhrMonitor');
+goog.require('goog.object');
 goog.require('goog.structs');
 goog.require('goog.structs.Map');
 goog.require('goog.uri.utils');
@@ -350,6 +351,20 @@ goog.net.XhrIo.prototype.responseType_ = goog.net.XhrIo.ResponseType.DEFAULT;
 
 
 /**
+ * Whether a "credentialed" request is to be sent (one that is aware of cookies
+ * and authentication) . This is applicable only for cross-domain requests and
+ * more recent browsers that support this part of the HTTP Access Control
+ * standard.
+ *
+ * @see http://dev.w3.org/2006/webapi/XMLHttpRequest-2/#withcredentials
+ *
+ * @type {boolean}
+ * @private
+ */
+goog.net.XhrIo.prototype.withCredentials_ = false;
+
+
+/**
  * Returns the number of milliseconds after which an incomplete request will be
  * aborted, or 0 if no timeout is set.
  * @return {number} Timeout interval in milliseconds.
@@ -389,6 +404,29 @@ goog.net.XhrIo.prototype.setResponseType = function(type) {
  */
 goog.net.XhrIo.prototype.getResponseType = function() {
   return this.responseType_;
+};
+
+
+/**
+ * Sets whether a "credentialed" request that is aware of cookie and
+ * authentication information should be made. This option is only supported by
+ * browsers that support HTTP Access Control. As of this writing, this option
+ * is not supported in IE.
+ *
+ * @param {boolean} withCredentials Whether this should be a "credentialed"
+ *     request.
+ */
+goog.net.XhrIo.prototype.setWithCredentials = function(withCredentials) {
+  this.withCredentials_ = withCredentials;
+};
+
+
+/**
+ * Gets whether a "credentialed" request is to be sent.
+ * @return {boolean} The desired type for the response.
+ */
+goog.net.XhrIo.prototype.getWithCredentials = function() {
+  return this.withCredentials_;
 };
 
 
@@ -475,6 +513,10 @@ goog.net.XhrIo.prototype.send = function(url, opt_method, opt_content,
     this.xhr_.responseType = this.responseType_;
   }
 
+  if (goog.object.containsKey(this.xhr_, 'withCredentials')) {
+    this.xhr_.withCredentials = this.withCredentials_;
+  }
+
   /**
    * Try to send the request, or other wise report an error (404 not found).
    * @preserveTry
@@ -517,11 +559,9 @@ goog.net.XhrIo.prototype.createXhr = function() {
 
 /**
  * Override of dispatchEvent.  We need to keep track if an XMLHttpRequest is
- * being sent from the context of another requests' repsonse.  If it is then, we
+ * being sent from the context of another requests' response.  If it is then, we
  * make the XHR send async.
- * @param {goog.events.Event|string} e Event to dispatch.
- * @return {boolean} Whether the dispatch completed without a handler calling
- *     preventDefault.
+ * @override
  */
 goog.net.XhrIo.prototype.dispatchEvent = function(e) {
   if (this.xhr_) {

@@ -25,7 +25,6 @@ class Closure
   end
   
   # This class is responsible for scanning source files and managing dependencies.
-  # Lasciate ogne speranza, voi ch'intrate.
 
   class Sources
     
@@ -214,6 +213,7 @@ class Closure
     end
     
     
+    # Lasciate ogne speranza, voi ch'intrate.
     def refresh(env)
       return if env[ENV_FLAG]
       env[ENV_FLAG] = true
@@ -287,7 +287,6 @@ class Closure
       # Decide if deps has changed.
       if 0 < added_files.length + changed_files.length + deleted_files.length
         @ns = nil
-        STDERR.write "Closure Script deps cache: #{added_files.length} added, #{changed_files.length} changed, #{deleted_files.length} deleted.\n"
       end
       # Finish
       @goog = goog

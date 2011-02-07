@@ -747,12 +747,6 @@ jQueryObject.prototype.detach = function(selector) {};
 jQueryObject.prototype.first = function() {};
 
 /**
- * @param {string=} selector
- * @return {jQueryObject}
- */
-jQueryObject.prototype.detach = function(selector) {};
-
-/**
  * @param {function(Object)} handler
  * @return {jQueryObject}
  */

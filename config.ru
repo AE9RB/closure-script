@@ -7,7 +7,7 @@ require 'closure'
 
 Closure.add_source :goog, '/goog'
 Closure.add_source :goog_vendor, '/goog_vendor'
-Closure.add_source :templates, '/soy_js'
+Closure.add_source :soy, '/soy_js'
 Closure.add_source File.join(Closure.base_path, 'scripts'), '/'
 Closure.config.haml[:format] = :html5
 

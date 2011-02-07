@@ -93,12 +93,12 @@ class Closure
           args.unshift temp_deps_js.path
           args.unshift '--js'
         end
+        Compiler.new args, @dependencies, File.dirname(@render_stack.last), @env, exception
       rescue Exception => e
         exception = e
       ensure
         temp_deps_js.unlink if temp_deps_js
       end
-      Compiler.new args, @dependencies, File.dirname(@render_stack.last), @env, exception
     end
 
     # Calculate files needed to satisfy a namespace.
@@ -131,7 +131,7 @@ class Closure
     end
 
     # You can serve a deps.js from anywhere you want to drop a script.
-    # @example deps.jazz.erb
+    # @example something.js.erb
     #  <% @response = goog.deps_response %>
     # @return (Rack::Response)
     def deps_response

@@ -45,7 +45,7 @@ class Closure
     ENV_ERRORS = 'closure.template.errors'
     
     # Creates javascript for errors in a Rack environment.
-    # @private - flagged for possible refactoring.
+    # @private - internal use only
     # @param (Hash) env Rack environment.
     def self.errors_js(env)
       errors = [env[ENV_ERRORS]].flatten.compact

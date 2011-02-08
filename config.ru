@@ -14,7 +14,6 @@ Closure.config.haml[:format] = :html5
 use Rack::CommonLogger # slow
 use Rack::Reloader, 1
 use Rack::Lint # slow
-use Rack::ShowExceptions
 use Closure::Templates, %w{
   --shouldProvideRequireSoyNamespaces
   --cssHandlingScheme goog

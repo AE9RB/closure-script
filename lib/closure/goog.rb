@@ -56,7 +56,6 @@ class Closure
       files_index = 0
       args_index = 0
       temp_deps_js = nil
-      exception = nil
       begin
         while args_index < args.length
           option, value = args[args_index, 2]
@@ -93,9 +92,7 @@ class Closure
           args.unshift temp_deps_js.path
           args.unshift '--js'
         end
-        Compiler.new args, @dependencies, File.dirname(@render_stack.last), @env, exception
-      rescue Exception => e
-        exception = e
+        Compiler.new args, @dependencies, File.dirname(@render_stack.last), @env
       ensure
         temp_deps_js.unlink if temp_deps_js
       end

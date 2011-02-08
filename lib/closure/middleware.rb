@@ -25,11 +25,11 @@ class Closure
   class Middleware
     
     # @param (String) home_page File to serve at the root.  Handy for stand-alone projects.
-    #   You can use a closure-script, even in non-source folders, by using the url extension
+    #   You can use a Closure Script, even in non-source folders, by using the url extension
     #   e.g. 'index.html' instead of the actual filename 'index.haml'.
     def initialize(app, home_page=nil)
       @app = app
-      @server = Server.new(Closure.sources, home_page)
+      @server = ShowExceptions.new(Server.new(Closure.sources, home_page))
     end
 
     def call(env)

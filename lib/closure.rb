@@ -40,6 +40,7 @@ class Closure
   autoload(:Server, 'closure/server')
   autoload(:Goog, 'closure/goog')
   autoload(:Templates, 'closure/templates')
+  autoload(:ShowExceptions, 'closure/show_exceptions')
   
 
   # Filesystem location of the Closure Script install.

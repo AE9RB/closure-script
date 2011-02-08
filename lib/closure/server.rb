@@ -71,11 +71,13 @@ class Closure
     # Status 404 with X-Cascade => pass.
     # @return (Array)[status, headers, body]
     def not_found
+      return @not_found if @not_found
       body = "404 Not Found\n"
-      [404, {'Content-Type' => 'text/plain',
+      @not_found = [404, {'Content-Type' => 'text/plain',
              'Content-Length' => body.size.to_s,
              'X-Cascade' => 'pass'},
        [body]]
+      @not_found
     end
 
   end

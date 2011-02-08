@@ -28,6 +28,8 @@ class Closure
   # you can use for redirects, cookies, and other controller actions.
   class Script < Rack::Request
     
+    ENV_ERROR_CONTENT_TYPE = 'closure.error.content_type'
+    
     def initialize(env, sources, filename)
       super(env)
       @closure_script_render_stack = []
@@ -38,12 +40,19 @@ class Closure
         @response.write rendering
       end
     rescue ScriptCallStackTooDeepError, ScriptNotFoundError => e
-      e.set_backtrace e.backtrace[1..-1]
-      raise e if @closure_script_render_stack.size > 1
+      if @closure_script_render_stack.size > 0
+        # Make errors appear from the render instead of the engine.call
+        e.set_backtrace e.backtrace[1..-1]
+        env[ENV_ERROR_CONTENT_TYPE] = @response.finish[1]["Content-Type"] rescue nil
+        raise e 
+      end
       @response.status = 404
       @response.write "404 Not Found\n"
       @response.header["X-Cascade"] = "pass"
       @response.header["Content-Type"] = "text/plain"
+    rescue StandardError, LoadError, SyntaxError => e
+      env[ENV_ERROR_CONTENT_TYPE] = @response.finish[1]["Content-Type"] rescue nil
+      raise e
     end
     
     # After rendering, #finish will be sent to the client.

@@ -4,10 +4,7 @@
     %script{:src => expand_src('jquery.js')}
     %script{:src => "compiler.js?#{query_string}"}
   %body
-    - if params.has_key? 'build'
-      %p Mode: build
-    - else  
-      %p Mode: raw
+    %p Mode: #{h query_string.empty? ? 'raw' : query_string}
     %p.jqtest
       Should not see this.  It will be hidden by jQuery.
     :javascript

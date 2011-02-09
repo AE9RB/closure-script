@@ -12,6 +12,8 @@ googly.simpleTest = function() {
 }
 goog.exportProperty(window, 'simpleTest', googly.simpleTest);
 
-var f= function(){
-  this.demonstrates = 'warnings in the Javascript console';
+googly.warningNoOp = function(){
+  function warningNoOp(){
+    this.demonstrates = 'warnings in the Javascript console';
+  }
 }

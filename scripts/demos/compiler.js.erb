@@ -5,9 +5,18 @@
   --ns googly
 }
 
-args << %w{
-  --compilation_level ADVANCED_OPTIMIZATIONS    
-  --js_output_file compiler.out
-} if params.has_key? 'build'
+args << case query_string
+when 'build': %w{
+  --compilation_level ADVANCED_OPTIMIZATIONS
+  --js_output_file compiler.build
+  --create_source_map compiler.map
+}
+when 'debug': %w{
+  --debug true
+  --formatting PRETTY_PRINT
+  --compilation_level ADVANCED_OPTIMIZATIONS
+  --js_output_file compiler.debug
+}
+end
 
 @response = goog.compile(args.flatten).to_response_with_console %>

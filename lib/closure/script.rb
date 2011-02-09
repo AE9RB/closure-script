@@ -138,8 +138,7 @@ class Closure
     # @param [String]
     # @return [String]
     def expand_src(s)
-      expanded = expand_path(s)
-      @goog.path_for(expanded) rescue "#{s}?#{File.mtime(expanded).to_i}" rescue s
+      @goog.path_for(expand_path(s)) rescue s
     end
     
     

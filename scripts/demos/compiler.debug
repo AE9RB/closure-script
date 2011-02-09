@@ -1,0 +1,8 @@
+window.jqueryTest = function $window$jqueryTest$() {
+  document.write("<p>Javascript jqueryTest() executed.</p>");
+  $(".jqtest").hide()
+};
+window.simpleTest = function $window$simpleTest$() {
+  document.write("<p>Javascript simpleTest() executed.</p>")
+};
+

@@ -49,6 +49,7 @@ class Closure
     #  and for {Templates} errors to be processed.
     def initialize(args, dependencies = [], base = nil, env = {})
       @env = env
+      return if args.empty? # otherwise java locks up
       args = Array.new args
       files = []
       # Scan to expand paths and extend self with output options
@@ -125,7 +126,11 @@ class Closure
           error_log += (error_message + "\n\n" + split_log.join("\n")).dump
         end
         if error_message =~ /^0 err/i
-          response.write "try{console.log(#{error_log})}catch(err){};\n"
+          if error_message =~ / 0 warn/i
+            response.write "try{console.log(#{error_log})}catch(err){};\n"
+          else
+            response.write "try{console.warn(#{error_log})}catch(err){};\n"
+          end
         else
           response.write "try{console.error(#{error_log})}catch(err){};\n"
         end
@@ -154,12 +159,12 @@ class Closure
     # then this will be the compiled script.  Otherwise, it's usually empty
     # but may contain output depending on the arguments.
     # If nil, compilation was skipped because js_output_file was up to date.
-    attr_reader :stdout
+    attr_accessor :stdout
     
     # Results from compiler.jar.  The log, when there is one, is found here.
     # Use `--summary_detail_level 3` to see log when no errors or warnings.
     # If nil, compilation was skipped because js_output_file was up to date.
-    attr_reader :stderr
+    attr_accessor :stderr
 
   end
   

@@ -1,8 +1,15 @@
-<% @response = goog.compile(%w{
-  --compilation_level ADVANCED_OPTIMIZATIONS    
-  --js_output_file compile.out
+<% 
+args = %w{
   --summary_detail_level 3
   --define goog.DEBUG=false
   --warning_level VERBOSE
   --ns googly.demos.compiler
-}).to_response_with_console -%>
+}
+
+args << %w{
+  --compilation_level ADVANCED_OPTIMIZATIONS    
+  --js_output_file compile.out
+} if params.has_key? 'build'
+
+@response = goog.compile(args.flatten).to_response_with_console 
+%>

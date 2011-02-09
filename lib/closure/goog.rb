@@ -56,9 +56,11 @@ class Closure
       files_index = 0
       args_index = 0
       temp_deps_js = nil
+      compilation_level = nil
       begin
         while args_index < args.length
           option, value = args[args_index, 2]
+          compilation_level = value if option == '--compilation_level'
           if option == '--ns'
             files_for(value, files)
             replacement = []
@@ -92,7 +94,22 @@ class Closure
           args.unshift temp_deps_js.path
           args.unshift '--js'
         end
-        Compiler.new args, @dependencies, File.dirname(@render_stack.last), @env
+        if compilation_level
+          Compiler.new args, @dependencies, File.dirname(@render_stack.last), @env
+        else
+          comp = Compiler.new []
+          comp.stdout = ''
+          args_index = 0
+          while args_index < args.length
+            option, value = args[args_index, 2]
+            if option == '--js'
+              script_tag = "<script src=#{path_for(value).dump}></script>"
+              comp.stdout += "document.write(#{script_tag.dump});\n"
+            end
+            args_index = args_index + 2
+          end
+          comp
+        end
       ensure
         temp_deps_js.unlink if temp_deps_js
       end
@@ -108,6 +125,13 @@ class Closure
     # @return (Array)
     def files_for(namespace, filenames=nil)
       @sources.files_for(namespace, filenames, @env)
+    end
+
+    # Calculate the file server path for a filename.
+    # @param (String) filename
+    # @return (String)
+    def path_for(filename)
+      @sources.path_for(filename, @env)
     end
 
     # The Google Closure base.js script.

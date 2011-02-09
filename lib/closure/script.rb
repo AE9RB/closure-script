@@ -138,8 +138,8 @@ class Closure
     # @param [String]
     # @return [String]
     def expand_src(s)
-      # If the file can't be read, simply skip the cache string.
-      "#{s}?#{File.mtime(expand_path(s)).to_i}" rescue s
+      expanded = expand_path(s)
+      @goog.path_for(expanded) rescue "#{s}?#{File.mtime(expanded).to_i}" rescue s
     end
     
     

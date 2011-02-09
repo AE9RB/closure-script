@@ -88,11 +88,11 @@ class Closure
     end
     
     
-    # Determine the path_info for where base_js is located.
+    # Determine the path_info and query_string for loading base_js.
     # @return [String]
     def base_js(env={})
       if (goog = @goog) and @last_been_run
-        return goog[:base_js]
+        return "#{goog[:base_js]}?#{goog[:base_js_mtime].to_i}"
       end
       @semaphore.synchronize do
         refresh(env)
@@ -198,6 +198,21 @@ class Closure
     end
     
 
+    # Calculate the file server path for a filename
+    # @param (String) filename
+    # @return (String)
+    def path_for(filename, env={})
+      @semaphore.synchronize do
+        refresh(env)
+        f, dep = @files.find {|f, dep| f == filename}
+        unless dep and dep.has_key? :path
+          raise "#{filename.dump} is not available from file server"
+        end
+        "#{dep[:path]}?#{dep[:mtime].to_i}"
+      end
+    end
+    
+
     protected
     
     # Namespace recursion with circular stop on the filename
@@ -271,6 +286,7 @@ class Closure
                   goog = {:base_filename => filename}
                   if dep[:path]
                     goog[:base_js] = dep[:path]
+                    goog[:base_js_mtime] = mtime
                     goog[:deps_js] = dep[:path].gsub(/base.js$/, 'deps.js')
                   end
                 end

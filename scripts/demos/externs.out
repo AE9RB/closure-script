@@ -1,1 +1,0 @@
-window.run_test=function(){document.write("The code ran.");$(".jqtest").hide()};

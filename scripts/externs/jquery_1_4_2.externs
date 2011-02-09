@@ -27,7 +27,7 @@
  */
 
 /*
-goog.provide('vendor.jQuery')
+goog.provide('externs.jQuery.v1_4_2')
 */
 
 /**

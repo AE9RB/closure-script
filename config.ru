@@ -7,8 +7,9 @@ require 'closure'
 
 Closure.add_source :goog, '/goog'
 Closure.add_source :goog_vendor, '/goog_vendor'
-Closure.add_source :soy, '/soy_js'
-Closure.add_source File.join(Closure.base_path, 'scripts'), '/'
+Closure.add_source :soy, '/soy'
+Closure.add_source :demos, '/demos'
+Closure.add_source :externs
 Closure.config.haml[:format] = :html5
 
 use Rack::CommonLogger # slow

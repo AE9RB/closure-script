@@ -1,0 +1,4 @@
+/*
+goog.provide('externs.jQuery')
+goog.require('externs.jQuery.v1_4_2')
+*/

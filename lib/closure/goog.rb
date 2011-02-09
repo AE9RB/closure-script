@@ -80,21 +80,21 @@ class Closure
             args_index = args_index + 2
           end
         end
-        if temp_deps_js
-          # EXPERIMENTAL: support for goog.provide and require in externs.
-          # This is ugly but I hope it will no longer be necessary
-          # once compiler.jar is made aware of goog.provide in externs.
-          temp_deps_js.open
-          @sources.deps_response(File.dirname(base_js), @env).each do |s|
-            temp_deps_js.write s
-          end
-          temp_deps_js.close
-          # File mtime is rolled back to not trigger compilation.
-          File.utime(Time.now, Time.at(0), temp_deps_js.path)
-          args.unshift temp_deps_js.path
-          args.unshift '--js'
-        end
         if compilation_level
+          if temp_deps_js
+            # EXPERIMENTAL: support for goog.provide and require in externs.
+            # This is ugly but I hope it will no longer be necessary
+            # once compiler.jar is made aware of goog.provide in externs.
+            temp_deps_js.open
+            @sources.deps_response(File.dirname(base_js), @env).each do |s|
+              temp_deps_js.write s
+            end
+            temp_deps_js.close
+            # File mtime is rolled back to not trigger compilation.
+            File.utime(Time.now, Time.at(0), temp_deps_js.path)
+            args.unshift temp_deps_js.path
+            args.unshift '--js'
+          end
           Compiler.new args, @dependencies, File.dirname(@render_stack.last), @env
         else
           comp = Compiler.new []

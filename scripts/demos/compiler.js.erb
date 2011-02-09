@@ -1,15 +1,13 @@
-<% 
-args = %w{
+<% args = %w{
   --summary_detail_level 3
   --define goog.DEBUG=false
   --warning_level VERBOSE
-  --ns googly.demos.compiler
+  --ns googly
 }
 
 args << %w{
   --compilation_level ADVANCED_OPTIMIZATIONS    
-  --js_output_file compile.out
+  --js_output_file compiler.out
 } if params.has_key? 'build'
 
-@response = goog.compile(args.flatten).to_response_with_console 
-%>
+@response = goog.compile(args.flatten).to_response_with_console %>

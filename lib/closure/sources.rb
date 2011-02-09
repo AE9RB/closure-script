@@ -128,13 +128,13 @@ class Closure
         unless @deps[base]
           response = @deps[base] ||= Rack::Response.new
           response.write "// Dynamic Deps by Closure Script\n"
-          @files.reject{|a,b|!b[:path]}.sort{|a,b|a[1][:path]<=>b[1][:path]}.each do |filename, dep|
-            path = Pathname.new(dep[:path]).relative_path_from(base)
-            if path.to_s =~ /\.externs$/
+          @files.sort{|a,b|(a[1][:path]||'')<=>(b[1][:path]||'')}.each do |filename, dep|
+            if filename =~ /\.externs$/
               dep[:provide].each do |dep_provide|
                 response.write "goog.provide(#{dep_provide.dump});\n"
               end
-            else
+            elsif dep[:path]
+              path = Pathname.new(dep[:path]).relative_path_from(base)
               path = "#{path}?#{dep[:mtime].to_i}"
               response.write "goog.addDependency(#{path.dump}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
             end

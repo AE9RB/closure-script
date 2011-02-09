@@ -1,0 +1,10 @@
+/*
+goog.provide('externs.jQuery.widget')
+*/
+
+/**
+ * @param {string} name
+ * @param {Object=} options
+ * @return {jQueryObject}
+ */
+jQuery.widget = function(name, options) {};

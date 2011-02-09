@@ -1,1 +1,0 @@
-window.run_test=function(){document.write("PASS: The code in test.js ran.")};

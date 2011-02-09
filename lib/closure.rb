@@ -59,7 +59,8 @@ class Closure
     :goog => File.join(base_path, 'closure-library', 'closure', 'goog'),
     :goog_vendor => File.join(base_path, 'closure-library', 'third_party', 'closure', 'goog'),
     :soy => File.join(base_path, 'closure-templates'),
-    :examples => File.join(base_path, 'scripts', 'examples')
+    :externs => File.join(base_path, 'scripts', 'externs'),
+    :demos => File.join(base_path, 'scripts', 'demos')
   }
   
   

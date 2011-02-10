@@ -16,5 +16,5 @@
 class Closure
   # The first two numerics are the Closure Script major and minor version.  
   # The third numeric is the Closure Library version.
-  VERSION = "1.2.692.pre"
+  VERSION = "1.3.701.pre"
 end

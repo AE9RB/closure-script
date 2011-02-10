@@ -1,8 +1,24 @@
-window.jqueryTest = function $window$jqueryTest$() {
+var $goog$global$$ = this;
+function $goog$exportPath_$$($name$$43_parts$$, $opt_object$$, $cur_opt_objectToExportTo$$) {
+  $name$$43_parts$$ = $name$$43_parts$$.split(".");
+  $cur_opt_objectToExportTo$$ = $cur_opt_objectToExportTo$$ || $goog$global$$;
+  !($name$$43_parts$$[0] in $cur_opt_objectToExportTo$$) && $cur_opt_objectToExportTo$$.execScript && $cur_opt_objectToExportTo$$.execScript("var " + $name$$43_parts$$[0]);
+  for(var $part$$;$name$$43_parts$$.length && ($part$$ = $name$$43_parts$$.shift());) {
+    if(!$name$$43_parts$$.length && $opt_object$$ !== undefined) {
+      $cur_opt_objectToExportTo$$[$part$$] = $opt_object$$
+    }else {
+      $cur_opt_objectToExportTo$$ = $cur_opt_objectToExportTo$$[$part$$] ? $cur_opt_objectToExportTo$$[$part$$] : $cur_opt_objectToExportTo$$[$part$$] = {}
+    }
+  }
+}
+;$goog$exportPath_$$("jqueryTest", function() {
   document.write("<p>Javascript jqueryTest() executed.</p>");
   $(".jqtest").hide()
-};
-window.simpleTest = function $window$simpleTest$() {
+}, void 0);
+$goog$exportPath_$$("simpleTest", function() {
   document.write("<p>Javascript simpleTest() executed.</p>")
-};
+}, void 0);
+$goog$exportPath_$$("helloWorld", function() {
+  document.write("<p>Hello from the Closure Script demo code.</p>")
+}, void 0);
 

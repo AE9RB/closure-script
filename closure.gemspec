@@ -5,11 +5,10 @@ Gem::Specification.new do |s|
   s.name        = "closure"
   s.version     = Closure::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.homepage    = "https://github.com/dturnbull/closure-script"
+  s.homepage    = "http://www.closure-script.com/"
   s.summary     = "Closure Script for Google Closure Compiler, Library, and Templates."
 
   s.required_rubygems_version = ">= 1.3"
-  # s.rubyforge_project         = "closure-script"
   
   s.add_dependency 'rack', '>= 1.0.0'
 

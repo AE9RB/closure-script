@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='authenticity_token' name='csrf-param'>
+    <meta content='cf50faa3fe97702ca1ae&lt;=?' name='csrf-token'>
+    <script src='<%= goog.base_js %>'></script>
+    <script type='text/javascript'>
+      //<![CDATA[
+        goog.require('rails.ujs');
+      //]]>
+    </script>
+  </head>
+  <body>
+    <ul>
+      <li>
+        <a data-confirm='Are you sure?' href='?'>a data-confirm</a>
+      </li>
+      <li>
+        <a data-remote='true' href='?'>a data-remote</a>
+      </li>
+      <li>
+        <a data-method='DELETE' href='?'>a data-method</a>
+      </li>
+      <li>
+        <a data-confirm='Seriously?' data-remote='true' href='?'>a data-confirm data-remote</a>
+      </li>
+      <li>
+        <form action='?' data-remote='true' method='post'>
+          <fieldset>
+            <label for='name'>Name:</label>
+            <input class='text' name='name' type='text'>
+            <input class='button' type='submit' value='Send'>
+          </fieldset>
+        </form>
+      </li>
+    </ul>
+  </body>
+</html>

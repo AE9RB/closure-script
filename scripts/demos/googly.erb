@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src='<%= expand_src('jquery.js') %>'></script>
+    <script src='compiler.js?<%= query_string %>'></script>
+  </head>
+  <body>
+    <p>Mode: <%= h query_string.empty? ? 'raw' : query_string %></p>
+    <p class='jqtest'>
+      Should not see this.  It will be hidden by jQuery.
+    </p>
+    <script type='text/javascript'>
+      //<![CDATA[
+        simpleTest();
+        jqueryTest();
+      //]]>
+    </script>
+  </body>
+</html>

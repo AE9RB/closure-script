@@ -1,5 +1,5 @@
 #\ -p 9009 -E none
-# This is the rackup for developers working on (not with) Closure Script.
+# This is for developers working on (not with) Closure Script.
 
 closure_lib_path = File.expand_path(File.dirname(__FILE__), 'lib')
 $LOAD_PATH.unshift(closure_lib_path) if !$LOAD_PATH.include?(closure_lib_path)

@@ -5,12 +5,17 @@ googly.jqueryTest = function() {
   document.write('<p>Javascript jqueryTest() executed.</p>')
   $('.jqtest').hide()
 }
-goog.exportProperty(window, 'jqueryTest', googly.jqueryTest);
+goog.exportSymbol('jqueryTest', googly.jqueryTest)
 
 googly.simpleTest = function() {
   document.write('<p>Javascript simpleTest() executed.</p>')
 }
-goog.exportProperty(window, 'simpleTest', googly.simpleTest);
+goog.exportSymbol('simpleTest', googly.simpleTest)
+
+googly.helloWorld = function() {
+  document.write('<p>Hello from the Closure Script demo code.</p>')
+}
+goog.exportSymbol('helloWorld', googly.helloWorld)
 
 googly.warningNoOp = function(){
   function warningNoOp(){

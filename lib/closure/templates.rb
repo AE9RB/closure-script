@@ -96,7 +96,7 @@ class Closure
               args_index += 1
             else 
               arg = args[args_index]
-              if arg =~ /\/\*\*\//
+              if arg =~ /\*/
                 args[args_index,1] = Dir.glob arg
               else
                 args_index += 1

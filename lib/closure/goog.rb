@@ -87,6 +87,7 @@ class Closure
             # once compiler.jar is made aware of goog.provide in externs.
             temp_deps_js.open
             @sources.deps_response(File.dirname(base_js), @env).each do |s|
+              next unless s =~ /^goog\.provide/
               temp_deps_js.write s
             end
             temp_deps_js.close

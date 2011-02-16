@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require 'open3'
+require 'thread'
 
 class Closure
   

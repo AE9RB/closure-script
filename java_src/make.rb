@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# I'm not a Java programmer.  I didn't want to learn ant.
+#TODO move to Rakefile
 raise "Remove old .class files before running make" unless Dir.glob("*.class").empty?
 `javac -classpath ../closure-compiler/compiler.jar:../closure-templates/SoyToJsSrcCompiler.jar:../beanshell/bsh-core-2.0b4.jar ClosureScript.java`
-`jar cf ../lib/closure.jar *.class`
+`jar cf ../lib/shim.jar *.class`
 %w{ClosureScript.class ClosureScript$1.class ClosureScript$SystemExitException.class ClosureScript$UnclosablePrintStream.class}.each {|f| File.unlink f rescue nil}

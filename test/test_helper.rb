@@ -2,7 +2,7 @@ require 'test/unit'
 require 'rubygems'
 require 'rack/mock'
 
-closure_lib_path = File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
+closure_lib_path = File.expand_path('../lib', File.dirname(__FILE__))
 $LOAD_PATH.unshift(closure_lib_path) if !$LOAD_PATH.include?(closure_lib_path)
 require 'closure'
 

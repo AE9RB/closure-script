@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require 'pathname'
+require 'thread'
 
 class Closure
   

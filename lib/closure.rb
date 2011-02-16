@@ -97,7 +97,7 @@ class Closure
     @@beanshell ||= BeanShell.new [
       config.compiler_jar,
       config.soy_js_jar,
-      File.join(base_path, 'lib', 'closure.jar')
+      File.join(base_path, 'lib', 'shim.jar')
     ]
     @@beanshell.run(command)
   end

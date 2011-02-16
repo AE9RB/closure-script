@@ -58,7 +58,7 @@ class ServerTest < Test::Unit::TestCase
     response = @request.get("/route_js.js.erb")
     assert response.ok?
     assert_equal 'text/plain', response.content_type
-    # The renedered version is application/javascript
+    # The rendered version is application/javascript
     response = @request.get("/route_js.js")
     assert response.ok?
     assert_equal 'application/javascript', response.content_type

@@ -5,10 +5,31 @@ require 'warbler'
 require 'rake/gempackagetask'
 require 'rake/testtask'
 require 'yard'
-require 'rack'
-require 'haml'
+
+# All docs are distributed with the war
+# Only closure is packaged with the gem
+DOCS_GEMS = %w{closure rack haml}
+
+# These versions are important mostly for war packaging.
+# Gem users are free to mix and match any sensible versions.
+HAML_VER = '= 3.0.25' # check for dwell on sass when upgrading
+JRUBY_JARS_VER = '= 1.5.6'
+# jruby-rack embeds a specific version of rack, keep in sync
+JRUBY_RACK_VER = '= 1.0.6'
+RACK_VER = '= 1.2.1'
+
+gem 'haml', HAML_VER
+gem 'rack', RACK_VER
 
 #TODO add java build (see example in warbler makefile)
+
+# SERVER
+
+desc 'Start the Closure Script server'
+task 'server' do
+  require 'rack'
+  Rack::Server.start :config => "config.ru"
+end
 
 # TEST
 
@@ -41,10 +62,15 @@ file "closure.gemspec" => ["Rakefile"] do |t|
   open(t.name, "w") { |f| f.puts gem_spec.to_yaml }
 end
 
-gem_task = Rake::GemPackageTask.new(gem_spec) do |pkg|
-  pkg.need_zip = true
-  pkg.need_tar = true
+task 'gem:ensure_closure_docs' do
+  unless File.exists? "scripts/docs/closure/index.html"
+    print "Docs for closure not built.\n"
+    exit 1
+  end
 end
+task 'gem' => 'gem:ensure_closure_docs'
+
+gem_task = Rake::GemPackageTask.new(gem_spec) {}
 
 # WAR
 
@@ -59,11 +85,11 @@ war_config = Warbler::Config.new do |config|
     lib
     scripts
   )
-  config.includes = FileList[".yardopts", 'LICENSE', 'README.md']
+  config.includes = FileList['LICENSE']
 
-  config.gems << "jruby-jars"
-  config.gems << "jruby-rack"
-  config.gems << "haml"
+  config.gems << Gem::Dependency.new("jruby-jars", JRUBY_JARS_VER)
+  config.gems << Gem::Dependency.new("jruby-rack", JRUBY_RACK_VER)
+  config.gems << Gem::Dependency.new("haml", HAML_VER)
   
   config.features = %w(executable)
   config.bundler = false
@@ -72,9 +98,13 @@ war_config = Warbler::Config.new do |config|
   config.webxml.rackup = <<-EOS
     require 'rubygems'
     require 'java'
+    $LOAD_PATH.unshift File.expand_path('lib')
     Dir.chdir(java.lang.System.getProperty('user.dir'))
     eval(File.read('config.ru'), binding, 'config.ru')
   EOS
+  
+  # Include any file to create classes folder which stops a warning
+  config.java_classes = FileList['Rakefile']
   
   # I can't figure out why jruby-rack has these settings.
   # Both need to be true or we often won't see the request.
@@ -88,22 +118,27 @@ task 'war' do
   # warbler won't make this automatically like rake does
   dir = war_config.autodeploy_dir
   mkdir_p dir if !File.exist?(dir)
+  # ensure all docs were built
+  DOCS_GEMS.each do |gem_name|
+    unless File.exists? "scripts/docs/#{gem_name}/index.html"
+      print "Docs for #{gem_name} not built.\n"
+      exit 1
+    end
+  end
 end
 
 Warbler::Task.new("war", war_config)
 
-desc 'Broken, use clobber_package.'
+desc 'Broken, use clobber_package'
 task 'war:clean' do
   # warbler maybe should support autodeploy_dir for this
 end
 
-# WAR server
-
-desc 'java server'
-task 'war:run' do
+desc 'Start the project .war server'
+task 'war:server' do
   war_file = File.join war_config.autodeploy_dir, war_config.war_name + '.war'
   unless File.exist?(war_file)
-    print "ERROR: Build #{war_file} with `rake war` first.\n"
+    print "Build #{war_file} first.\n"
     exit 1
   end
   exec "#{Closure.config.java} -jar #{war_file}"
@@ -111,28 +146,35 @@ end
 
 # DOCS
 
-DOCS_GEMS = %w{closure rack haml}
-
 DOCS_GEMS.each do |gem_name|
   if gem_name == 'closure'
     spec = nil
   else
     spec = Gem.loaded_specs[gem_name]
-    raise "Gem #{gem_name} not loaded." unless spec
+    unless spec
+      print "Gem #{gem_name} not loaded." 
+      exit 1
+    end
   end
+  #TODO we can hijack the --readme
   if gem_name == 'rack'
     extra = '- SPEC'
+  elsif gem_name == 'haml'
+    extra = '- MIT-LICENSE'
   else
     extra = ''
   end
-  desc 'Generate YARD Documentation'
+  desc 'Generate #{gem_name} documentation'
   task "docs:#{gem_name}" do
     db_dir = File.expand_path(".yardoc_#{gem_name}")
+    rm_rf db_dir # ensure full build
     out_dir = File.expand_path("scripts/docs/#{gem_name}")
+    rm_rf out_dir
     save_dir = Dir.getwd
     Dir.chdir(spec.full_gem_path) if spec
     `yardoc --db #{db_dir} --output-dir #{out_dir} #{extra}`
     Dir.chdir save_dir
+    rm_rf db_dir # cleanup
   end
 end
 

@@ -3,6 +3,7 @@ closure.gemspec
 .yardoc*
 pkg/*
 tmp/*
+scripts/docs/closure/*
 scripts/docs/haml/*
 scripts/docs/rack/*
 closure-library/closure/bin/*.pyc

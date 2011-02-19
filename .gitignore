@@ -1,7 +1,9 @@
 .DS_Store
 closure.gemspec
-.yardoc
+.yardoc*
 pkg/*
 tmp/*
+scripts/docs/haml/*
+scripts/docs/rack/*
 closure-library/closure/bin/*.pyc
 closure-library/closure/bin/build/*.pyc

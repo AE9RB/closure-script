@@ -60,7 +60,8 @@ class Closure
     :goog_vendor => File.join(base_path, 'closure-library', 'third_party', 'closure', 'goog'),
     :soy => File.join(base_path, 'closure-templates'),
     :externs => File.join(base_path, 'scripts', 'externs'),
-    :demos => File.join(base_path, 'scripts', 'demos')
+    :demos => File.join(base_path, 'scripts', 'demos'),
+    :docs => File.join(base_path, 'scripts', 'docs')
   }
   
   
@@ -75,7 +76,11 @@ class Closure
   # @param (String) directory Where the scripts are in the filesystem.
   # @param (Symbol) built_in
   def self.add_source(directory, path=nil)
-    directory = BUILT_INS[directory] if directory.kind_of? Symbol
+    if directory.kind_of? Symbol
+      dir = BUILT_INS[directory] 
+      raise "Unknown built-in: #{directory}" unless dir
+      directory = dir
+    end
     sources.add directory, path
   end
 

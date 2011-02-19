@@ -3,8 +3,20 @@ $LOAD_PATH.unshift(closure_lib_path) if !$LOAD_PATH.include?(closure_lib_path)
 require 'closure'
 require 'warbler'
 require 'rake/gempackagetask'
+require 'rake/testtask'
+require 'yard'
+require 'rack'
+require 'haml'
 
-#TODO ADD: tests and java build (see example in warbler makefile)
+#TODO add java build (see example in warbler makefile)
+
+# TEST
+
+Rake::TestTask.new do |t|
+  t.libs << "test"
+  t.test_files = FileList['test/*_test.rb']
+  t.verbose = true
+end
 
 # GEM
 
@@ -51,17 +63,17 @@ war_config = Warbler::Config.new do |config|
 
   config.gems << "jruby-jars"
   config.gems << "jruby-rack"
-  config.gems << "yard"
-  config.gems << "BlueCloth"
+  config.gems << "haml"
   
   config.features = %w(executable)
   config.bundler = false
 
   config.webxml.booter = :rack
   config.webxml.rackup = <<-EOS
+    require 'rubygems'
     require 'java'
-    config = File.expand_path 'config.ru', java.lang.System.getProperty('user.dir')
-    eval(File.read config)
+    Dir.chdir(java.lang.System.getProperty('user.dir'))
+    eval(File.read('config.ru'), binding, 'config.ru')
   EOS
   
   # I can't figure out why jruby-rack has these settings.
@@ -80,6 +92,11 @@ end
 
 Warbler::Task.new("war", war_config)
 
+desc 'Broken, use clobber_package.'
+task 'war:clean' do
+  # warbler maybe should support autodeploy_dir for this
+end
+
 # WAR server
 
 desc 'java server'
@@ -91,4 +108,34 @@ task 'war:run' do
   end
   exec "#{Closure.config.java} -jar #{war_file}"
 end
+
+# DOCS
+
+DOCS_GEMS = %w{closure rack haml}
+
+DOCS_GEMS.each do |gem_name|
+  if gem_name == 'closure'
+    spec = nil
+  else
+    spec = Gem.loaded_specs[gem_name]
+    raise "Gem #{gem_name} not loaded." unless spec
+  end
+  if gem_name == 'rack'
+    extra = '- SPEC'
+  else
+    extra = ''
+  end
+  desc 'Generate YARD Documentation'
+  task "docs:#{gem_name}" do
+    db_dir = File.expand_path(".yardoc_#{gem_name}")
+    out_dir = File.expand_path("scripts/docs/#{gem_name}")
+    save_dir = Dir.getwd
+    Dir.chdir(spec.full_gem_path) if spec
+    `yardoc --db #{db_dir} --output-dir #{out_dir} #{extra}`
+    Dir.chdir save_dir
+  end
+end
+
+desc 'Generate all documentation'
+task 'docs' => DOCS_GEMS.collect {|s| "docs:#{s}"}
 

@@ -1,0 +1,871 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta name="Content-Type" content="text/html; charset=utf-8" />
+<title>Class: Closure::Compiler</title>
+<link rel="stylesheet" href="../css/style.css" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="../css/common.css" type="text/css" media="screen" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  relpath = '..';
+  if (relpath != '') relpath += '/';
+</script>
+<script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+<script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+  </head>
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      if (window.top.frames.main) document.body.className = 'frames';
+    </script>
+    
+    <div id="header">
+      <div id="menu">
+  
+    <a href="../_index.html">Index (C)</a> &raquo; 
+    <span class='title'><span class='object_link'><a href="../Closure.html" title="Closure (class)">Closure</a></span></span>
+     &raquo; 
+    <span class="title">Compiler</span>
+  
+  
+  <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
+</div>
+
+      <div id="search">
+  <a id="class_list_link" href="#">Class List</a>
+  <a id="method_list_link" href="#">Method List</a>
+  <a id ="file_list_link" href="#">File List</a>
+</div>
+
+      <div class="clear"></div>
+    </div>
+    
+    <iframe id="search_frame"></iframe>
+    
+    <div id="content"><h1>Class: Closure::Compiler
+  
+  
+  
+</h1>
+
+<dl class="box">
+  
+    <dt class="r1">Inherits:</dt>
+    <dd class="r1">
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Closure::Compiler</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+      </dd>
+    
+  
+  
+    
+  
+    
+  
+  
+  
+    <dt class="r2 last">Defined in:</dt>
+    <dd class="r2 last">lib/closure/compiler.rb</dd>
+  
+</dl>
+<div class="clear"></div>
+
+
+  <h2>Constant Summary</h2>
+  
+    <dl class="constants">
+      
+        <dt id="OUTPUT_OPTIONS-constant" class="">OUTPUT_OPTIONS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>
+These are filename options and will be expanded to a new base. If supplied
+as arguments, output options are available as instance variables and
+attributes that have been expanded to the new base.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+</div>
+        </dt>
+        <dd><pre class="code"><span class='dstring node'>%w{
+  --create_source_map
+  --js_output_file
+  --output_manifest
+  --property_map_output_file
+  --variable_map_output_file
+}</span>
+</pre></dd>
+      
+        <dt id="INPUT_OPTIONS-constant" class="">INPUT_OPTIONS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>
+These are filename options and will be expanded to a new base. These will
+have their modification times checked against js_output_file.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+</div>
+        </dt>
+        <dd><pre class="code"><span class='dstring node'>%w{
+  --js
+  --externs
+  --property_map_input_file
+  --variable_map_input_file
+}</span>
+</pre></dd>
+      
+    </dl>
+  
+
+
+  <h2>Instance Attribute Summary <small>(<a href="#" class="summary_toggle">collapse</a>)</small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#stderr-instance_method" title="#stderr (instance method)">- (Object) <strong>stderr</strong> </a>
+    
+
+    
+  </span>
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Results from compiler.jar.
+</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#stdout-instance_method" title="#stdout (instance method)">- (Object) <strong>stdout</strong> </a>
+    
+
+    
+  </span>
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Results from compiler.jar.
+</p>
+</div></span>
+  
+</li>
+
+    
+  </ul>
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small>(<a href="#" class="summary_toggle">collapse</a>)</small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">- (Compiler) <strong>initialize</strong>(args, dependencies = [], base = nil, env = {}) </a>
+    
+
+    
+  </span>
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Instantiating will perform compilation.
+</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#javascript-instance_method" title="#javascript (instance method)">- (Object) <strong>javascript</strong> </a>
+    
+
+    
+      (also: #to_s)
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Always returns the compiled javascript (possibly an empty string).
+</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#to_response-instance_method" title="#to_response (instance method)">- (#finish) <strong>to_response</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Allows http caching of the js_output_file for scripts that want to do their
+own error checking.
+</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#to_response_with_console-instance_method" title="#to_response_with_console (instance method)">- (Object) <strong>to_response_with_console</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Checks the compilation status and will log to the javascript console.
+</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <p class="signature first" id="initialize-instance_method">
+  
+    - (<tt><span class='object_link'><a href="" title="Closure::Compiler (class)">Compiler</a></span></tt>) <strong>initialize</strong>(args, dependencies = [], base = nil, env = {}) 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Instantiating will perform compilation. It will check file modification
+times but does not support namespaces like <span class='object_link'><a href="Goog.html#compile-instance_method" title="Closure::Goog#compile (method)">Goog#compile</a></span> does.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <h3>Parameters:</h3>
+<ul class="param">
+  
+    <li>
+      
+        <span class='type'>(<tt>Array</tt>)</span>
+      
+      
+        <span class='name'>args</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>
+Arguments for the compiler.
+</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>Array</tt>)</span>
+      
+      
+        <span class='name'>dependencies</span>
+      
+      
+        <em class="default">(defaults to: <tt>[]</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>
+Any other files to check mtime on, like makefiles.
+</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>base</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>
+All filenames will be expanded to this location.
+</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+        <span class='name'>env</span>
+      
+      
+        <em class="default">(defaults to: <tt>{}</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>
+Rack environment. Supply if you want a response that is cacheable and for
+<span class='object_link'><a href="Templates.html" title="Closure::Templates (class)">Templates</a></span> errors to be processed.
+</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/compiler.rb', line 50</span>
+
+<span class='def def kw'>def</span> <span class='initialize identifier id'>initialize</span><span class='lparen token'>(</span><span class='args identifier id'>args</span><span class='comma token'>,</span> <span class='dependencies identifier id'>dependencies</span> <span class='assign token'>=</span> <span class='lbrack token'>[</span><span class='rbrack token'>]</span><span class='comma token'>,</span> <span class='base identifier id'>base</span> <span class='assign token'>=</span> <span class='nil nil kw'>nil</span><span class='comma token'>,</span> <span class='env identifier id'>env</span> <span class='assign token'>=</span> <span class='lbrace token'>{</span><span class='rbrace token'>}</span><span class='rparen token'>)</span>
+  <span class='@env ivar id'>@env</span> <span class='assign token'>=</span> <span class='env identifier id'>env</span>
+  <span class='return return kw'>return</span> <span class='if if_mod kw'>if</span> <span class='args identifier id'>args</span><span class='dot token'>.</span><span class='empty? fid id'>empty?</span> <span class='comment val'># otherwise java locks up</span>
+  <span class='args identifier id'>args</span> <span class='assign token'>=</span> <span class='Array constant id'>Array</span><span class='dot token'>.</span><span class='new identifier id'>new</span> <span class='args identifier id'>args</span>
+  <span class='files identifier id'>files</span> <span class='assign token'>=</span> <span class='lbrack token'>[</span><span class='rbrack token'>]</span>
+  <span class='comment val'># Scan to expand paths and extend self with output options</span>
+  <span class='args_index identifier id'>args_index</span> <span class='assign token'>=</span> <span class='integer val'>0</span>
+  <span class='while while kw'>while</span> <span class='args_index identifier id'>args_index</span> <span class='lt op'>&lt;</span> <span class='args identifier id'>args</span><span class='dot token'>.</span><span class='length identifier id'>length</span>
+    <span class='option identifier id'>option</span><span class='comma token'>,</span> <span class='value identifier id'>value</span> <span class='assign token'>=</span> <span class='args identifier id'>args</span><span class='lbrack token'>[</span><span class='args_index identifier id'>args_index</span><span class='comma token'>,</span> <span class='integer val'>2</span><span class='rbrack token'>]</span>
+    <span class='value identifier id'>value</span> <span class='assign token'>=</span> <span class='File constant id'>File</span><span class='dot token'>.</span><span class='expand_path identifier id'>expand_path</span><span class='lparen token'>(</span><span class='value identifier id'>value</span><span class='comma token'>,</span> <span class='base identifier id'>base</span><span class='rparen token'>)</span> <span class='if if_mod kw'>if</span> <span class='base identifier id'>base</span>
+    <span class='if if kw'>if</span> <span class='INPUT_OPTIONS constant id'>INPUT_OPTIONS</span><span class='dot token'>.</span><span class='include? fid id'>include?</span><span class='lparen token'>(</span><span class='option identifier id'>option</span><span class='rparen token'>)</span>
+      <span class='files identifier id'>files</span> <span class='lshft op'>&lt;&lt;</span> <span class='args identifier id'>args</span><span class='lbrack token'>[</span><span class='args_index identifier id'>args_index</span><span class='plus op'>+</span><span class='integer val'>1</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='value identifier id'>value</span>
+    <span class='end end kw'>end</span>
+    <span class='if if kw'>if</span> <span class='OUTPUT_OPTIONS constant id'>OUTPUT_OPTIONS</span><span class='dot token'>.</span><span class='include? fid id'>include?</span><span class='lparen token'>(</span><span class='option identifier id'>option</span><span class='rparen token'>)</span>
+      <span class='var_name identifier id'>var_name</span> <span class='assign token'>=</span> <span class='option identifier id'>option</span><span class='dot token'>.</span><span class='sub identifier id'>sub</span><span class='lparen token'>(</span><span class='regexp val'>/^--/</span><span class='comma token'>,</span> <span class='string val'>''</span><span class='rparen token'>)</span>
+      <span class='instance_variable_set identifier id'>instance_variable_set</span> <span class='dstring node'>&quot;@#{var_name}&quot;</span><span class='comma token'>,</span> <span class='args identifier id'>args</span><span class='lbrack token'>[</span><span class='args_index identifier id'>args_index</span><span class='plus op'>+</span><span class='integer val'>1</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='value identifier id'>value</span>
+      <span class='eval identifier id'>eval</span> <span class='dstring node'>&quot;def self.#{var_name}; @#{var_name}; end&quot;</span>
+    <span class='end end kw'>end</span>
+    <span class='args_index identifier id'>args_index</span> <span class='assign token'>=</span> <span class='args_index identifier id'>args_index</span> <span class='plus op'>+</span> <span class='integer val'>2</span>
+  <span class='end end kw'>end</span>
+  <span class='comment val'># We don't bother compiling if we can detect that no sources were modified</span>
+  <span class='if if kw'>if</span> <span class='@js_output_file ivar id'>@js_output_file</span>
+    <span class='js_mtime identifier id'>js_mtime</span> <span class='assign token'>=</span> <span class='File constant id'>File</span><span class='dot token'>.</span><span class='mtime identifier id'>mtime</span> <span class='@js_output_file ivar id'>@js_output_file</span> <span class='rescue rescue kw'>rescue</span> <span class='Errno constant id'>Errno</span><span class='colon2 op'>::</span><span class='ENOENT constant id'>ENOENT</span>
+    <span class='compiled identifier id'>compiled</span> <span class='assign token'>=</span> <span class='notop op'>!</span><span class='notop op'>!</span><span class='File constant id'>File</span><span class='dot token'>.</span><span class='size? fid id'>size?</span><span class='lparen token'>(</span><span class='@js_output_file ivar id'>@js_output_file</span><span class='rparen token'>)</span> <span class='comment val'># catches empty files too</span>
+    <span class='lparen token'>(</span><span class='files identifier id'>files</span> <span class='plus op'>+</span> <span class='dependencies identifier id'>dependencies</span><span class='rparen token'>)</span><span class='dot token'>.</span><span class='each identifier id'>each</span> <span class='do do kw'>do</span> <span class='bitor op'>|</span><span class='filename identifier id'>filename</span><span class='bitor op'>|</span>
+      <span class='break break kw'>break</span> <span class='unless unless_mod kw'>unless</span> <span class='compiled identifier id'>compiled</span>
+      <span class='mtime identifier id'>mtime</span> <span class='assign token'>=</span> <span class='File constant id'>File</span><span class='dot token'>.</span><span class='mtime identifier id'>mtime</span> <span class='filename identifier id'>filename</span>
+      <span class='compiled identifier id'>compiled</span> <span class='assign token'>=</span> <span class='false false kw'>false</span> <span class='if if_mod kw'>if</span> <span class='notop op'>!</span><span class='mtime identifier id'>mtime</span> <span class='or or kw'>or</span> <span class='mtime identifier id'>mtime</span> <span class='gt op'>&gt;</span> <span class='js_mtime identifier id'>js_mtime</span>
+    <span class='end end kw'>end</span>
+    <span class='return return kw'>return</span> <span class='if if_mod kw'>if</span> <span class='compiled identifier id'>compiled</span>
+    <span class='File constant id'>File</span><span class='dot token'>.</span><span class='unlink identifier id'>unlink</span> <span class='@js_output_file ivar id'>@js_output_file</span> <span class='rescue rescue kw'>rescue</span> <span class='Errno constant id'>Errno</span><span class='colon2 op'>::</span><span class='ENOENT constant id'>ENOENT</span>
+  <span class='end end kw'>end</span>
+  <span class='comment val'># Do it; defensive .to_s.dump allows for bools and nums</span>
+  <span class='java_opts identifier id'>java_opts</span> <span class='assign token'>=</span> <span class='args identifier id'>args</span><span class='dot token'>.</span><span class='collect identifier id'>collect</span><span class='lbrace token'>{</span><span class='bitor op'>|</span><span class='a identifier id'>a</span><span class='bitor op'>|</span><span class='a identifier id'>a</span><span class='dot token'>.</span><span class='to_s identifier id'>to_s</span><span class='dot token'>.</span><span class='dump identifier id'>dump</span><span class='rbrace token'>}</span><span class='dot token'>.</span><span class='join identifier id'>join</span><span class='lparen token'>(</span><span class='string val'>', '</span><span class='rparen token'>)</span>
+  <span class='@stdout ivar id'>@stdout</span><span class='comma token'>,</span> <span class='@stderr ivar id'>@stderr</span> <span class='assign token'>=</span> <span class='Closure constant id'>Closure</span><span class='dot token'>.</span><span class='java identifier id'>java</span><span class='lparen token'>(</span><span class='dstring node'>&quot;ClosureScript.compile_js(new String[]{#{java_opts}});&quot;</span><span class='rparen token'>)</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+  <div id="instance_attr_details" class="attr_details">
+    <h2>Instance Attribute Details</h2>
+    
+      
+      <span id="stderr=-instance_method"></span>
+      <span id="stderr-instance_method"></span>
+      <div class="method_details first">
+  <p class="signature first" id="stderr-instance_method">
+  
+    - (<tt>Object</tt>) <strong>stderr</strong> 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Results from compiler.jar. The log, when there is one, is found here. Use
+`--summary_detail_level 3` to see log when no errors or warnings. If
+nil, compilation was skipped because js_output_file was up to date.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+167
+168
+169</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/compiler.rb', line 167</span>
+
+<span class='def def kw'>def</span> <span class='stderr identifier id'>stderr</span>
+  <span class='@stderr ivar id'>@stderr</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="stdout=-instance_method"></span>
+      <span id="stdout-instance_method"></span>
+      <div class="method_details ">
+  <p class="signature " id="stdout-instance_method">
+  
+    - (<tt>Object</tt>) <strong>stdout</strong> 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Results from compiler.jar. If you didn&#8217;t specify a
+--js_output_file then this will be the compiled script. Otherwise,
+it&#8217;s usually empty but may contain output depending on the arguments.
+If nil, compilation was skipped because js_output_file was up to date.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+162
+163
+164</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/compiler.rb', line 162</span>
+
+<span class='def def kw'>def</span> <span class='stdout identifier id'>stdout</span>
+  <span class='@stdout ivar id'>@stdout</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+    
+    
+      <div class="method_details first">
+  <p class="signature first" id="javascript-instance_method">
+  
+    - (<tt>Object</tt>) <strong>javascript</strong> 
+  
+
+  
+    <span class="aliases">Also known as:
+    <span class="names"><span id='to_s-instance_method'>to_s</span></span>
+    </span>
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Always returns the compiled javascript (possibly an empty string).
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+  <div class="examples">
+    <h3>Examples:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code"><span class='lt op'>&lt;</span><span class='string val'>%= goog.compile(args) %&gt;
+</span></pre>
+    
+  </div>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+149
+150
+151
+152
+153
+154
+155</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/compiler.rb', line 149</span>
+
+<span class='def def kw'>def</span> <span class='javascript identifier id'>javascript</span>
+  <span class='if if kw'>if</span> <span class='@js_output_file ivar id'>@js_output_file</span>
+    <span class='File constant id'>File</span><span class='dot token'>.</span><span class='read identifier id'>read</span><span class='lparen token'>(</span><span class='@js_output_file ivar id'>@js_output_file</span><span class='rparen token'>)</span> <span class='rescue rescue kw'>rescue</span> <span class='string val'>''</span>
+  <span class='else else kw'>else</span>
+    <span class='@stdout ivar id'>@stdout</span>
+  <span class='end end kw'>end</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="to_response-instance_method">
+  
+    - (<tt>#finish</tt>) <strong>to_response</strong> 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Allows http caching of the js_output_file for scripts that want to do their
+own error checking.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+  <div class="examples">
+    <h3>Examples:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code"><span class='lt op'>&lt;</span><span class='string val'>% @response </span><span class='assign token'>=</span> <span class='goog identifier id'>goog</span><span class='dot token'>.</span><span class='compile identifier id'>compile</span><span class='lparen token'>(</span><span class='args identifier id'>args</span><span class='rparen token'>)</span><span class='dot token'>.</span><span class='to_response identifier id'>to_response</span> <span class='string val'>%&gt;
+</span></pre>
+    
+  </div>
+<h3>Returns:</h3>
+<ul class="return">
+  
+    <li>
+      
+        <span class='type'>(<tt>#finish</tt>)</span>
+      
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/compiler.rb', line 92</span>
+
+<span class='def def kw'>def</span> <span class='to_response identifier id'>to_response</span>
+  <span class='if if kw'>if</span> <span class='@js_output_file ivar id'>@js_output_file</span>
+    <span class='FileResponse constant id'>FileResponse</span><span class='dot token'>.</span><span class='new identifier id'>new</span> <span class='@env ivar id'>@env</span><span class='comma token'>,</span> <span class='@js_output_file ivar id'>@js_output_file</span><span class='comma token'>,</span> <span class='string val'>'application/javascript'</span>
+  <span class='else else kw'>else</span>
+    <span class='response identifier id'>response</span> <span class='assign token'>=</span> <span class='Rack constant id'>Rack</span><span class='colon2 op'>::</span><span class='Response constant id'>Response</span><span class='dot token'>.</span><span class='new identifier id'>new</span>
+    <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='headers identifier id'>headers</span><span class='lbrack token'>[</span><span class='string val'>'Content-Type'</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='string val'>'application/javascript'</span>
+    <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='headers identifier id'>headers</span><span class='lbrack token'>[</span><span class='string val'>&quot;Cache-Control&quot;</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='string val'>'max-age=0, private, must-revalidate'</span>
+    <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='write identifier id'>write</span> <span class='@stdout ivar id'>@stdout</span>
+    <span class='response identifier id'>response</span>
+  <span class='end end kw'>end</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="to_response_with_console-instance_method">
+  
+    - (<tt>Object</tt>) <strong>to_response_with_console</strong> 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Checks the compilation status and will log to the javascript console. This
+is the best technique for compiling unless you have different needs for
+reporting errors.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+  <div class="examples">
+    <h3>Examples:</h3>
+    
+      <h4><div class='inline'></div></h4>
+      <pre class="example code"><span class='lt op'>&lt;</span><span class='string val'>% @response </span><span class='assign token'>=</span> <span class='goog identifier id'>goog</span><span class='dot token'>.</span><span class='compile identifier id'>compile</span><span class='lparen token'>(</span><span class='args identifier id'>args</span><span class='rparen token'>)</span><span class='dot token'>.</span><span class='to_response_with_console identifier id'>to_response_with_console</span> <span class='string val'>%&gt;
+</span></pre>
+    
+  </div>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/compiler.rb', line 109</span>
+
+<span class='def def kw'>def</span> <span class='to_response_with_console identifier id'>to_response_with_console</span>
+  <span class='response identifier id'>response</span> <span class='assign token'>=</span> <span class='Rack constant id'>Rack</span><span class='colon2 op'>::</span><span class='Response constant id'>Response</span><span class='dot token'>.</span><span class='new identifier id'>new</span>
+  <span class='comment val'># Closure Template Errors</span>
+  <span class='templates_errors_js identifier id'>templates_errors_js</span> <span class='assign token'>=</span> <span class='Templates constant id'>Templates</span><span class='dot token'>.</span><span class='errors_js identifier id'>errors_js</span> <span class='@env ivar id'>@env</span>
+  <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='write identifier id'>write</span> <span class='templates_errors_js identifier id'>templates_errors_js</span> <span class='if if_mod kw'>if</span> <span class='templates_errors_js identifier id'>templates_errors_js</span>
+  <span class='comment val'># Closure Compiler Errors</span>
+  <span class='if if kw'>if</span> <span class='stderr identifier id'>stderr</span> <span class='and and kw'>and</span> <span class='notop op'>!</span><span class='stderr identifier id'>stderr</span><span class='dot token'>.</span><span class='empty? fid id'>empty?</span>
+    <span class='split_log identifier id'>split_log</span> <span class='assign token'>=</span> <span class='stderr identifier id'>stderr</span><span class='dot token'>.</span><span class='split identifier id'>split</span><span class='lparen token'>(</span><span class='string val'>&quot;\n&quot;</span><span class='rparen token'>)</span>
+    <span class='if if kw'>if</span> <span class='split_log identifier id'>split_log</span><span class='dot token'>.</span><span class='last identifier id'>last</span> <span class='match op'>=~</span> <span class='regexp val'>/^\d+ err/i</span>
+      <span class='error_message identifier id'>error_message</span> <span class='assign token'>=</span> <span class='split_log identifier id'>split_log</span><span class='dot token'>.</span><span class='pop identifier id'>pop</span>
+    <span class='else else kw'>else</span>
+      <span class='error_message identifier id'>error_message</span> <span class='assign token'>=</span> <span class='split_log identifier id'>split_log</span><span class='dot token'>.</span><span class='shift identifier id'>shift</span>
+    <span class='end end kw'>end</span>
+    <span class='error_log identifier id'>error_log</span> <span class='assign token'>=</span> <span class='string val'>&quot;'Closure Compiler: %s', &quot;</span>
+    <span class='if if kw'>if</span> <span class='split_log identifier id'>split_log</span><span class='dot token'>.</span><span class='empty? fid id'>empty?</span>
+      <span class='error_log identifier id'>error_log</span> <span class='opasgn op'>+=</span> <span class='error_message identifier id'>error_message</span><span class='dot token'>.</span><span class='dump identifier id'>dump</span>
+    <span class='else else kw'>else</span>
+      <span class='error_log identifier id'>error_log</span> <span class='opasgn op'>+=</span> <span class='lparen token'>(</span><span class='error_message identifier id'>error_message</span> <span class='plus op'>+</span> <span class='string val'>&quot;\n\n&quot;</span> <span class='plus op'>+</span> <span class='split_log identifier id'>split_log</span><span class='dot token'>.</span><span class='join identifier id'>join</span><span class='lparen token'>(</span><span class='string val'>&quot;\n&quot;</span><span class='rparen token'>)</span><span class='rparen token'>)</span><span class='dot token'>.</span><span class='dump identifier id'>dump</span>
+    <span class='end end kw'>end</span>
+    <span class='if if kw'>if</span> <span class='error_message identifier id'>error_message</span> <span class='match op'>=~</span> <span class='regexp val'>/^0 err/i</span>
+      <span class='if if kw'>if</span> <span class='error_message identifier id'>error_message</span> <span class='match op'>=~</span> <span class='regexp val'>/ 0 warn/i</span>
+        <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='write identifier id'>write</span> <span class='dstring node'>&quot;try{console.log(#{error_log})}catch(err){};\n&quot;</span>
+      <span class='else else kw'>else</span>
+        <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='write identifier id'>write</span> <span class='dstring node'>&quot;try{console.warn(#{error_log})}catch(err){};\n&quot;</span>
+      <span class='end end kw'>end</span>
+    <span class='else else kw'>else</span>
+      <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='write identifier id'>write</span> <span class='dstring node'>&quot;try{console.error(#{error_log})}catch(err){};\n&quot;</span>
+    <span class='end end kw'>end</span>
+  <span class='end end kw'>end</span>
+  <span class='comment val'># Finally, the javascript</span>
+  <span class='return return kw'>return</span> <span class='to_response identifier id'>to_response</span> <span class='if if_mod kw'>if</span> <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='empty? fid id'>empty?</span>
+  <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='write identifier id'>write</span> <span class='javascript identifier id'>javascript</span>
+  <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='headers identifier id'>headers</span><span class='lbrack token'>[</span><span class='string val'>'Content-Type'</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='string val'>'application/javascript'</span>
+  <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='headers identifier id'>headers</span><span class='lbrack token'>[</span><span class='string val'>&quot;Cache-Control&quot;</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='string val'>'max-age=0, private, must-revalidate'</span>
+  <span class='response identifier id'>response</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+    
+    <div id="footer">
+  Generated on Fri Feb 18 18:19:49 2011 by 
+  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.6.4 (ruby-1.8.7).
+</div>
+
+  </body>
+</html>

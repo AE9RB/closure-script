@@ -8,5 +8,5 @@ require 'closure'
 
 # Run all tests if someone executes this script directly
 if $0 == __FILE__
-  Dir.glob('**/*_test.rb').each {|f| require f}
+  Dir.glob('*_test.rb').each {|f| require f}
 end

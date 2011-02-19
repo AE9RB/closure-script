@@ -1,0 +1,1217 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta name="Content-Type" content="text/html; charset=utf-8" />
+<title>Class: Closure::Sources</title>
+<link rel="stylesheet" href="../css/style.css" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="../css/common.css" type="text/css" media="screen" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  relpath = '..';
+  if (relpath != '') relpath += '/';
+</script>
+<script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+<script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+  </head>
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      if (window.top.frames.main) document.body.className = 'frames';
+    </script>
+    
+    <div id="header">
+      <div id="menu">
+  
+    <a href="../_index.html">Index (S)</a> &raquo; 
+    <span class='title'><span class='object_link'><a href="../Closure.html" title="Closure (class)">Closure</a></span></span>
+     &raquo; 
+    <span class="title">Sources</span>
+  
+  
+  <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
+</div>
+
+      <div id="search">
+  <a id="class_list_link" href="#">Class List</a>
+  <a id="method_list_link" href="#">Method List</a>
+  <a id ="file_list_link" href="#">File List</a>
+</div>
+
+      <div class="clear"></div>
+    </div>
+    
+    <iframe id="search_frame"></iframe>
+    
+    <div id="content"><h1>Class: Closure::Sources
+  
+  
+  
+</h1>
+
+<dl class="box">
+  
+    <dt class="r1">Inherits:</dt>
+    <dd class="r1">
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Closure::Sources</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+      </dd>
+    
+  
+  
+    
+  
+    
+      <dt class="r2">Includes:</dt>
+      <dd class="r2">Enumerable</dd>
+      
+    
+  
+  
+  
+    <dt class="r1 last">Defined in:</dt>
+    <dd class="r1 last">lib/closure/sources.rb</dd>
+  
+</dl>
+<div class="clear"></div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>
+This class is responsible for scanning source files and managing
+dependencies.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+</div>
+  <h2>Constant Summary</h2>
+  
+    <dl class="constants">
+      
+        <dt id="GOOG_REGEX_STRING-constant" class="">GOOG_REGEX_STRING =
+          <div class="docstring">
+  <div class="discussion">
+    <p>
+Using regular expressions may seem clunky, but the Python scripts did it
+this way and I&#8217;ve not see it fail in practice.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+</div>
+        </dt>
+        <dd><pre class="code"><span class='string val'>'^\s*goog\.%s\s*\(\s*[\'&quot;]([^\)]+)[\'&quot;]\s*\)'</span>
+</pre></dd>
+      
+        <dt id="PROVIDE_REGEX-constant" class="">PROVIDE_REGEX =
+          
+        </dt>
+        <dd><pre class="code"><span class='Regexp constant id'>Regexp</span><span class='dot token'>.</span><span class='new identifier id'>new</span><span class='lparen token'>(</span><span class='GOOG_REGEX_STRING constant id'>GOOG_REGEX_STRING</span> <span class='mod op'>%</span> <span class='string val'>'provide'</span><span class='rparen token'>)</span>
+</pre></dd>
+      
+        <dt id="REQUIRE_REGEX-constant" class="">REQUIRE_REGEX =
+          
+        </dt>
+        <dd><pre class="code"><span class='Regexp constant id'>Regexp</span><span class='dot token'>.</span><span class='new identifier id'>new</span><span class='lparen token'>(</span><span class='GOOG_REGEX_STRING constant id'>GOOG_REGEX_STRING</span> <span class='mod op'>%</span> <span class='string val'>'require'</span><span class='rparen token'>)</span>
+</pre></dd>
+      
+        <dt id="BASE_JS_REGEX-constant" class="">BASE_JS_REGEX =
+          <div class="docstring">
+  <div class="discussion">
+    <p>
+Google Closure Library base.js is the file with no provides, no requires,
+and defines goog a particular way.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+</div>
+        </dt>
+        <dd><pre class="code"><span class='regexp val'>/^var goog = goog \|\| \{\};/</span>
+</pre></dd>
+      
+        <dt id="ENV_FLAG-constant" class="">ENV_FLAG =
+          <div class="docstring">
+  <div class="discussion">
+    <p>
+Flag env so that refresh is never run more than once per request
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+</div>
+        </dt>
+        <dd><pre class="code"><span class='string val'>'closure.sources_fresh'</span>
+</pre></dd>
+      
+    </dl>
+  
+
+
+  
+  <h2>Instance Attribute Summary <small>(<a href="#" class="summary_toggle">collapse</a>)</small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#dwell-instance_method" title="#dwell (instance method)">- (Float) <strong>dwell</strong> </a>
+    
+
+    
+  </span>
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Limits how often a full refresh is allowed to run.
+</p>
+</div></span>
+  
+</li>
+
+    
+  </ul>
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small>(<a href="#" class="summary_toggle">collapse</a>)</small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#add-instance_method" title="#add (instance method)">- (Sources) <strong>add</strong>(directory, path = nil) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Adds a new directory of source files.
+</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#base_js-instance_method" title="#base_js (instance method)">- (String) <strong>base_js</strong>(env = {}) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Determine the path_info and query_string for loading base_js.
+</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#deps_js-instance_method" title="#deps_js (instance method)">- (String) <strong>deps_js</strong>(env = {}) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Determine the path_info for where deps_js is located.
+</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#deps_response-instance_method" title="#deps_response (instance method)">- (Rack::Response) <strong>deps_response</strong>(base, env = {}) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Builds a Rack::Response to serve a dynamic deps.js.
+</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#each-instance_method" title="#each (instance method)">- (Object) <strong>each</strong> {|path, directory| ... }</a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Yields path and directory for each of the added sources.
+</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#files_for-instance_method" title="#files_for (instance method)">- (Array&lt;String&gt;) <strong>files_for</strong>(namespace, filenames = nil, env = {}) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Calculate all required files for a namespace.
+</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">- (Sources) <strong>initialize</strong>(dwell = 1.0) </a>
+    
+
+    
+  </span>
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+A new instance of Sources.
+</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#path_for-instance_method" title="#path_for (instance method)">- (String) <strong>path_for</strong>(filename, env = {}) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Calculate the file server path for a filename.
+</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+  <div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <p class="signature first" id="initialize-instance_method">
+  
+    - (<tt><span class='object_link'><a href="" title="Closure::Sources (class)">Sources</a></span></tt>) <strong>initialize</strong>(dwell = 1.0) 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+A new instance of Sources
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <h3>Parameters:</h3>
+<ul class="param">
+  
+    <li>
+      
+        <span class='type'>(<tt>Float</tt>)</span>
+      
+      
+        <span class='name'>dwell</span>
+      
+      
+        <em class="default">(defaults to: <tt>1.0</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>
+in seconds.
+</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+48
+49
+50
+51
+52
+53
+54
+55</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/sources.rb', line 48</span>
+
+<span class='def def kw'>def</span> <span class='initialize identifier id'>initialize</span><span class='lparen token'>(</span><span class='dwell identifier id'>dwell</span> <span class='assign token'>=</span> <span class='float val'>1.0</span><span class='rparen token'>)</span>
+  <span class='@dwell ivar id'>@dwell</span> <span class='assign token'>=</span> <span class='dwell identifier id'>dwell</span>
+  <span class='@files ivar id'>@files</span> <span class='assign token'>=</span> <span class='lbrace token'>{</span><span class='rbrace token'>}</span>
+  <span class='@sources ivar id'>@sources</span> <span class='assign token'>=</span> <span class='lbrack token'>[</span><span class='rbrack token'>]</span>
+  <span class='@semaphore ivar id'>@semaphore</span> <span class='assign token'>=</span> <span class='Mutex constant id'>Mutex</span><span class='dot token'>.</span><span class='new identifier id'>new</span>
+  <span class='@last_been_run ivar id'>@last_been_run</span> <span class='assign token'>=</span> <span class='nil nil kw'>nil</span>
+  <span class='reset_all_computed_instance_vars identifier id'>reset_all_computed_instance_vars</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+  <div id="instance_attr_details" class="attr_details">
+    <h2>Instance Attribute Details</h2>
+    
+      
+      <span id="dwell=-instance_method"></span>
+      <span id="dwell-instance_method"></span>
+      <div class="method_details first">
+  <p class="signature first" id="dwell-instance_method">
+  
+    - (<tt>Float</tt>) <strong>dwell</strong> 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Limits how often a full refresh is allowed to run. Blocked threads can
+trigger unneeded refreshes in rare scenarios. Also sent to browser in
+cache-control for frames performance. Caching, lazy loading, and flagging
+(of env) make up the remaining techniques for good performance.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <h3>Returns:</h3>
+<ul class="return">
+  
+    <li>
+      
+        <span class='type'>(<tt>Float</tt>)</span>
+      
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+64
+65
+66</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/sources.rb', line 64</span>
+
+<span class='def def kw'>def</span> <span class='dwell identifier id'>dwell</span>
+  <span class='@dwell ivar id'>@dwell</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+    
+    
+      <div class="method_details first">
+  <p class="signature first" id="add-instance_method">
+  
+    - (<tt><span class='object_link'><a href="" title="Closure::Sources (class)">Sources</a></span></tt>) <strong>add</strong>(directory, path = nil) 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Adds a new directory of source files.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <h3>Parameters:</h3>
+<ul class="param">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>path</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>
+Where to mount on the http server.
+</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>directory</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>
+Filesystem location of your sources.
+</p>
+</div>
+      
+    </li>
+  
+</ul>
+<h3>Returns:</h3>
+<ul class="return">
+  
+    <li>
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Closure::Sources (class)">Sources</a></span></tt>)</span>
+      
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>
+self
+</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/sources.rb', line 71</span>
+
+<span class='def def kw'>def</span> <span class='add identifier id'>add</span><span class='lparen token'>(</span><span class='directory identifier id'>directory</span><span class='comma token'>,</span> <span class='path identifier id'>path</span><span class='assign token'>=</span><span class='nil nil kw'>nil</span><span class='rparen token'>)</span>
+  <span class='if if kw'>if</span> <span class='path identifier id'>path</span>
+    <span class='raise identifier id'>raise</span> <span class='string val'>&quot;path must start with /&quot;</span> <span class='unless unless_mod kw'>unless</span> <span class='path identifier id'>path</span> <span class='match op'>=~</span> <span class='regexp val'>%r{^/}</span>
+    <span class='path identifier id'>path</span> <span class='assign token'>=</span> <span class='string val'>''</span> <span class='if if_mod kw'>if</span> <span class='path identifier id'>path</span> <span class='eq op'>==</span> <span class='string val'>'/'</span>
+    <span class='raise identifier id'>raise</span> <span class='string val'>&quot;path must not end with /&quot;</span> <span class='if if_mod kw'>if</span> <span class='path identifier id'>path</span> <span class='match op'>=~</span> <span class='regexp val'>%r{/$}</span>
+    <span class='raise identifier id'>raise</span> <span class='string val'>&quot;path already exists&quot;</span> <span class='if if_mod kw'>if</span> <span class='@sources ivar id'>@sources</span><span class='dot token'>.</span><span class='find identifier id'>find</span><span class='lbrace token'>{</span><span class='bitor op'>|</span><span class='s identifier id'>s</span><span class='bitor op'>|</span><span class='s identifier id'>s</span><span class='lbrack token'>[</span><span class='integer val'>0</span><span class='rbrack token'>]</span><span class='eq op'>==</span><span class='path identifier id'>path</span><span class='rbrace token'>}</span>
+  <span class='end end kw'>end</span>
+  <span class='raise identifier id'>raise</span> <span class='string val'>&quot;directory already exists&quot;</span> <span class='if if_mod kw'>if</span> <span class='@sources ivar id'>@sources</span><span class='dot token'>.</span><span class='find identifier id'>find</span><span class='lbrace token'>{</span><span class='bitor op'>|</span><span class='s identifier id'>s</span><span class='bitor op'>|</span><span class='s identifier id'>s</span><span class='lbrack token'>[</span><span class='integer val'>1</span><span class='rbrack token'>]</span><span class='eq op'>==</span><span class='directory identifier id'>directory</span><span class='rbrace token'>}</span>
+  <span class='@sources ivar id'>@sources</span> <span class='lshft op'>&lt;&lt;</span> <span class='lbrack token'>[</span><span class='File constant id'>File</span><span class='dot token'>.</span><span class='expand_path identifier id'>expand_path</span><span class='lparen token'>(</span><span class='directory identifier id'>directory</span><span class='rparen token'>)</span><span class='comma token'>,</span> <span class='path identifier id'>path</span><span class='rbrack token'>]</span>
+  <span class='@sources ivar id'>@sources</span><span class='dot token'>.</span><span class='sort! fid id'>sort!</span> <span class='lbrace token'>{</span><span class='bitor op'>|</span><span class='a identifier id'>a</span><span class='comma token'>,</span><span class='b identifier id'>b</span><span class='bitor op'>|</span> <span class='lparen token'>(</span><span class='b identifier id'>b</span><span class='lbrack token'>[</span><span class='integer val'>1</span><span class='rbrack token'>]</span><span class='orop op'>||</span><span class='string val'>''</span><span class='rparen token'>)</span> <span class='cmp op'>&lt;=&gt;</span> <span class='lparen token'>(</span><span class='a identifier id'>a</span><span class='lbrack token'>[</span><span class='integer val'>1</span><span class='rbrack token'>]</span><span class='orop op'>||</span><span class='string val'>''</span><span class='rparen token'>)</span><span class='rbrace token'>}</span>
+  <span class='self self kw'>self</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="base_js-instance_method">
+  
+    - (<tt>String</tt>) <strong>base_js</strong>(env = {}) 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Determine the path_info and query_string for loading base_js.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <h3>Returns:</h3>
+<ul class="return">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/sources.rb', line 94</span>
+
+<span class='def def kw'>def</span> <span class='base_js identifier id'>base_js</span><span class='lparen token'>(</span><span class='env identifier id'>env</span><span class='assign token'>=</span><span class='lbrace token'>{</span><span class='rbrace token'>}</span><span class='rparen token'>)</span>
+  <span class='if if kw'>if</span> <span class='lparen token'>(</span><span class='goog identifier id'>goog</span> <span class='assign token'>=</span> <span class='@goog ivar id'>@goog</span><span class='rparen token'>)</span> <span class='and and kw'>and</span> <span class='@last_been_run ivar id'>@last_been_run</span>
+    <span class='return return kw'>return</span> <span class='dstring node'>&quot;#{goog[:base_js]}?#{goog[:base_js_mtime].to_i}&quot;</span>
+  <span class='end end kw'>end</span>
+  <span class='@semaphore ivar id'>@semaphore</span><span class='dot token'>.</span><span class='synchronize identifier id'>synchronize</span> <span class='do do kw'>do</span>
+    <span class='refresh identifier id'>refresh</span><span class='lparen token'>(</span><span class='env identifier id'>env</span><span class='rparen token'>)</span>
+    <span class='raise identifier id'>raise</span> <span class='ClosureBaseNotFoundError constant id'>ClosureBaseNotFoundError</span> <span class='unless unless_mod kw'>unless</span> <span class='@goog ivar id'>@goog</span>
+    <span class='@goog ivar id'>@goog</span><span class='lbrack token'>[</span><span class='symbol val'>:base_js</span><span class='rbrack token'>]</span>
+  <span class='end end kw'>end</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="deps_js-instance_method">
+  
+    - (<tt>String</tt>) <strong>deps_js</strong>(env = {}) 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Determine the path_info for where deps_js is located.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <h3>Returns:</h3>
+<ul class="return">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/sources.rb', line 108</span>
+
+<span class='def def kw'>def</span> <span class='deps_js identifier id'>deps_js</span><span class='lparen token'>(</span><span class='env identifier id'>env</span><span class='assign token'>=</span><span class='lbrace token'>{</span><span class='rbrace token'>}</span><span class='rparen token'>)</span>
+  <span class='comment val'># Because Server uses this on every call, it's best to never lock.</span>
+  <span class='comment val'># We grab a local goog so we don't need the lock if everything looks good.</span>
+  <span class='comment val'># This works because #refresh creates new @goog hashes instead of modifying.</span>
+  <span class='if if kw'>if</span> <span class='lparen token'>(</span><span class='goog identifier id'>goog</span> <span class='assign token'>=</span> <span class='@goog ivar id'>@goog</span><span class='rparen token'>)</span> <span class='and and kw'>and</span> <span class='@last_been_run ivar id'>@last_been_run</span>
+    <span class='return return kw'>return</span> <span class='goog identifier id'>goog</span><span class='lbrack token'>[</span><span class='symbol val'>:deps_js</span><span class='rbrack token'>]</span>
+  <span class='end end kw'>end</span>
+  <span class='@semaphore ivar id'>@semaphore</span><span class='dot token'>.</span><span class='synchronize identifier id'>synchronize</span> <span class='do do kw'>do</span>
+    <span class='refresh identifier id'>refresh</span><span class='lparen token'>(</span><span class='env identifier id'>env</span><span class='rparen token'>)</span>
+    <span class='raise identifier id'>raise</span> <span class='ClosureBaseNotFoundError constant id'>ClosureBaseNotFoundError</span> <span class='unless unless_mod kw'>unless</span> <span class='@goog ivar id'>@goog</span>
+    <span class='@goog ivar id'>@goog</span><span class='lbrack token'>[</span><span class='symbol val'>:deps_js</span><span class='rbrack token'>]</span>
+  <span class='end end kw'>end</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="deps_response-instance_method">
+  
+    - (<tt>Rack::Response</tt>) <strong>deps_response</strong>(base, env = {}) 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Builds a Rack::Response to serve a dynamic deps.js
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <h3>Returns:</h3>
+<ul class="return">
+  
+    <li>
+      
+        <span class='type'>(<tt>Rack::Response</tt>)</span>
+      
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/sources.rb', line 125</span>
+
+<span class='def def kw'>def</span> <span class='deps_response identifier id'>deps_response</span><span class='lparen token'>(</span><span class='base identifier id'>base</span><span class='comma token'>,</span> <span class='env identifier id'>env</span><span class='assign token'>=</span><span class='lbrace token'>{</span><span class='rbrace token'>}</span><span class='rparen token'>)</span>
+  <span class='@semaphore ivar id'>@semaphore</span><span class='dot token'>.</span><span class='synchronize identifier id'>synchronize</span> <span class='do do kw'>do</span>
+    <span class='refresh identifier id'>refresh</span><span class='lparen token'>(</span><span class='env identifier id'>env</span><span class='rparen token'>)</span>
+    <span class='base identifier id'>base</span> <span class='assign token'>=</span> <span class='Pathname constant id'>Pathname</span><span class='dot token'>.</span><span class='new identifier id'>new</span><span class='lparen token'>(</span><span class='base identifier id'>base</span><span class='rparen token'>)</span>
+    <span class='unless unless kw'>unless</span> <span class='@deps ivar id'>@deps</span><span class='lbrack token'>[</span><span class='base identifier id'>base</span><span class='rbrack token'>]</span>
+      <span class='response identifier id'>response</span> <span class='assign token'>=</span> <span class='@deps ivar id'>@deps</span><span class='lbrack token'>[</span><span class='base identifier id'>base</span><span class='rbrack token'>]</span> <span class='opasgn op'>||=</span> <span class='Rack constant id'>Rack</span><span class='colon2 op'>::</span><span class='Response constant id'>Response</span><span class='dot token'>.</span><span class='new identifier id'>new</span>
+      <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='write identifier id'>write</span> <span class='string val'>&quot;// Dynamic Deps by Closure Script\n&quot;</span>
+      <span class='@files ivar id'>@files</span><span class='dot token'>.</span><span class='sort identifier id'>sort</span><span class='lbrace token'>{</span><span class='bitor op'>|</span><span class='a identifier id'>a</span><span class='comma token'>,</span><span class='b identifier id'>b</span><span class='bitor op'>|</span><span class='lparen token'>(</span><span class='a identifier id'>a</span><span class='lbrack token'>[</span><span class='integer val'>1</span><span class='rbrack token'>]</span><span class='lbrack token'>[</span><span class='symbol val'>:path</span><span class='rbrack token'>]</span><span class='orop op'>||</span><span class='string val'>''</span><span class='rparen token'>)</span><span class='cmp op'>&lt;=&gt;</span><span class='lparen token'>(</span><span class='b identifier id'>b</span><span class='lbrack token'>[</span><span class='integer val'>1</span><span class='rbrack token'>]</span><span class='lbrack token'>[</span><span class='symbol val'>:path</span><span class='rbrack token'>]</span><span class='orop op'>||</span><span class='string val'>''</span><span class='rparen token'>)</span><span class='rbrace token'>}</span><span class='dot token'>.</span><span class='each identifier id'>each</span> <span class='do do kw'>do</span> <span class='bitor op'>|</span><span class='filename identifier id'>filename</span><span class='comma token'>,</span> <span class='dep identifier id'>dep</span><span class='bitor op'>|</span>
+        <span class='if if kw'>if</span> <span class='filename identifier id'>filename</span> <span class='match op'>=~</span> <span class='regexp val'>/\.externs$/</span>
+          <span class='dep identifier id'>dep</span><span class='lbrack token'>[</span><span class='symbol val'>:provide</span><span class='rbrack token'>]</span><span class='dot token'>.</span><span class='each identifier id'>each</span> <span class='do do kw'>do</span> <span class='bitor op'>|</span><span class='dep_provide identifier id'>dep_provide</span><span class='bitor op'>|</span>
+            <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='write identifier id'>write</span> <span class='dstring node'>&quot;goog.provide(#{dep_provide.dump});\n&quot;</span>
+          <span class='end end kw'>end</span>
+        <span class='elsif elsif kw'>elsif</span> <span class='dep identifier id'>dep</span><span class='lbrack token'>[</span><span class='symbol val'>:path</span><span class='rbrack token'>]</span>
+          <span class='path identifier id'>path</span> <span class='assign token'>=</span> <span class='Pathname constant id'>Pathname</span><span class='dot token'>.</span><span class='new identifier id'>new</span><span class='lparen token'>(</span><span class='dep identifier id'>dep</span><span class='lbrack token'>[</span><span class='symbol val'>:path</span><span class='rbrack token'>]</span><span class='rparen token'>)</span><span class='dot token'>.</span><span class='relative_path_from identifier id'>relative_path_from</span><span class='lparen token'>(</span><span class='base identifier id'>base</span><span class='rparen token'>)</span>
+          <span class='path identifier id'>path</span> <span class='assign token'>=</span> <span class='dstring node'>&quot;#{path}?#{dep[:mtime].to_i}&quot;</span>
+          <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='write identifier id'>write</span> <span class='dstring node'>&quot;goog.addDependency(#{path.dump}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n&quot;</span>
+        <span class='end end kw'>end</span>
+      <span class='end end kw'>end</span>
+      <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='headers identifier id'>headers</span><span class='lbrack token'>[</span><span class='string val'>'Content-Type'</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='string val'>'application/javascript'</span>
+      <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='headers identifier id'>headers</span><span class='lbrack token'>[</span><span class='string val'>'Cache-Control'</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='dstring node'>&quot;max-age=#{[1,@dwell.floor].max}, private, must-revalidate&quot;</span>
+      <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='headers identifier id'>headers</span><span class='lbrack token'>[</span><span class='string val'>'Last-Modified'</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='Time constant id'>Time</span><span class='dot token'>.</span><span class='now identifier id'>now</span><span class='dot token'>.</span><span class='httpdate identifier id'>httpdate</span>
+    <span class='end end kw'>end</span>
+    <span class='templates_errors_js identifier id'>templates_errors_js</span> <span class='assign token'>=</span> <span class='Templates constant id'>Templates</span><span class='dot token'>.</span><span class='errors_js identifier id'>errors_js</span> <span class='env identifier id'>env</span>
+    <span class='mod_since identifier id'>mod_since</span> <span class='assign token'>=</span> <span class='Time constant id'>Time</span><span class='dot token'>.</span><span class='httpdate identifier id'>httpdate</span><span class='lparen token'>(</span><span class='env identifier id'>env</span><span class='lbrack token'>[</span><span class='string val'>'HTTP_IF_MODIFIED_SINCE'</span><span class='rbrack token'>]</span><span class='rparen token'>)</span> <span class='rescue rescue kw'>rescue</span> <span class='nil nil kw'>nil</span>
+    <span class='if if kw'>if</span> <span class='templates_errors_js identifier id'>templates_errors_js</span>
+      <span class='response identifier id'>response</span> <span class='assign token'>=</span> <span class='Rack constant id'>Rack</span><span class='colon2 op'>::</span><span class='Response constant id'>Response</span><span class='dot token'>.</span><span class='new identifier id'>new</span>
+      <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='headers identifier id'>headers</span><span class='lbrack token'>[</span><span class='string val'>'Content-Type'</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='string val'>'application/javascript'</span>
+      <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='headers identifier id'>headers</span><span class='lbrack token'>[</span><span class='string val'>'Cache-Control'</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='string val'>&quot;max-age=0, private, must-revalidate&quot;</span>
+      <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='write identifier id'>write</span> <span class='@deps ivar id'>@deps</span><span class='lbrack token'>[</span><span class='base identifier id'>base</span><span class='rbrack token'>]</span><span class='dot token'>.</span><span class='body identifier id'>body</span>
+      <span class='response identifier id'>response</span><span class='dot token'>.</span><span class='write identifier id'>write</span> <span class='templates_errors_js identifier id'>templates_errors_js</span>
+      <span class='response identifier id'>response</span>
+    <span class='elsif elsif kw'>elsif</span> <span class='mod_since identifier id'>mod_since</span> <span class='eq op'>==</span> <span class='Time constant id'>Time</span><span class='dot token'>.</span><span class='httpdate identifier id'>httpdate</span><span class='lparen token'>(</span><span class='@deps ivar id'>@deps</span><span class='lbrack token'>[</span><span class='base identifier id'>base</span><span class='rbrack token'>]</span><span class='dot token'>.</span><span class='headers identifier id'>headers</span><span class='lbrack token'>[</span><span class='string val'>'Last-Modified'</span><span class='rbrack token'>]</span><span class='rparen token'>)</span>
+      <span class='Rack constant id'>Rack</span><span class='colon2 op'>::</span><span class='Response constant id'>Response</span><span class='dot token'>.</span><span class='new identifier id'>new</span> <span class='lbrack token'>[</span><span class='rbrack token'>]</span><span class='comma token'>,</span> <span class='integer val'>304</span> <span class='comment val'># Not Modified</span>
+    <span class='else else kw'>else</span>
+      <span class='@deps ivar id'>@deps</span><span class='lbrack token'>[</span><span class='base identifier id'>base</span><span class='rbrack token'>]</span>
+    <span class='end end kw'>end</span>
+  <span class='end end kw'>end</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="each-instance_method">
+  
+    - (<tt>Object</tt>) <strong>each</strong> {|path, directory| ... }
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Yields path and directory for each of the added sources.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <h3>Yields:</h3>
+<ul class="yield">
+  
+    <li>
+      
+        <span class='type'>(<tt>path</tt>, <tt>directory</tt>)</span>
+      
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+87
+88
+89</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/sources.rb', line 87</span>
+
+<span class='def def kw'>def</span> <span class='each identifier id'>each</span>
+  <span class='@sources ivar id'>@sources</span><span class='dot token'>.</span><span class='each identifier id'>each</span> <span class='lbrace token'>{</span> <span class='bitor op'>|</span><span class='directory identifier id'>directory</span><span class='comma token'>,</span> <span class='path identifier id'>path</span><span class='bitor op'>|</span> <span class='yield yield kw'>yield</span> <span class='directory identifier id'>directory</span><span class='comma token'>,</span> <span class='path identifier id'>path</span> <span class='rbrace token'>}</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="files_for-instance_method">
+  
+    - (<tt>Array&lt;String&gt;</tt>) <strong>files_for</strong>(namespace, filenames = nil, env = {}) 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Calculate all required files for a namespace.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <h3>Parameters:</h3>
+<ul class="param">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>namespace</span>
+      
+      
+      
+    </li>
+  
+</ul>
+<h3>Returns:</h3>
+<ul class="return">
+  
+    <li>
+      
+        <span class='type'>(<tt>Array&lt;String&gt;</tt>)</span>
+      
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>
+New Array of filenames.
+</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/sources.rb', line 168</span>
+
+<span class='def def kw'>def</span> <span class='files_for identifier id'>files_for</span><span class='lparen token'>(</span><span class='namespace identifier id'>namespace</span><span class='comma token'>,</span> <span class='filenames identifier id'>filenames</span><span class='assign token'>=</span><span class='nil nil kw'>nil</span><span class='comma token'>,</span> <span class='env identifier id'>env</span><span class='assign token'>=</span><span class='lbrace token'>{</span><span class='rbrace token'>}</span><span class='rparen token'>)</span>
+  <span class='ns identifier id'>ns</span> <span class='assign token'>=</span> <span class='nil nil kw'>nil</span>
+  <span class='@semaphore ivar id'>@semaphore</span><span class='dot token'>.</span><span class='synchronize identifier id'>synchronize</span> <span class='do do kw'>do</span>
+    <span class='refresh identifier id'>refresh</span><span class='lparen token'>(</span><span class='env identifier id'>env</span><span class='rparen token'>)</span>
+    <span class='comment val'># Pivot the deps to a namespace hash</span>
+    <span class='comment val'># @ns is cleared when any requires or provides changes</span>
+    <span class='unless unless kw'>unless</span> <span class='@ns ivar id'>@ns</span>
+      <span class='@ns ivar id'>@ns</span> <span class='assign token'>=</span> <span class='lbrace token'>{</span><span class='rbrace token'>}</span>
+      <span class='@files ivar id'>@files</span><span class='dot token'>.</span><span class='each identifier id'>each</span> <span class='do do kw'>do</span> <span class='bitor op'>|</span><span class='filename identifier id'>filename</span><span class='comma token'>,</span> <span class='dep identifier id'>dep</span><span class='bitor op'>|</span>
+        <span class='dep identifier id'>dep</span><span class='lbrack token'>[</span><span class='symbol val'>:provide</span><span class='rbrack token'>]</span><span class='dot token'>.</span><span class='each identifier id'>each</span> <span class='do do kw'>do</span> <span class='bitor op'>|</span><span class='provide identifier id'>provide</span><span class='bitor op'>|</span>
+          <span class='if if kw'>if</span> <span class='@ns ivar id'>@ns</span><span class='lbrack token'>[</span><span class='provide identifier id'>provide</span><span class='rbrack token'>]</span>
+            <span class='raise identifier id'>raise</span> <span class='dstring node'>&quot;Namespace #{provide.dump} provided more than once.&quot;</span>
+          <span class='end end kw'>end</span>
+          <span class='@ns ivar id'>@ns</span><span class='lbrack token'>[</span><span class='provide identifier id'>provide</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='lbrace token'>{</span>
+            <span class='symbol val'>:filename</span> <span class='assign token'>=</span><span class='gt op'>&gt;</span> <span class='filename identifier id'>filename</span><span class='comma token'>,</span>
+            <span class='symbol val'>:require</span> <span class='assign token'>=</span><span class='gt op'>&gt;</span> <span class='dep identifier id'>dep</span><span class='lbrack token'>[</span><span class='symbol val'>:require</span><span class='rbrack token'>]</span>
+          <span class='rbrace token'>}</span>
+        <span class='end end kw'>end</span>
+      <span class='end end kw'>end</span>
+    <span class='end end kw'>end</span>
+    <span class='ns identifier id'>ns</span> <span class='assign token'>=</span> <span class='@ns ivar id'>@ns</span>
+    <span class='if if kw'>if</span> <span class='notop op'>!</span><span class='filenames identifier id'>filenames</span> <span class='or or kw'>or</span> <span class='filenames identifier id'>filenames</span><span class='dot token'>.</span><span class='empty? fid id'>empty?</span>
+      <span class='raise identifier id'>raise</span> <span class='ClosureBaseNotFoundError constant id'>ClosureBaseNotFoundError</span> <span class='unless unless_mod kw'>unless</span> <span class='@goog ivar id'>@goog</span>
+      <span class='filenames identifier id'>filenames</span> <span class='opasgn op'>||=</span> <span class='lbrack token'>[</span><span class='rbrack token'>]</span>
+      <span class='filenames identifier id'>filenames</span> <span class='lshft op'>&lt;&lt;</span> <span class='@goog ivar id'>@goog</span><span class='lbrack token'>[</span><span class='symbol val'>:base_filename</span><span class='rbrack token'>]</span>
+    <span class='end end kw'>end</span>
+  <span class='end end kw'>end</span>
+  <span class='comment val'># Since @ns is only unset, not modified, by another thread, we</span>
+  <span class='comment val'># can work with a local reference.  This has been finely tuned and</span>
+  <span class='comment val'># runs fast, but it's still nice to release any other threads early.</span>
+  <span class='calcdeps identifier id'>calcdeps</span><span class='lparen token'>(</span><span class='ns identifier id'>ns</span><span class='comma token'>,</span> <span class='namespace identifier id'>namespace</span><span class='comma token'>,</span> <span class='filenames identifier id'>filenames</span><span class='rparen token'>)</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <p class="signature " id="path_for-instance_method">
+  
+    - (<tt>String</tt>) <strong>path_for</strong>(filename, env = {}) 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Calculate the file server path for a filename
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <h3>Parameters:</h3>
+<ul class="param">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <span class='name'>filename</span>
+      
+      
+      
+    </li>
+  
+</ul>
+<h3>Returns:</h3>
+<ul class="return">
+  
+    <li>
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/sources.rb', line 205</span>
+
+<span class='def def kw'>def</span> <span class='path_for identifier id'>path_for</span><span class='lparen token'>(</span><span class='filename identifier id'>filename</span><span class='comma token'>,</span> <span class='env identifier id'>env</span><span class='assign token'>=</span><span class='lbrace token'>{</span><span class='rbrace token'>}</span><span class='rparen token'>)</span>
+  <span class='@semaphore ivar id'>@semaphore</span><span class='dot token'>.</span><span class='synchronize identifier id'>synchronize</span> <span class='do do kw'>do</span>
+    <span class='refresh identifier id'>refresh</span><span class='lparen token'>(</span><span class='env identifier id'>env</span><span class='rparen token'>)</span>
+    <span class='f identifier id'>f</span><span class='comma token'>,</span> <span class='dep identifier id'>dep</span> <span class='assign token'>=</span> <span class='@files ivar id'>@files</span><span class='dot token'>.</span><span class='find identifier id'>find</span> <span class='lbrace token'>{</span><span class='bitor op'>|</span><span class='f identifier id'>f</span><span class='comma token'>,</span> <span class='dep identifier id'>dep</span><span class='bitor op'>|</span> <span class='f identifier id'>f</span> <span class='eq op'>==</span> <span class='filename identifier id'>filename</span><span class='rbrace token'>}</span>
+    <span class='unless unless kw'>unless</span> <span class='dep identifier id'>dep</span> <span class='and and kw'>and</span> <span class='dep identifier id'>dep</span><span class='dot token'>.</span><span class='has_key? fid id'>has_key?</span> <span class='colon op'>:</span><span class='path identifier id'>path</span>
+      <span class='raise identifier id'>raise</span> <span class='dstring node'>&quot;#{filename.dump} is not available from file server&quot;</span>
+    <span class='end end kw'>end</span>
+    <span class='dstring node'>&quot;#{dep[:path]}?#{dep[:mtime].to_i}&quot;</span>
+  <span class='end end kw'>end</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+    
+    <div id="footer">
+  Generated on Fri Feb 18 18:19:50 2011 by 
+  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.6.4 (ruby-1.8.7).
+</div>
+
+  </body>
+</html>

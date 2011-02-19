@@ -1,0 +1,650 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta name="Content-Type" content="text/html; charset=utf-8" />
+<title>Class: Closure::Templates</title>
+<link rel="stylesheet" href="../css/style.css" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="../css/common.css" type="text/css" media="screen" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  relpath = '..';
+  if (relpath != '') relpath += '/';
+</script>
+<script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+<script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+  </head>
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      if (window.top.frames.main) document.body.className = 'frames';
+    </script>
+    
+    <div id="header">
+      <div id="menu">
+  
+    <a href="../_index.html">Index (T)</a> &raquo; 
+    <span class='title'><span class='object_link'><a href="../Closure.html" title="Closure (class)">Closure</a></span></span>
+     &raquo; 
+    <span class="title">Templates</span>
+  
+  
+  <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
+</div>
+
+      <div id="search">
+  <a id="class_list_link" href="#">Class List</a>
+  <a id="method_list_link" href="#">Method List</a>
+  <a id ="file_list_link" href="#">File List</a>
+</div>
+
+      <div class="clear"></div>
+    </div>
+    
+    <iframe id="search_frame"></iframe>
+    
+    <div id="content"><h1>Class: Closure::Templates
+  
+  
+  
+</h1>
+
+<dl class="box">
+  
+    <dt class="r1">Inherits:</dt>
+    <dd class="r1">
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Closure::Templates</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+      </dd>
+    
+  
+  
+    
+  
+    
+  
+  
+  
+    <dt class="r2 last">Defined in:</dt>
+    <dd class="r2 last">lib/closure/templates.rb</dd>
+  
+</dl>
+<div class="clear"></div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>
+The arguments to this middleware are the arguments you would use for
+SoyToJsSrcCompiler.jar (get them using: `java -jar
+SoyToJsSrcCompiler.jar`). Closure Script will expand filenames that appear
+to be globs, as shown in the examples. You may still use static filenames.
+File modification times are remembered and compilation is run only when
+source changes are detected.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+  <div class="examples">
+    <h3>Examples:</h3>
+    
+      <h4><div class='inline'><p>
+config.ru
+</p>
+</div></h4>
+      <pre class="example code"><span class='require identifier id'>require</span> <span class='string val'>'closure'</span>
+<span class='Closure constant id'>Closure</span><span class='dot token'>.</span><span class='add_source identifier id'>add_source</span> <span class='symbol val'>:soy</span><span class='comma token'>,</span> <span class='string val'>'/soy'</span>
+<span class='Closure constant id'>Closure</span><span class='dot token'>.</span><span class='add_source identifier id'>add_source</span> <span class='string val'>'app/javascripts'</span><span class='comma token'>,</span> <span class='string val'>'/app'</span>
+<span class='Closure constant id'>Closure</span><span class='dot token'>.</span><span class='add_source identifier id'>add_source</span> <span class='string val'>'vendor/javascripts'</span><span class='comma token'>,</span> <span class='string val'>'/vendor'</span>
+<span class='use identifier id'>use</span> <span class='Closure constant id'>Closure</span><span class='colon2 op'>::</span><span class='Templates constant id'>Templates</span><span class='comma token'>,</span> <span class='dstring node'>%w{
+  --shouldProvideRequireSoyNamespaces
+  --cssHandlingScheme goog
+  --shouldGenerateJsdoc
+  --outputPathFormat {INPUT_DIRECTORY}{INPUT_FILE_NAME_NO_EXT}.js
+  app/javascripts/**/*.soy
+  vendor/javascripts/**/*.soy
+}</span>
+</pre>
+    
+  </div>
+
+</div>
+  <h2>Constant Summary</h2>
+  
+    <dl class="constants">
+      
+        <dt id="ENV_ERRORS-constant" class="">ENV_ERRORS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>
+Logs in env[ENV_ERRORS] will persist until the errors are fixed. It will be
+nil when no errors or a string with the Java exception. It will be an array
+if you have multiple Soy middlewares running. By default, these errors are
+available on the Javascript console after loading goog.deps_js or a
+Compiler#to_response_with_console.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+</div>
+        </dt>
+        <dd><pre class="code"><span class='string val'>'closure.template.errors'</span>
+</pre></dd>
+      
+    </dl>
+  
+
+
+  <h2>Instance Attribute Summary <small>(<a href="#" class="summary_toggle">collapse</a>)</small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#dwell-instance_method" title="#dwell (instance method)">- (Float) <strong>dwell</strong> </a>
+    
+
+    
+  </span>
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+    
+  </ul>
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small>(<a href="#" class="summary_toggle">collapse</a>)</small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#call-instance_method" title="#call (instance method)">- (Array) <strong>call</strong>(env) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+Rack interface.
+</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">- (Templates) <strong>initialize</strong>(app, args, dwell = 1.0) </a>
+    
+
+    
+  </span>
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>
+A new instance of Templates.
+</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <p class="signature first" id="initialize-instance_method">
+  
+    - (<tt><span class='object_link'><a href="" title="Closure::Templates (class)">Templates</a></span></tt>) <strong>initialize</strong>(app, args, dwell = 1.0) 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+A new instance of Templates
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <h3>Parameters:</h3>
+<ul class="param">
+  
+    <li>
+      
+        <span class='type'>(<tt>#call</tt>)</span>
+      
+      
+        <span class='name'>app</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>
+The Rack application
+</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>Array</tt>)</span>
+      
+      
+        <span class='name'>args</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>
+Arguments for SoyToJsSrcCompiler.jar. Supports globbing.
+</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='type'>(<tt>Float</tt>)</span>
+      
+      
+        <span class='name'>dwell</span>
+      
+      
+        <em class="default">(defaults to: <tt>1.0</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>
+in seconds.
+</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+65
+66
+67
+68
+69
+70
+71
+72
+73</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/templates.rb', line 65</span>
+
+<span class='def def kw'>def</span> <span class='initialize identifier id'>initialize</span><span class='lparen token'>(</span><span class='app identifier id'>app</span><span class='comma token'>,</span> <span class='args identifier id'>args</span><span class='comma token'>,</span> <span class='dwell identifier id'>dwell</span> <span class='assign token'>=</span> <span class='float val'>1.0</span><span class='rparen token'>)</span>
+  <span class='@app ivar id'>@app</span> <span class='assign token'>=</span> <span class='app identifier id'>app</span>
+  <span class='@args ivar id'>@args</span> <span class='assign token'>=</span> <span class='args identifier id'>args</span>
+  <span class='@dwell ivar id'>@dwell</span> <span class='assign token'>=</span> <span class='dwell identifier id'>dwell</span>
+  <span class='@check_after ivar id'>@check_after</span> <span class='assign token'>=</span> <span class='Time constant id'>Time</span><span class='dot token'>.</span><span class='now identifier id'>now</span><span class='dot token'>.</span><span class='to_f identifier id'>to_f</span>
+  <span class='@mtimes ivar id'>@mtimes</span> <span class='assign token'>=</span> <span class='lbrace token'>{</span><span class='rbrace token'>}</span>
+  <span class='@semaphore ivar id'>@semaphore</span> <span class='assign token'>=</span> <span class='Mutex constant id'>Mutex</span><span class='dot token'>.</span><span class='new identifier id'>new</span>
+  <span class='@errors ivar id'>@errors</span> <span class='assign token'>=</span> <span class='nil nil kw'>nil</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+  <div id="instance_attr_details" class="attr_details">
+    <h2>Instance Attribute Details</h2>
+    
+      
+      <span id="dwell=-instance_method"></span>
+      <span id="dwell-instance_method"></span>
+      <div class="method_details first">
+  <p class="signature first" id="dwell-instance_method">
+  
+    - (<tt>Float</tt>) <strong>dwell</strong> 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  <h3>Returns:</h3>
+<ul class="return">
+  
+    <li>
+      
+        <span class='type'>(<tt>Float</tt>)</span>
+      
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+76
+77
+78</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/templates.rb', line 76</span>
+
+<span class='def def kw'>def</span> <span class='dwell identifier id'>dwell</span>
+  <span class='@dwell ivar id'>@dwell</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+    
+    
+      <div class="method_details first">
+  <p class="signature first" id="call-instance_method">
+  
+    - (<tt>Array</tt>) <strong>call</strong>(env) 
+  
+
+  
+</p><div class="docstring">
+  <div class="discussion">
+    <p>
+Rack interface.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <h3>Parameters:</h3>
+<ul class="param">
+  
+    <li>
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+        <span class='name'>env</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>
+Rack environment.
+</p>
+</div>
+      
+    </li>
+  
+</ul>
+<h3>Returns:</h3>
+<ul class="return">
+  
+    <li>
+      
+        <span class='type'>(<tt>Array</tt>)</span>
+      
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>
+[status, headers, body]
+</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/closure/templates.rb', line 81</span>
+
+<span class='def def kw'>def</span> <span class='call identifier id'>call</span><span class='lparen token'>(</span><span class='env identifier id'>env</span><span class='rparen token'>)</span>
+  <span class='comment val'># This lock will block all other threads until soy is compiled</span>
+  <span class='comment val'># (it is not to synchronize globals like in Closure::Sources)</span>
+  <span class='@semaphore ivar id'>@semaphore</span><span class='dot token'>.</span><span class='synchronize identifier id'>synchronize</span> <span class='do do kw'>do</span>
+    <span class='if if kw'>if</span> <span class='Time constant id'>Time</span><span class='dot token'>.</span><span class='now identifier id'>now</span><span class='dot token'>.</span><span class='to_f identifier id'>to_f</span> <span class='gt op'>&gt;</span> <span class='@check_after ivar id'>@check_after</span>
+      <span class='args identifier id'>args</span> <span class='assign token'>=</span> <span class='@args ivar id'>@args</span><span class='dot token'>.</span><span class='dup identifier id'>dup</span>
+      <span class='files identifier id'>files</span> <span class='assign token'>=</span> <span class='lbrack token'>[</span><span class='rbrack token'>]</span>
+      <span class='comment val'># expand filename globs</span>
+      <span class='mode identifier id'>mode</span> <span class='assign token'>=</span> <span class='symbol val'>:start</span>
+      <span class='args_index identifier id'>args_index</span> <span class='assign token'>=</span> <span class='integer val'>0</span>
+      <span class='while while kw'>while</span> <span class='args_index identifier id'>args_index</span> <span class='lt op'>&lt;</span> <span class='args identifier id'>args</span><span class='dot token'>.</span><span class='length identifier id'>length</span>
+        <span class='if if kw'>if</span> <span class='mode identifier id'>mode</span> <span class='eq op'>==</span> <span class='symbol val'>:start</span>
+          <span class='if if kw'>if</span> <span class='args identifier id'>args</span><span class='lbrack token'>[</span><span class='args_index identifier id'>args_index</span><span class='rbrack token'>]</span> <span class='eq op'>==</span> <span class='string val'>'--outputPathFormat'</span>
+            <span class='mode identifier id'>mode</span> <span class='assign token'>=</span> <span class='symbol val'>:expand</span>
+            <span class='args_index identifier id'>args_index</span> <span class='opasgn op'>+=</span> <span class='integer val'>1</span>
+          <span class='end end kw'>end</span>
+          <span class='args_index identifier id'>args_index</span> <span class='opasgn op'>+=</span> <span class='integer val'>1</span>
+        <span class='else else kw'>else</span> 
+          <span class='arg identifier id'>arg</span> <span class='assign token'>=</span> <span class='args identifier id'>args</span><span class='lbrack token'>[</span><span class='args_index identifier id'>args_index</span><span class='rbrack token'>]</span>
+          <span class='if if kw'>if</span> <span class='arg identifier id'>arg</span> <span class='match op'>=~</span> <span class='regexp val'>/\*/</span>
+            <span class='args identifier id'>args</span><span class='lbrack token'>[</span><span class='args_index identifier id'>args_index</span><span class='comma token'>,</span><span class='integer val'>1</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='Dir constant id'>Dir</span><span class='dot token'>.</span><span class='glob identifier id'>glob</span> <span class='arg identifier id'>arg</span>
+          <span class='else else kw'>else</span>
+            <span class='args_index identifier id'>args_index</span> <span class='opasgn op'>+=</span> <span class='integer val'>1</span>
+          <span class='end end kw'>end</span>
+        <span class='end end kw'>end</span>
+      <span class='end end kw'>end</span>
+      <span class='comment val'># extract filenames</span>
+      <span class='mode identifier id'>mode</span> <span class='assign token'>=</span> <span class='symbol val'>:start</span>
+      <span class='args identifier id'>args</span><span class='dot token'>.</span><span class='each identifier id'>each</span> <span class='do do kw'>do</span> <span class='bitor op'>|</span><span class='arg identifier id'>arg</span><span class='bitor op'>|</span>
+        <span class='mode identifier id'>mode</span> <span class='assign token'>=</span> <span class='symbol val'>:out</span> <span class='and and kw'>and</span> <span class='next next kw'>next</span> <span class='if if_mod kw'>if</span> <span class='arg identifier id'>arg</span> <span class='eq op'>==</span> <span class='string val'>'--outputPathFormat'</span>
+        <span class='files identifier id'>files</span> <span class='lshft op'>&lt;&lt;</span> <span class='arg identifier id'>arg</span> <span class='if if_mod kw'>if</span> <span class='mode identifier id'>mode</span> <span class='eq op'>==</span> <span class='symbol val'>:collect</span>
+        <span class='mode identifier id'>mode</span> <span class='assign token'>=</span> <span class='symbol val'>:collect</span> <span class='if if_mod kw'>if</span> <span class='mode identifier id'>mode</span> <span class='eq op'>==</span> <span class='symbol val'>:out</span>
+      <span class='end end kw'>end</span>
+      <span class='comment val'># detect source changes</span>
+      <span class='compiled identifier id'>compiled</span> <span class='assign token'>=</span> <span class='true true kw'>true</span>
+      <span class='files identifier id'>files</span><span class='dot token'>.</span><span class='each identifier id'>each</span> <span class='do do kw'>do</span> <span class='bitor op'>|</span><span class='file identifier id'>file</span><span class='bitor op'>|</span>
+        <span class='filename identifier id'>filename</span> <span class='assign token'>=</span> <span class='File constant id'>File</span><span class='dot token'>.</span><span class='expand_path identifier id'>expand_path</span> <span class='file identifier id'>file</span>
+        <span class='mtime identifier id'>mtime</span> <span class='assign token'>=</span> <span class='File constant id'>File</span><span class='dot token'>.</span><span class='mtime identifier id'>mtime</span> <span class='filename identifier id'>filename</span> <span class='rescue rescue kw'>rescue</span> <span class='Errno constant id'>Errno</span><span class='colon2 op'>::</span><span class='ENOENT constant id'>ENOENT</span>
+        <span class='last_mtime identifier id'>last_mtime</span> <span class='assign token'>=</span> <span class='@mtimes ivar id'>@mtimes</span><span class='lbrack token'>[</span><span class='filename identifier id'>filename</span><span class='rbrack token'>]</span>
+        <span class='if if kw'>if</span> <span class='notop op'>!</span><span class='mtime identifier id'>mtime</span> <span class='or or kw'>or</span> <span class='notop op'>!</span><span class='last_mtime identifier id'>last_mtime</span> <span class='or or kw'>or</span> <span class='last_mtime identifier id'>last_mtime</span> <span class='neq op'>!=</span> <span class='mtime identifier id'>mtime</span>
+          <span class='@mtimes ivar id'>@mtimes</span><span class='lbrack token'>[</span><span class='filename identifier id'>filename</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='mtime identifier id'>mtime</span>
+          <span class='compiled identifier id'>compiled</span> <span class='assign token'>=</span> <span class='false false kw'>false</span>
+          <span class='break break kw'>break</span>
+        <span class='end end kw'>end</span>
+      <span class='end end kw'>end</span>
+      <span class='comment val'># compile as needed</span>
+      <span class='if if kw'>if</span> <span class='notop op'>!</span><span class='compiled identifier id'>compiled</span> <span class='or or kw'>or</span> <span class='@errors ivar id'>@errors</span>
+        <span class='java_opts identifier id'>java_opts</span> <span class='assign token'>=</span> <span class='args identifier id'>args</span><span class='dot token'>.</span><span class='collect identifier id'>collect</span><span class='lbrace token'>{</span><span class='bitor op'>|</span><span class='a identifier id'>a</span><span class='bitor op'>|</span><span class='a identifier id'>a</span><span class='dot token'>.</span><span class='to_s identifier id'>to_s</span><span class='dot token'>.</span><span class='dump identifier id'>dump</span><span class='rbrace token'>}</span><span class='dot token'>.</span><span class='join identifier id'>join</span><span class='lparen token'>(</span><span class='string val'>', '</span><span class='rparen token'>)</span>
+        <span class='out identifier id'>out</span><span class='comma token'>,</span> <span class='err identifier id'>err</span> <span class='assign token'>=</span> <span class='Closure constant id'>Closure</span><span class='dot token'>.</span><span class='java identifier id'>java</span><span class='lparen token'>(</span><span class='dstring node'>&quot;ClosureScript.compile_soy_to_js_src(new String[]{#{java_opts}});&quot;</span><span class='rparen token'>)</span>
+        <span class='if if kw'>if</span> <span class='err identifier id'>err</span><span class='dot token'>.</span><span class='empty? fid id'>empty?</span>
+          <span class='@errors ivar id'>@errors</span> <span class='assign token'>=</span> <span class='nil nil kw'>nil</span>
+        <span class='else else kw'>else</span>
+          <span class='comment val'># Remove confusing &quot;ClosureScript.compile_soy_to_js_src&quot; message</span>
+          <span class='err identifier id'>err</span><span class='dot token'>.</span><span class='sub! fid id'>sub!</span> <span class='regexp val'>/\A^.*$\n^.*$\n/</span><span class='comma token'>,</span> <span class='string val'>''</span>
+          <span class='@errors ivar id'>@errors</span> <span class='assign token'>=</span> <span class='err identifier id'>err</span>
+        <span class='end end kw'>end</span>
+      <span class='end end kw'>end</span>
+      <span class='@check_after ivar id'>@check_after</span> <span class='assign token'>=</span> <span class='Time constant id'>Time</span><span class='dot token'>.</span><span class='now identifier id'>now</span><span class='dot token'>.</span><span class='to_f identifier id'>to_f</span> <span class='plus op'>+</span> <span class='@dwell ivar id'>@dwell</span>
+    <span class='end end kw'>end</span>
+  <span class='end end kw'>end</span>
+  <span class='comment val'># Make always available the errors from every Soy in the stack</span>
+  <span class='if if kw'>if</span> <span class='env identifier id'>env</span><span class='lbrack token'>[</span><span class='ENV_ERRORS constant id'>ENV_ERRORS</span><span class='rbrack token'>]</span><span class='dot token'>.</span><span class='kind_of? fid id'>kind_of?</span><span class='lparen token'>(</span><span class='Array constant id'>Array</span><span class='rparen token'>)</span>
+    <span class='env identifier id'>env</span><span class='lbrack token'>[</span><span class='ENV_ERRORS constant id'>ENV_ERRORS</span><span class='rbrack token'>]</span> <span class='lshft op'>&lt;&lt;</span> <span class='@errors ivar id'>@errors</span>
+  <span class='else else kw'>else</span>
+    <span class='if if kw'>if</span> <span class='env identifier id'>env</span><span class='dot token'>.</span><span class='has_key? fid id'>has_key?</span> <span class='ENV_ERRORS constant id'>ENV_ERRORS</span>
+      <span class='env identifier id'>env</span><span class='lbrack token'>[</span><span class='ENV_ERRORS constant id'>ENV_ERRORS</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='lbrack token'>[</span><span class='env identifier id'>env</span><span class='lbrack token'>[</span><span class='ENV_ERRORS constant id'>ENV_ERRORS</span><span class='rbrack token'>]</span><span class='comma token'>,</span> <span class='@errors ivar id'>@errors</span><span class='rbrack token'>]</span>
+    <span class='else else kw'>else</span>
+      <span class='env identifier id'>env</span><span class='lbrack token'>[</span><span class='ENV_ERRORS constant id'>ENV_ERRORS</span><span class='rbrack token'>]</span> <span class='assign token'>=</span> <span class='@errors ivar id'>@errors</span>
+    <span class='end end kw'>end</span>
+  <span class='end end kw'>end</span>
+  <span class='comment val'># Onward</span>
+  <span class='@app ivar id'>@app</span><span class='dot token'>.</span><span class='call identifier id'>call</span><span class='lparen token'>(</span><span class='env identifier id'>env</span><span class='rparen token'>)</span>
+<span class='end end kw'>end</span>
+</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+    
+    <div id="footer">
+  Generated on Fri Feb 18 18:19:50 2011 by 
+  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.6.4 (ruby-1.8.7).
+</div>
+
+  </body>
+</html>

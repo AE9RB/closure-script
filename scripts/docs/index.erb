@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta name="Content-Type" content="text/html; charset=UTF-8" />
+<title>YARD Documentation Server 0.6.4 - Library Listing</title>
+<link rel="stylesheet" href="closure/css/style.css" type="text/css" media="screen" charset="utf-8" />
+<script type="text/javascript" charset="utf-8" src="closure/js/jquery.js"></script>
+<script type="text/javascript">
+  function framesLinks() {
+    $('#framelink').toggle(function() {
+      $(this).text('links with frames');
+      $('ul li a').each(function() {
+        $(this).attr('href', $(this).attr('href').replace(/\/frames$/, '/index'));
+      });
+    }, function() {
+      $(this).text('links without frames');
+      $('ul li a').each(function() {
+        $(this).attr('href', $(this).attr('href').replace(/\/index$/, '/frames'));
+      });
+    })
+  }
+  
+  $(framesLinks);
+</script>
+<style type="text/css" media="screen">
+  ul { list-style: circle inside none; padding: 0; }
+  li { font-size: 1.2em; line-height: 1.4em; padding: 3px 5px; }
+</style>
+
+  </head>
+  <body>
+    <div id="content">
+      <h1>Documentation</h1>
+<h2>Library Listing <small>(<a id="framelink" href="#">links without frames</a>)</small></h2>
+<ul>
+  
+  <% Dir.glob(expand_path '*').sort.each do |gem_name|
+     next unless File.exist? "#{gem_name}/frames.html"
+     gem_name = File.basename gem_name %>
+    <li class="r1">
+      <a href="/docs/<%= gem_name %>/frames"><%= gem_name %></a> <small></small>
+    </li>
+  <% end %>
+
+</ul>
+
+    </div>
+  </body>
+</html>

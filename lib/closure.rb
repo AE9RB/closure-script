@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 require 'ostruct'
+require 'tempfile'
 
 # Closure tools may be called directly, run as a stand-alone server, installed as
 # middleware into a framework like Rails, or adapted to anything with a rack environment.
@@ -94,47 +94,68 @@ class Closure
   end
   
   
-  # Run Java command in a REPL (read-execute-print-loop).
-  # This keeps Java running so you only pay the startup cost on the first job.
-  # @param (String) command BeanShell Java command.
+  # Execute jar in a REPL or with JRuby
+  # @private - internal use only
+  # @param (String) jar Path to .jar file
+  # @param (String) mainClass Class with main(String[] args)
+  # @param (Array) args Arguments
   # @return (Array)[stdout, stderr]
-  def self.java(command)
-    @@beanshell ||= BeanShell.new [
-      config.compiler_jar,
-      config.soy_js_jar,
-      File.join(base_path, 'lib', 'shim.jar')
-    ]
-    @@beanshell.run(command)
+  def self.run_java(jar, mainClass, args)
+    jar = File.expand_path(jar)
+    cmdout = Tempfile.new 'closure_java_out'
+    cmderr = Tempfile.new 'closure_java_err'
+    begin
+      if defined? JRUBY_VERSION
+        require 'java'
+        require File.join(base_path, 'lib', 'shim.jar')
+        Java::ClosureScript.run(jar, mainClass, cmdout.path, cmderr.path, args)
+      else
+        @@beanshell ||= BeanShell.new [File.join(base_path, 'lib', 'shim.jar')]
+        java_opts = args.collect{|a|a.dump}.join(', ')
+        cmd = "ClosureScript.run(#{jar.dump}, #{mainClass.dump}, #{cmdout.path.dump}, #{cmderr.path.dump}, new String[]{#{java_opts}});"
+        @@beanshell.run(cmd)
+      end
+    ensure
+      out = cmdout.read; cmdout.close; cmdout.unlink
+      err = cmderr.read; cmderr.close; cmderr.unlink
+    end
+    [out, err]
   end
   
   
   # Set these before the rack server is called for the first time.
   # === Attributes:
-  # - (String) *java* -- default: "java" -- Your Java executable.
-  # - (String) *compiler_jar* -- A compiler.jar to use instead of the one in the gem.
+  # - (String) *java* -- default: "java" -- Your Java executable. Not used under JRuby.
+  # - (String) *compiler_jar* -- A compiler.jar to use instead of the packaged one.
   # - (Hash) *haml* -- Options hash for haml engine.
-  # - (Array) *engines* -- Add new template engines here.
+  # - (Array) *engines* -- Add new script engines here.
   # @return [OpenStruct]
   def self.config
-    @@config ||= OpenStruct.new({
-      :java => 'java',
+    return @@config if defined? @@config
+    @@config = OpenStruct.new({
       :compiler_jar => File.join(base_path, 'closure-compiler', 'compiler.jar'),
       :soy_js_jar => File.join(base_path, 'closure-templates', 'SoyToJsSrcCompiler.jar'),
-      :haml => {},
-      :engines => [
-        ['.erb', Proc.new do |template, filename|
-          require 'erb'
-          erb = ::ERB.new(File.read(filename), nil, '-')
-          erb.filename = filename
-          erb.result(template.send(:binding))
-        end],
-        ['.haml', Proc.new do |template, filename|
-          require 'haml'
-          options = config.haml.merge(:filename => filename)
-          ::Haml::Engine.new(File.read(filename), options).render(template)
-        end]
-      ]
+      :engines => {}
     })
+    if !defined? JRUBY_VERSION
+      @@config.java = 'java'
+    end
+    # ERB
+    @@config.engines['.erb'] = Proc.new do |script, filename|
+      require 'erb'
+      erb = ::ERB.new(File.read(filename), nil, '-')
+      erb.filename = filename
+      erb.result(script.send(:binding))
+    end
+    # HAML
+    @@config.haml = {}
+    @@config.engines['.haml'] = Proc.new do |script, filename|
+      require 'haml'
+      options = config.haml.merge(:filename => filename)
+      ::Haml::Engine.new(File.read(filename), options).render(script)
+    end
+    #TODO add kramdown for .md/.markdown
+    @@config
   end
   
 end

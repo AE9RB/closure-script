@@ -50,7 +50,7 @@ class Closure
     def initialize(args, dependencies = [], base = nil, env = {})
       @env = env
       return if args.empty? # otherwise java locks up
-      args = Array.new args
+      args = args.collect {|a| a.to_s } # for bools and numerics
       files = []
       # Scan to expand paths and extend self with output options
       args_index = 0
@@ -79,9 +79,7 @@ class Closure
         return if compiled
         File.unlink @js_output_file rescue Errno::ENOENT
       end
-      # Do it; defensive .to_s.dump allows for bools and nums
-      java_opts = args.collect{|a|a.to_s.dump}.join(', ')
-      @stdout, @stderr = Closure.java("ClosureScript.compile_js(new String[]{#{java_opts}});")
+      @stdout, @stderr = Closure.run_java Closure.config.compiler_jar, 'com.google.javascript.jscomp.CommandLineRunner', args
     end
     
     # Allows http caching of the js_output_file for scripts that want to do

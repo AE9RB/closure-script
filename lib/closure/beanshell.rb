@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'open3'
-require 'thread'
 
 class Closure
   
@@ -38,10 +36,8 @@ class Closure
         return execute command
       rescue Errno::EPIPE
         # Shut down broken pipe; another will be started.
-        $cmdin.close
-        $cmdout.close
-        $cmderr.close
-        $cmdin = nil
+        $pipe.close
+        $pipe = nil
       end
       # This "second chance" will not rescue the error.
       execute command
@@ -52,29 +48,19 @@ class Closure
     # Executes a command on the REPL and returns the result.
     def execute(command)
       out = ''
-      err = ''
       @semaphore.synchronize do
-        unless $cmdin
+        unless $pipe
           classpath = [@classpath, JAR].flatten
           java_repl = "#{Closure.config.java} -classpath #{classpath.join(':').dump} bsh.Interpreter"
-          $cmdin, $cmdout, $cmderr = Open3::popen3(java_repl)
+          $pipe = IO.popen(java_repl, 'w+')
           eat_startup = ''
-          eat_startup << $cmdout.readpartial(8192) until eat_startup =~ PROMPT
+          eat_startup << $pipe.readpartial(8192) until eat_startup =~ PROMPT
         end
-        $cmdin << command
-        # An extra thread collects stderr while we watch stdout for completion.
-        running = true
-        err_reader = Thread.new { err << $cmderr.readpartial(8192) while running }
-        out << $cmdout.readpartial(8192) until out =~ PROMPT
-        running = false
-        Thread.exclusive { err_reader.terminate if err_reader.status == "sleep" }
-        err_reader.join
-        # Funny thing is, stdout sometimes finishes sending before stderr begins.
-        err << $cmderr.read_nonblock(8192) while true rescue Errno::EAGAIN
+        $pipe << command
+        out << $pipe.readpartial(8192) until out =~ PROMPT
       end
-      [out.sub(PROMPT, ''), err]
+      out.sub(PROMPT, '')
     end
-
     
   end
   

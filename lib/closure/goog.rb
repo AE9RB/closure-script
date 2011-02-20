@@ -66,7 +66,6 @@ class Closure
             replacement = []
             while files_index < files.length
               if files[files_index] =~ /\.externs$/
-                require 'tempfile'
                 temp_deps_js ||= Tempfile.new 'closure_deps_js'
                 replacement.push '--externs'
               else

@@ -13,30 +13,32 @@
 // limitations under the License.
 
 
-// The Google Closure Compiler calls System.exit() internally.
-// I tried subclassing as they suggest, but the main System.exit() was at
-// the end of the critical compiler run function.  Rather than take control
-// of this important code which would need to be kept in sync with Google's
-// releases, I use a SecurityManager to trap the System.exit() calls.
-// BeanShell can't extend SecurityManager so this must be compiled.
-// Oh, and Closure likes to close STDOUT when no --js_output_file is
-// specified, so we have to hack around that too.
-
-// Once loaded up in a BeanShell or other REPL:
-//   java -classpath bsh-core-2.0b4.jar:closure.jar:../closure-compiler/compiler.jar bsh.Interpreter
-// You may repeatedly request javascript compilations:
-//   ClosureScript.compile_js(new String[]{"--js", "../app/javascripts/test.js", "--js_output_file", "out.js", "--compilation_level", "ADVANCED_OPTIMIZATIONS"});
-
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.net.MalformedURLException;
+import java.lang.reflect.Method;
+import java.util.Hashtable;
 
 public class ClosureScript {
-
-  // This PrintStream can not be closed
-  private static class UnclosablePrintStream extends PrintStream {
-    public UnclosablePrintStream(PrintStream out) {
-      super(out);
+  
+  static Hashtable<String, Method> libs = new Hashtable<String, Method>();
+  
+  //TODO there should be a way to determine the className with main()
+  private static Method getMainMethod(String jar, String className) 
+  throws ClassNotFoundException, NoSuchMethodException, MalformedURLException
+  {
+    if (!libs.containsKey(jar)) {
+      File file = new File(jar);
+      URL jarfile = new URL("jar", "","file:" + file.getAbsolutePath()+"!/");    
+      URLClassLoader cl = URLClassLoader.newInstance(new URL[] {jarfile });   
+      Class<?> loadedClass = cl.loadClass(className);
+      Method m = loadedClass.getMethod("main", String[].class);
+      libs.put(jar, m);
     }
-    public void close() {this.flush();}
+    return libs.get(jar);
   }
 
   // This will be thrown when a captured block tries to System.exit()
@@ -59,31 +61,33 @@ public class ClosureScript {
     System.setSecurityManager(null);
   }
 
-  public static void compile_js(String[] args) {
+  // This will load an executable jar and run it
+  public static void run(String compiler_jar, String className, 
+                             String outFileName, String errFileName, String[] args)
+  throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
+         MalformedURLException, FileNotFoundException
+  {
+    Method main = getMainMethod(compiler_jar, className);
     PrintStream savedOut = System.out;
-    System.setOut(new UnclosablePrintStream(System.out));
-    disableSystemExit();
+    PrintStream savedErr = System.err;
+    PrintStream out = new PrintStream(new File(outFileName));
+    PrintStream err = new PrintStream(new File(errFileName));
     try {
-      com.google.javascript.jscomp.CommandLineRunner.main(args);
-    } catch( SystemExitException e ) {
+      System.setOut(out);
+      System.setErr(err);
+      disableSystemExit();
+      main.invoke(main, new Object[]{args});
+    } catch( java.lang.reflect.InvocationTargetException e ) {
+      if (!(e.getCause() instanceof SystemExitException)) {
+        err.println( e.getCause().getMessage() );
+      }
     } finally {
       enableSystemExit();
+      System.setErr(savedErr);
       System.setOut(savedOut);
     }  
-  }
-
-  public static void compile_soy_to_js_src(String[] args) {
-    PrintStream savedOut = System.out;
-    System.setOut(new UnclosablePrintStream(System.out));
-    disableSystemExit();
-    try {
-      com.google.template.soy.SoyToJsSrcCompiler.main(args);
-    } catch( SystemExitException e ) {
-    } catch( java.io.IOException e) {
-    } finally {
-      enableSystemExit();
-      System.setOut(savedOut);
-    }  
+    out.close();
+    err.close();
   }
 
 }

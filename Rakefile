@@ -141,7 +141,7 @@ task 'war:server' do
     print "Build #{war_file} first.\n"
     exit 1
   end
-  exec "#{Closure.config.java} -jar #{war_file}"
+  exec "java -jar #{war_file}"
 end
 
 # DOCS

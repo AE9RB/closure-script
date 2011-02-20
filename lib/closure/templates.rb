@@ -83,7 +83,7 @@ class Closure
       # (it is not to synchronize globals like in Closure::Sources)
       @semaphore.synchronize do
         if Time.now.to_f > @check_after
-          args = @args.dup
+          args = @args.collect {|a| a.to_s } # for bools and numerics
           files = []
           # expand filename globs
           mode = :start
@@ -125,13 +125,10 @@ class Closure
           end
           # compile as needed
           if !compiled or @errors
-            java_opts = args.collect{|a|a.to_s.dump}.join(', ')
-            out, err = Closure.java("ClosureScript.compile_soy_to_js_src(new String[]{#{java_opts}});")
+            out, err = Closure.run_java Closure.config.soy_js_jar, 'com.google.template.soy.SoyToJsSrcCompiler', args
             if err.empty?
               @errors = nil
             else
-              # Remove confusing "ClosureScript.compile_soy_to_js_src" message
-              err.sub! /\A^.*$\n^.*$\n/, ''
               @errors = err
             end
           end

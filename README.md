@@ -3,11 +3,15 @@ Closure Script for Google Closure Compiler, Library, and Templates.
 Licensed under the Apache License, Version 2.0 (the "License"); 
 <http://www.apache.org/licenses/LICENSE-2.0>
 
-Project home;
-<http://www.closure-script.com/>
 
-Getting Started documentation is on the wiki;
-<https://github.com/dturnbull/closure-script/wiki>
+Step 1: Download the .war to an empty folder:
 
-Advanced documentation is in YARD format;
-<http://rubydoc.info/gems/closure/frames>
+        https://github.com/dturnbull/closure-script/downloads
+
+Step 2: Run with Java:
+
+        java -jar closure.war
+        
+Step 3: Open a web browser to:
+
+        http://localhost:8080/

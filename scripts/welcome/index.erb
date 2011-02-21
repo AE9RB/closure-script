@@ -42,8 +42,10 @@ if post?
   end
 end
 
--%><!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+# Render a template on get
+if get? -%>
+<!DOCTYPE html>
+<html>
   <head>
     <meta name="Content-Type" content="text/html; charset=UTF-8" />
     <title>Welcome to Closure</title>
@@ -87,3 +89,4 @@ end
     
   </body>
 </html>
+<% end -%>

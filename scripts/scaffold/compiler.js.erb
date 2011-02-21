@@ -1,0 +1,38 @@
+<% 
+# Closure Compiler is run from a Script.  To obtain
+# the dynamically generated javascript from this file:
+# http://localhost:8080/compiler.js
+
+# These are the same options as compiler.jar.  Two exceptions:
+# 1. No --compilation_level will load the original sources 
+#    instead of using the compiler.jar default.
+# 2. The --ns argument compiles a namespace.  Closure Script simply
+#    turns these into --js arguments before calling the compiler.
+args = %w{
+  --summary_detail_level 3
+  --define goog.DEBUG=false
+  --warning_level VERBOSE
+  --ns myapp.hello
+}
+
+# You can make as many compiler Scripts as you like but
+# it may be more convenient to accept options on the URL.
+# http://localhost:8080/compiler.js?build
+# http://localhost:8080/compiler.js?debug
+args << case query_string
+when 'build': %w{
+  --compilation_level ADVANCED_OPTIMIZATIONS
+  --js_output_file compiler.build
+  --create_source_map compiler.map
+}
+when 'debug': %w{
+  --debug true
+  --formatting PRETTY_PRINT
+  --compilation_level ADVANCED_OPTIMIZATIONS
+  --js_output_file compiler.debug
+}
+end
+
+# Make it so.
+@response = goog.compile(args.flatten).to_response_with_console 
+%>

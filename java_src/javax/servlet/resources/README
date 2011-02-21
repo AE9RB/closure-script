@@ -1,0 +1,6 @@
+This xsd is included to clear a warning from Winstone.
+It isn't actually used for anything.
+It had two includes that I commented out.
+<!-- <xsd:include schemaLocation="javaee_5.xsd"/> -->
+<!-- <xsd:include schemaLocation="jsp_2_1.xsd"/> -->
+Perhaps a Java developer can offer a better solution.

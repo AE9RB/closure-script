@@ -24,6 +24,8 @@ import java.util.Hashtable;
 
 public class ClosureScript {
   
+  //TODO make our own REPL for run()
+  
   static Hashtable<String, Method> libs = new Hashtable<String, Method>();
   
   //TODO there should be a way to determine the className with main()

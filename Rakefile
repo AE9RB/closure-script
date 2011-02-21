@@ -10,7 +10,7 @@ require 'yard'
 # Only closure is packaged with the gem
 DOCS_GEMS = %w{closure rack haml}
 
-# These versions are important mostly for war packaging.
+# These versions are important for war packaging.
 # Gem users are free to mix and match any sensible versions.
 HAML_VER = '= 3.0.25' # check for dwell on sass when upgrading
 JRUBY_JARS_VER = '= 1.5.6'
@@ -23,12 +23,22 @@ gem 'rack', RACK_VER
 
 #TODO add java build (see example in warbler makefile)
 
+
 # SERVER
 
 desc 'Start the Closure Script server'
 task 'server' do
   require 'rack'
   Rack::Server.start :config => "config.ru"
+end
+
+desc 'Start the Closure Script welcome server'
+task 'welcome' do
+  mkdir_p 'tmp' if !File.exist?('tmp')
+  chdir 'tmp'
+  require 'rack'
+  print "Closure Script Welcome Server is running\n"
+  Rack::Server.start :config => "../scripts/welcome/config.ru"
 end
 
 # TEST
@@ -52,6 +62,7 @@ gem_spec = Gem::Specification.new do |s|
   s.add_dependency 'rack', '>= 1.0.0'
 
   s.files        = `git ls-files`.split("\n")
+  s.files       +=  FileList['scripts/docs/closure/**/*']
   s.executables  = `git ls-files`.split("\n").map{|f| f =~ /^bin\/(.*)/ ? $1 : nil}.compact
   s.test_files   = `git ls-files`.split("\n").map{|f| f =~ /^(test\/.*_test.rb)$/ ? $1 : nil}.compact
   s.require_path = 'lib'
@@ -64,7 +75,7 @@ end
 
 task 'gem:ensure_closure_docs' do
   unless File.exists? "scripts/docs/closure/index.html"
-    print "Docs for closure not built.\n"
+    print "ERROR: Docs for closure not built.\n"
     exit 1
   end
 end
@@ -85,8 +96,7 @@ war_config = Warbler::Config.new do |config|
     lib
     scripts
   )
-  config.includes = FileList['LICENSE']
-
+  
   config.gems << Gem::Dependency.new("jruby-jars", JRUBY_JARS_VER)
   config.gems << Gem::Dependency.new("jruby-rack", JRUBY_RACK_VER)
   config.gems << Gem::Dependency.new("haml", HAML_VER)
@@ -95,13 +105,24 @@ war_config = Warbler::Config.new do |config|
   config.bundler = false
 
   config.webxml.booter = :rack
+  # Make no locals or attributes in this rackup.
+  # A clean binding is more important than being dry.
   config.webxml.rackup = <<-EOS
     require 'rubygems'
     require 'java'
     $LOAD_PATH.unshift File.expand_path('lib')
-    Dir.chdir(java.lang.System.getProperty('user.dir'))
-    eval(File.read('config.ru'), binding, 'config.ru')
+    if File.exist? File.join java.lang.System.getProperty('user.dir'), 'config.ru'
+      Dir.chdir(java.lang.System.getProperty('user.dir'))
+      eval(File.read('config.ru'), binding, 'config.ru')
+    else
+      eval(File.read('scripts/welcome/config.ru'), binding, 'welcome/config.ru')
+      Dir.chdir(java.lang.System.getProperty('user.dir'))
+    end
   EOS
+  
+  # Closure::Server is thread-safe so one runtime is plenty
+  config.webxml.jruby.min.runtimes = 1  
+  config.webxml.jruby.max.runtimes = 1
   
   # Include any file to create classes folder which stops a warning
   config.java_classes = FileList['Rakefile']
@@ -121,7 +142,7 @@ task 'war' do
   # ensure all docs were built
   DOCS_GEMS.each do |gem_name|
     unless File.exists? "scripts/docs/#{gem_name}/index.html"
-      print "Docs for #{gem_name} not built.\n"
+      print "ERROR: Docs for #{gem_name} not built.\n"
       exit 1
     end
   end
@@ -138,7 +159,7 @@ desc 'Start the project .war server'
 task 'war:server' do
   war_file = File.join war_config.autodeploy_dir, war_config.war_name + '.war'
   unless File.exist?(war_file)
-    print "Build #{war_file} first.\n"
+    print "ERROR: Build #{war_file} first.\n"
     exit 1
   end
   exec "java -jar #{war_file}"
@@ -152,7 +173,7 @@ DOCS_GEMS.each do |gem_name|
   else
     spec = Gem.loaded_specs[gem_name]
     unless spec
-      print "Gem #{gem_name} not loaded." 
+      print "ERROR: Gem #{gem_name} not loaded." 
       exit 1
     end
   end
@@ -164,7 +185,7 @@ DOCS_GEMS.each do |gem_name|
   else
     extra = ''
   end
-  desc 'Generate #{gem_name} documentation'
+  desc "Generate #{gem_name} documentation"
   task "docs:#{gem_name}" do
     db_dir = File.expand_path(".yardoc_#{gem_name}")
     rm_rf db_dir # ensure full build

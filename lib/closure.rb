@@ -18,7 +18,7 @@ require 'tempfile'
 # Closure tools may be called directly, run as a stand-alone server, installed as
 # middleware into a framework like Rails, or adapted to anything with a rack environment.
 # @example config.ru
-#   #\ -p 9009 -E none
+#   #\ -p 8080 -E none
 #   require 'rubygems'
 #   require 'closure'
 #   Closure.add_source :goog, '/goog'
@@ -110,7 +110,7 @@ class Closure
         require File.join(base_path, 'lib', 'shim.jar')
         Java::ClosureScript.run(jar, mainClass, cmdout.path, cmderr.path, args)
       else
-        @@beanshell ||= BeanShell.new [File.join(base_path, 'lib', 'shim.jar')]
+        @@beanshell ||= BeanShell.new File.join(base_path, 'lib', 'shim.jar')
         java_opts = args.collect{|a|a.dump}.join(', ')
         cmd = "ClosureScript.run(#{jar.dump}, #{mainClass.dump}, #{cmdout.path.dump}, #{cmderr.path.dump}, new String[]{#{java_opts}});"
         @@beanshell.run(cmd)
@@ -127,6 +127,7 @@ class Closure
   # === Attributes:
   # - (String) *java* -- default: "java" -- Your Java executable. Not used under JRuby.
   # - (String) *compiler_jar* -- A compiler.jar to use instead of the packaged one.
+  # - (String) *soy_js_jar* -- A SoyToJsSrcCompiler.jar to use instead of the packaged one.
   # - (Hash) *haml* -- Options hash for haml engine.
   # - (Array) *engines* -- Add new script engines here.
   # @return [OpenStruct]
@@ -154,7 +155,7 @@ class Closure
       options = config.haml.merge(:filename => filename)
       ::Haml::Engine.new(File.read(filename), options).render(script)
     end
-    #TODO add kramdown for .md/.markdown
+    #TODO add kramdown for .md/.markdown needs render_stack param (replace filename)
     @@config
   end
   

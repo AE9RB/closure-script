@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta name="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Welcome to Closure</title>
+  </head>
+  <body>
+    <h1>Welcome to Closure</h1>
+    
+    <dl>
+    <dt>Server running in:</dt>
+    <dd><%=h Dir.getwd %></dd>
+    </dl>
+    
+    I couldn't find config.ru in that folder.<br />
+    Would you like me to write the scaffold project there?
+
+    <form>
+      <input type="button" value="Write only config.ru"
+          onclick="alert('this doesn\'t actually work yet');" />
+      TODO
+      <br />
+      <input type="button" value="Write complete project"
+        onclick="alert('this doesn\'t actually work yet');" />
+      TODO
+    </form>
+    
+  </body>
+</html>

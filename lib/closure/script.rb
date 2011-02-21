@@ -15,16 +15,16 @@
 
 class Closure
   
-  # @private
+  # @private nodoc
   class ScriptNotFoundError < StandardError
   end
 
-  # @private
+  # @private nodoc
   class ScriptCallStackTooDeepError < StandardError
   end
   
   # A Closure::Script instance is the context in which scripts are rendered.
-  # It inherits everything from Rack::Request and supplies a response instance
+  # It inherits everything from Rack::Request and supplies a Response instance
   # you can use for redirects, cookies, and other controller actions.
   class Script < Rack::Request
     
@@ -32,15 +32,15 @@ class Closure
     
     def initialize(env, sources, filename)
       super(env)
-      @closure_script_render_stack = []
-      @goog = Goog.new(env, sources, @closure_script_render_stack)
+      @closure_private_render_stack = []
+      @goog = Goog.new(env, sources, @closure_private_render_stack)
       @response = original_response = Rack::Response.new
       rendering = render(filename)
       if @response == original_response and @response.empty?
         @response.write rendering
       end
     rescue ScriptCallStackTooDeepError, ScriptNotFoundError => e
-      if @closure_script_render_stack.size > 0
+      if @closure_private_render_stack.size > 0
         # Make errors appear from the render instead of the engine.call
         e.set_backtrace e.backtrace[1..-1]
         env[ENV_ERROR_CONTENT_TYPE] = @response.finish[1]["Content-Type"] rescue nil
@@ -72,13 +72,13 @@ class Closure
     #   <%= render 'util/logger_popup' %>
     # @param (String) filename Relative to current script.
     def render(filename)
-      if @closure_script_render_stack.size > 100
+      if @closure_private_render_stack.size > 100
         # Since nobody sane would recurse through here, this mainly
         # finds a render self that you might get after a copy and paste
         raise ScriptCallStackTooDeepError 
-      elsif @closure_script_render_stack.size > 0
+      elsif @closure_private_render_stack.size > 0
         # Hooray for relative paths and easily movable files
-        filename = File.expand_path(filename, File.dirname(@closure_script_render_stack.last))
+        filename = File.expand_path(filename, File.dirname(@closure_private_render_stack.last))
       else
         # Underbar scripts are partials by convention; keep them from rendering at root
         filename = File.expand_path(filename)
@@ -92,18 +92,18 @@ class Closure
         Closure.config.engines.each do |ext, engine|
           files2 = [filename1+ext]
           files2 << filename1.gsub(/.html$/, ext) if File.extname(filename1) == '.html'
-          unless filename1 =~ /^_/ or @closure_script_render_stack.empty?
+          unless filename1 =~ /^_/ or @closure_private_render_stack.empty?
             files2 = files2 + files2.collect {|f| "#{File.dirname(f)}/_#{File.basename(f)}"} 
           end
           files2.each do |filename2|
             if File.file?(filename2) and File.readable?(filename2)
-              if @closure_script_render_stack.empty?
+              if @closure_private_render_stack.empty?
                 response.header["Content-Type"] = Rack::Mime.mime_type(File.extname(filename1), 'text/html')
               end
               @goog.add_dependency filename2
-              @closure_script_render_stack.push filename2
+              @closure_private_render_stack.push filename2
               result = engine.call self, filename2
-              @closure_script_render_stack.pop
+              @closure_private_render_stack.pop
               return result
             end
           end
@@ -131,7 +131,7 @@ class Closure
     # @param [String]
     # @return [String]
     def expand_path(s)
-      File.expand_path(s, File.dirname(@closure_script_render_stack.last))
+      File.expand_path(s, File.dirname(@closure_private_render_stack.last))
     end
 
     # Helper to add file mtime as query for future-expiry caching.

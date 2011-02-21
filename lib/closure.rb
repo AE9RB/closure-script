@@ -146,7 +146,7 @@ class Closure
       require 'erb'
       erb = ::ERB.new(File.read(filename), nil, '-')
       erb.filename = filename
-      erb.result(script.send(:binding))
+      erb.result(script.instance_eval{binding})
     end
     # HAML
     @@config.haml = {}

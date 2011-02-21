@@ -1,13 +1,159 @@
-function $opt_object$$inline_14$$($subject$$) {
-  document.write("<p>Hello " + $subject$$ + "!</p>")
+var $goog$global$$ = this;
+Math.floor(Math.random() * 2147483648).toString(36);
+function $goog$string$htmlEscape$$($str$$30$$) {
+  if(!$goog$string$allRe_$$.test($str$$30$$)) {
+    return $str$$30$$
+  }
+  if($str$$30$$.indexOf("&") != -1) {
+    $str$$30$$ = $str$$30$$.replace($goog$string$amperRe_$$, "&amp;")
+  }
+  if($str$$30$$.indexOf("<") != -1) {
+    $str$$30$$ = $str$$30$$.replace($goog$string$ltRe_$$, "&lt;")
+  }
+  if($str$$30$$.indexOf(">") != -1) {
+    $str$$30$$ = $str$$30$$.replace($goog$string$gtRe_$$, "&gt;")
+  }
+  if($str$$30$$.indexOf('"') != -1) {
+    $str$$30$$ = $str$$30$$.replace($goog$string$quotRe_$$, "&quot;")
+  }
+  return $str$$30$$
 }
-var $parts$$inline_16$$ = "hello".split("."), $cur$$inline_17$$ = this;
-!($parts$$inline_16$$[0] in $cur$$inline_17$$) && $cur$$inline_17$$.execScript && $cur$$inline_17$$.execScript("var " + $parts$$inline_16$$[0]);
-for(var $part$$inline_18$$;$parts$$inline_16$$.length && ($part$$inline_18$$ = $parts$$inline_16$$.shift());) {
-  if(!$parts$$inline_16$$.length && $opt_object$$inline_14$$ !== undefined) {
-    $cur$$inline_17$$[$part$$inline_18$$] = $opt_object$$inline_14$$
+var $goog$string$amperRe_$$ = /&/g, $goog$string$ltRe_$$ = /</g, $goog$string$gtRe_$$ = />/g, $goog$string$quotRe_$$ = /\"/g, $goog$string$allRe_$$ = /[&<>\"]/;
+function $goog$string$compareElements_$$($left$$1$$, $right$$1$$) {
+  if($left$$1$$ < $right$$1$$) {
+    return-1
   }else {
-    $cur$$inline_17$$ = $cur$$inline_17$$[$part$$inline_18$$] ? $cur$$inline_17$$[$part$$inline_18$$] : $cur$$inline_17$$[$part$$inline_18$$] = {}
+    if($left$$1$$ > $right$$1$$) {
+      return 1
+    }
+  }
+  return 0
+}
+;var $goog$userAgent$detectedOpera_$$, $goog$userAgent$detectedIe_$$, $goog$userAgent$detectedWebkit_$$, $goog$userAgent$detectedGecko_$$;
+function $goog$userAgent$getUserAgentString$$() {
+  return $goog$global$$.navigator ? $goog$global$$.navigator.userAgent : null
+}
+$goog$userAgent$detectedGecko_$$ = $goog$userAgent$detectedWebkit_$$ = $goog$userAgent$detectedIe_$$ = $goog$userAgent$detectedOpera_$$ = false;
+var $ua$$inline_5$$;
+if($ua$$inline_5$$ = $goog$userAgent$getUserAgentString$$()) {
+  var $navigator$$inline_6$$ = $goog$global$$.navigator;
+  $goog$userAgent$detectedOpera_$$ = $ua$$inline_5$$.indexOf("Opera") == 0;
+  $goog$userAgent$detectedIe_$$ = !$goog$userAgent$detectedOpera_$$ && $ua$$inline_5$$.indexOf("MSIE") != -1;
+  $goog$userAgent$detectedWebkit_$$ = !$goog$userAgent$detectedOpera_$$ && $ua$$inline_5$$.indexOf("WebKit") != -1;
+  $goog$userAgent$detectedGecko_$$ = !$goog$userAgent$detectedOpera_$$ && !$goog$userAgent$detectedWebkit_$$ && $navigator$$inline_6$$.product == "Gecko"
+}
+var $goog$userAgent$IE$$ = $goog$userAgent$detectedIe_$$, $goog$userAgent$GECKO$$ = $goog$userAgent$detectedGecko_$$, $goog$userAgent$WEBKIT$$ = $goog$userAgent$detectedWebkit_$$, $goog$userAgent$VERSION$$;
+a: {
+  var $version$$inline_13$$ = "", $re$$inline_14$$;
+  if($goog$userAgent$detectedOpera_$$ && $goog$global$$.opera) {
+    var $operaVersion$$inline_15$$ = $goog$global$$.opera.version;
+    $version$$inline_13$$ = typeof $operaVersion$$inline_15$$ == "function" ? $operaVersion$$inline_15$$() : $operaVersion$$inline_15$$
+  }else {
+    if($goog$userAgent$GECKO$$) {
+      $re$$inline_14$$ = /rv\:([^\);]+)(\)|;)/
+    }else {
+      if($goog$userAgent$IE$$) {
+        $re$$inline_14$$ = /MSIE\s+([^\);]+)(\)|;)/
+      }else {
+        if($goog$userAgent$WEBKIT$$) {
+          $re$$inline_14$$ = /WebKit\/(\S+)/
+        }
+      }
+    }
+    if($re$$inline_14$$) {
+      var $arr$$inline_16$$ = $re$$inline_14$$.exec($goog$userAgent$getUserAgentString$$());
+      $version$$inline_13$$ = $arr$$inline_16$$ ? $arr$$inline_16$$[1] : ""
+    }
+  }
+  if($goog$userAgent$IE$$) {
+    var $docMode$$inline_17$$, $doc$$inline_56$$ = $goog$global$$.document;
+    $docMode$$inline_17$$ = $doc$$inline_56$$ ? $doc$$inline_56$$.documentMode : undefined;
+    if($docMode$$inline_17$$ > parseFloat($version$$inline_13$$)) {
+      $goog$userAgent$VERSION$$ = String($docMode$$inline_17$$);
+      break a
+    }
+  }
+  $goog$userAgent$VERSION$$ = $version$$inline_13$$
+}
+var $goog$userAgent$isVersionCache_$$ = {};
+function $goog$userAgent$isVersion$$($version$$7$$) {
+  if(!$goog$userAgent$isVersionCache_$$[$version$$7$$]) {
+    for(var $order$$inline_35$$ = 0, $v1Subs$$inline_36$$ = String($goog$userAgent$VERSION$$).replace(/^[\s\xa0]+|[\s\xa0]+$/g, "").split("."), $v2Subs$$inline_37$$ = String($version$$7$$).replace(/^[\s\xa0]+|[\s\xa0]+$/g, "").split("."), $subCount$$inline_38$$ = Math.max($v1Subs$$inline_36$$.length, $v2Subs$$inline_37$$.length), $subIdx$$inline_39$$ = 0;$order$$inline_35$$ == 0 && $subIdx$$inline_39$$ < $subCount$$inline_38$$;$subIdx$$inline_39$$++) {
+      var $v1Sub$$inline_40$$ = $v1Subs$$inline_36$$[$subIdx$$inline_39$$] || "", $v2Sub$$inline_41$$ = $v2Subs$$inline_37$$[$subIdx$$inline_39$$] || "", $v1CompParser$$inline_42$$ = RegExp("(\\d*)(\\D*)", "g"), $v2CompParser$$inline_43$$ = RegExp("(\\d*)(\\D*)", "g");
+      do {
+        var $v1Comp$$inline_44$$ = $v1CompParser$$inline_42$$.exec($v1Sub$$inline_40$$) || ["", "", ""], $v2Comp$$inline_45$$ = $v2CompParser$$inline_43$$.exec($v2Sub$$inline_41$$) || ["", "", ""];
+        if($v1Comp$$inline_44$$[0].length == 0 && $v2Comp$$inline_45$$[0].length == 0) {
+          break
+        }
+        $order$$inline_35$$ = $goog$string$compareElements_$$($v1Comp$$inline_44$$[1].length == 0 ? 0 : parseInt($v1Comp$$inline_44$$[1], 10), $v2Comp$$inline_45$$[1].length == 0 ? 0 : parseInt($v2Comp$$inline_45$$[1], 10)) || $goog$string$compareElements_$$($v1Comp$$inline_44$$[2].length == 0, $v2Comp$$inline_45$$[2].length == 0) || $goog$string$compareElements_$$($v1Comp$$inline_44$$[2], $v2Comp$$inline_45$$[2])
+      }while($order$$inline_35$$ == 0)
+    }
+    $goog$userAgent$isVersionCache_$$[$version$$7$$] = $order$$inline_35$$ >= 0
+  }
+}
+;!$goog$userAgent$IE$$ || $goog$userAgent$isVersion$$("9");
+$goog$userAgent$IE$$ && $goog$userAgent$isVersion$$("9");
+$goog$userAgent$IE$$ && $goog$userAgent$isVersion$$(8);
+var $goog$userAgent$jscript$DETECTED_HAS_JSCRIPT_$$;
+($goog$userAgent$jscript$DETECTED_HAS_JSCRIPT_$$ = "ScriptEngine" in $goog$global$$ && $goog$global$$.ScriptEngine() == "JScript") && ($goog$global$$.ScriptEngineMajorVersion(), $goog$global$$.ScriptEngineMinorVersion(), $goog$global$$.ScriptEngineBuildVersion());
+function $goog$string$StringBuffer$$($opt_a1$$) {
+  this.$buffer_$ = $goog$userAgent$jscript$DETECTED_HAS_JSCRIPT_$$ ? [] : "";
+  $opt_a1$$ != null && this.append.apply(this, arguments)
+}
+if($goog$userAgent$jscript$DETECTED_HAS_JSCRIPT_$$) {
+  $goog$string$StringBuffer$$.prototype.$bufferLength_$ = 0;
+  $goog$string$StringBuffer$$.prototype.append = function $$goog$string$StringBuffer$$$$append$($a1$$, $opt_a2$$) {
+    if($opt_a2$$ == null) {
+      this.$buffer_$[this.$bufferLength_$++] = $a1$$
+    }else {
+      this.$buffer_$.push.apply(this.$buffer_$, arguments);
+      this.$bufferLength_$ = this.$buffer_$.length
+    }
+    return this
+  }
+}else {
+  $goog$string$StringBuffer$$.prototype.append = function $$goog$string$StringBuffer$$$$append$($a1$$1$$, $opt_a2$$1$$) {
+    this.$buffer_$ += $a1$$1$$;
+    if($opt_a2$$1$$ != null) {
+      for(var $i$$59$$ = 1;$i$$59$$ < arguments.length;$i$$59$$++) {
+        this.$buffer_$ += arguments[$i$$59$$]
+      }
+    }
+    return this
+  }
+}
+$goog$string$StringBuffer$$.prototype.clear = function $$goog$string$StringBuffer$$$$clear$() {
+  if($goog$userAgent$jscript$DETECTED_HAS_JSCRIPT_$$) {
+    this.$bufferLength_$ = this.$buffer_$.length = 0
+  }else {
+    this.$buffer_$ = ""
+  }
+};
+$goog$string$StringBuffer$$.prototype.toString = function $$goog$string$StringBuffer$$$$toString$() {
+  if($goog$userAgent$jscript$DETECTED_HAS_JSCRIPT_$$) {
+    var $str$$68$$ = this.$buffer_$.join("");
+    this.clear();
+    $str$$68$$ && this.append($str$$68$$);
+    return $str$$68$$
+  }else {
+    return this.$buffer_$
+  }
+};
+function $myapp$legume$hello$$($opt_data$$2$$) {
+  var $output$$1$$ = new $goog$string$StringBuffer$$;
+  $output$$1$$.append("\tHello ", $goog$string$htmlEscape$$(String($opt_data$$2$$.$subject$)), "!");
+  return $output$$1$$.toString()
+}
+;function $opt_object$$inline_65$$($subject$$) {
+  document.write($myapp$legume$hello$$({$subject$:$subject$$}))
+}
+var $parts$$inline_67$$ = "hello".split("."), $cur$$inline_68$$ = $goog$global$$;
+!($parts$$inline_67$$[0] in $cur$$inline_68$$) && $cur$$inline_68$$.execScript && $cur$$inline_68$$.execScript("var " + $parts$$inline_67$$[0]);
+for(var $part$$inline_69$$;$parts$$inline_67$$.length && ($part$$inline_69$$ = $parts$$inline_67$$.shift());) {
+  if(!$parts$$inline_67$$.length && $opt_object$$inline_65$$ !== undefined) {
+    $cur$$inline_68$$[$part$$inline_69$$] = $opt_object$$inline_65$$
+  }else {
+    $cur$$inline_68$$ = $cur$$inline_68$$[$part$$inline_69$$] ? $cur$$inline_68$$[$part$$inline_69$$] : $cur$$inline_68$$[$part$$inline_69$$] = {}
   }
 }
 ;

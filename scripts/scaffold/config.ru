@@ -8,12 +8,11 @@ require 'closure'
 Closure.add_source :goog, '/goog'
 Closure.add_source :goog_vendor, '/goog_vendor'
 # But you may need a different version as your project matures.
-# Closure.add_source 'closure-library/closure/goog', '/goog'
-# Closure.add_source 'closure-library/third_party/closure/goog', '/goog_vendor'
+# Closure.add_source '../closure-library/closure/goog', '/goog'
+# Closure.add_source '../closure-library/third_party/closure/goog', '/goog_vendor'
 
-# Here are the remaining built-ins.
+# More useful built-ins.
 Closure.add_source :soy, '/soy'
-Closure.add_source :demos, '/demos'
 Closure.add_source :docs, '/docs'
 Closure.add_source :externs
 

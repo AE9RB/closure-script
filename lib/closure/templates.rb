@@ -120,7 +120,6 @@ class Closure
             if !mtime or !last_mtime or last_mtime != mtime
               @mtimes[filename] = mtime
               compiled = false
-              break
             end
           end
           # compile as needed

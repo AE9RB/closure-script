@@ -15,5 +15,5 @@
 #TODO move to Rakefile
 raise "Remove old .class files before running make" unless Dir.glob("*.class").empty?
 `javac -classpath ../closure-compiler/compiler.jar:../closure-templates/SoyToJsSrcCompiler.jar:../beanshell/bsh-core-2.0b4.jar ClosureScript.java`
-`jar cf ../lib/shim.jar *.class javax/servlet/resources/README javax/servlet/resources/web-app_2_5.xsd`
+`jar cf ../lib/shim.jar *.class`
 %w{ClosureScript.class ClosureScript$1.class ClosureScript$SystemExitException.class ClosureScript$UnclosablePrintStream.class}.each {|f| File.unlink f rescue nil}

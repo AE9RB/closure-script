@@ -112,21 +112,6 @@ class Closure
       raise ScriptNotFoundError
     end
     
-    # Helper for URL escaping.
-    # @param [String]
-    # @return [String]
-    def escape(s)
-      Rack::Utils.escape(s)
-    end
-
-    # Helper and alias for HTML escaping.
-    # @param [String]
-    # @return [String]
-    def escape_html(s)
-      Rack::Utils.escape_html(s)
-    end
-    alias :h :escape_html
-    
     # Helper for relative filenames.
     # @param [String]
     # @return [String]
@@ -140,7 +125,6 @@ class Closure
     def expand_src(s)
       @goog.path_for(expand_path(s)) rescue s
     end
-    
     
   end
   

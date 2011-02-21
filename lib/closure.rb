@@ -146,6 +146,7 @@ class Closure
       require 'erb'
       erb = ::ERB.new(File.read(filename), nil, '-')
       erb.filename = filename
+      script.extend ::ERB::Util
       erb.result(script.instance_eval{binding})
     end
     # HAML

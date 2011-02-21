@@ -8,7 +8,7 @@ require 'yard'
 
 # All docs are distributed with the war
 # Only closure is packaged with the gem
-DOCS_GEMS = %w{closure rack haml}
+DOCS = %w{closure erb rack haml}
 
 # These versions are important for war packaging.
 # Gem users are free to mix and match any sensible versions.
@@ -35,6 +35,7 @@ end
 desc 'Start the Closure Script welcome server'
 task 'welcome' do
   mkdir_p 'tmp' if !File.exist?('tmp')
+  rm Dir.glob 'tmp/*'
   chdir 'tmp'
   require 'rack'
   print "Closure Script Welcome Server is running\n"
@@ -140,7 +141,7 @@ task 'war' do
   dir = war_config.autodeploy_dir
   mkdir_p dir if !File.exist?(dir)
   # ensure all docs were built
-  DOCS_GEMS.each do |gem_name|
+  DOCS.each do |gem_name|
     unless File.exists? "scripts/docs/#{gem_name}/index.html"
       print "ERROR: Docs for #{gem_name} not built.\n"
       exit 1
@@ -167,21 +168,29 @@ end
 
 # DOCS
 
-DOCS_GEMS.each do |gem_name|
-  if gem_name == 'closure'
-    spec = nil
+DOCS.each do |gem_name|
+  if %w{closure}.include? gem_name
+    base_path = '.'
+  elsif %w{erb}.include? gem_name
+    # Where yard won't magically find the wrong README
+    base_path = 'scripts/docs'
   else
     spec = Gem.loaded_specs[gem_name]
     unless spec
       print "ERROR: Gem #{gem_name} not loaded." 
       exit 1
     end
+    base_path = spec.full_gem_path
   end
-  #TODO we can hijack the --readme
   if gem_name == 'rack'
     extra = '- SPEC'
+  elsif gem_name == 'erb'
+    extra = '--default-return "" --hide-void-return --title ERB --no-yardopts erb.rb'
   elsif gem_name == 'haml'
-    extra = '- MIT-LICENSE'
+    # Haml ships gem with incomplete docs
+    # https://github.com/nex3/haml/issues/351
+    haml_ref_file = File.expand_path("scripts/docs/HAML_REFERENCE.md")
+    extra = "- MIT-LICENSE #{haml_ref_file}"
   else
     extra = ''
   end
@@ -192,7 +201,7 @@ DOCS_GEMS.each do |gem_name|
     out_dir = File.expand_path("scripts/docs/#{gem_name}")
     rm_rf out_dir
     save_dir = Dir.getwd
-    Dir.chdir(spec.full_gem_path) if spec
+    Dir.chdir(base_path)
     `yardoc --db #{db_dir} --output-dir #{out_dir} #{extra}`
     Dir.chdir save_dir
     rm_rf db_dir # cleanup
@@ -200,5 +209,5 @@ DOCS_GEMS.each do |gem_name|
 end
 
 desc 'Generate all documentation'
-task 'docs' => DOCS_GEMS.collect {|s| "docs:#{s}"}
+task 'docs' => DOCS.collect {|s| "docs:#{s}"}
 

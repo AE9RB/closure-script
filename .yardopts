@@ -1,3 +1,5 @@
+--default-return  ""
+--hide-void-return
 --no-private
 -
 LICENSE

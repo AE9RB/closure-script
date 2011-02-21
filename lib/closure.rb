@@ -19,7 +19,6 @@ require 'tempfile'
 # middleware into a framework like Rails, or adapted to anything with a rack environment.
 # @example config.ru
 #   #\ -p 8080 -E none
-#   require 'rubygems'
 #   require 'closure'
 #   Closure.add_source :goog, '/goog'
 #   Closure.add_source './src/myapp', '/myapp'
@@ -70,8 +69,8 @@ class Closure
   # @example
   #   Closure.add_source :goog, '/goog'
   #   Closure.add_source './myapp', '/myapp'
-  # @overload script(path, directory)
-  # @overload script(path, built_in)
+  # @overload add_source(directory, path=nil)
+  # @overload add_source(built_in, path=nil)
   # @param (String) path http server mount point.
   # @param (String) directory Where the scripts are in the filesystem.
   # @param (Symbol) built_in

@@ -35,10 +35,11 @@
 <h2>Library Listing <small>(<a id="framelink" href="#">links without frames</a>)</small></h2>
 <ul>
   
-  <% Dir.glob(expand_path '*').sort.each do |gem_name|
+  <% row_class = ''
+     Dir.glob(expand_path '*').sort.each do |gem_name|
      next unless File.exist? "#{gem_name}/frames.html"
      gem_name = File.basename gem_name %>
-    <li class="r1">
+    <li class="<%= row_class == 'r1' ? (row_class='r2') : (row_class='r1') %>">
       <a href="/docs/<%= gem_name %>/frames"><%= gem_name %></a> <small></small>
     </li>
   <% end %>

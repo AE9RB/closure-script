@@ -1,0 +1,13 @@
+function $opt_object$$inline_14$$($subject$$) {
+  document.write("<p>Hello " + $subject$$ + "!</p>")
+}
+var $parts$$inline_16$$ = "hello".split("."), $cur$$inline_17$$ = this;
+!($parts$$inline_16$$[0] in $cur$$inline_17$$) && $cur$$inline_17$$.execScript && $cur$$inline_17$$.execScript("var " + $parts$$inline_16$$[0]);
+for(var $part$$inline_18$$;$parts$$inline_16$$.length && ($part$$inline_18$$ = $parts$$inline_16$$.shift());) {
+  if(!$parts$$inline_16$$.length && $opt_object$$inline_14$$ !== undefined) {
+    $cur$$inline_17$$[$part$$inline_18$$] = $opt_object$$inline_14$$
+  }else {
+    $cur$$inline_17$$ = $cur$$inline_17$$[$part$$inline_18$$] ? $cur$$inline_17$$[$part$$inline_18$$] : $cur$$inline_17$$[$part$$inline_18$$] = {}
+  }
+}
+;

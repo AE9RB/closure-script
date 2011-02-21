@@ -76,7 +76,7 @@ end
 
 task 'gem:ensure_closure_docs' do
   unless File.exists? "scripts/docs/closure/index.html"
-    print "ERROR: Docs for closure not built.\n"
+    print "ERROR: Docs for closure not found.\n"
     exit 1
   end
 end
@@ -143,7 +143,7 @@ task 'war' do
   # ensure all docs were built
   DOCS.each do |gem_name|
     unless File.exists? "scripts/docs/#{gem_name}/index.html"
-      print "ERROR: Docs for #{gem_name} not built.\n"
+      print "ERROR: Docs for #{gem_name} not found.\n"
       exit 1
     end
   end

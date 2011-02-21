@@ -4,7 +4,8 @@ all_files = [
   expand_path('../scaffold/compiler.js.erb'),
   expand_path('../scaffold/index.erb'),
   expand_path('../scaffold/hello.erb'),
-  expand_path('../scaffold/hello.js')
+  expand_path('../scaffold/hello.js'),
+  expand_path('../scaffold/legume.soy')
 ]
 config_files = all_files[0..0]
 
@@ -55,7 +56,7 @@ end
     <dd><%=h Dir.getwd %></dd>
     </dl>
     
-    I couldn't find config.ru when you started the server.<br />
+    I couldn't find config.ru where you started the server.<br />
     Would you like me to write the scaffolding?
 
     <form action='?action=config' method="post">

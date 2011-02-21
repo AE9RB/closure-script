@@ -1,7 +1,8 @@
 goog.provide('myapp.hello');
- 
+goog.require('myapp.legume');
+
 myapp.hello = function(subject) {
-  document.write('<p>Hello ' + subject + '!</p>')
+  document.write(myapp.legume.hello({subject:subject}));
 }
 
 goog.exportSymbol('hello', myapp.hello)

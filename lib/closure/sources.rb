@@ -69,6 +69,7 @@ class Closure
     # @param (String) directory Filesystem location of your sources.
     # @return (Sources) self
     def add(directory, path=nil)
+      raise "immutable once used" if @last_been_run
       if path
         raise "path must start with /" unless path =~ %r{^/}
         path = '' if path == '/'

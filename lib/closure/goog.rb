@@ -158,6 +158,17 @@ class Closure
     def deps_response
       @sources.deps_response(File.dirname(Rack::Utils.unescape(@env["PATH_INFO"])), @env)
     end
+
+    # Very advanced scripts may need to know where the sources are.
+    # This has potential for a source browser, editor, and more.
+    # @example
+    #  goog.each {|directory, path| ... }
+    def each
+      @sources.each do |directory, path| 
+        yield directory, path
+      end
+    end
+    include Enumerable
     
   end
   

@@ -17,6 +17,9 @@ class Closure
   
   class Compiler
     
+    class Error < StandardError
+    end
+    
     # Java won't let you change working directories and the Closure Compiler
     # doesn't allow setting a base path.  No problem, we can do it.
     
@@ -39,6 +42,9 @@ class Closure
       --property_map_input_file
       --variable_map_input_file
     }
+    
+    #TODO upgrade Compiler to use the same middleware pattern as Templates
+    # self.compile should maybe return a new Compilation object
     
     # Instantiating will perform compilation.  It will check file modification times
     # but does not support namespaces like {Goog#compile} does.
@@ -80,64 +86,59 @@ class Closure
         File.unlink @js_output_file rescue Errno::ENOENT
       end
       @stdout, @stderr = Closure.run_java Closure.config.compiler_jar, 'com.google.javascript.jscomp.CommandLineRunner', args
-    end
-    
-    # Allows http caching of the js_output_file for scripts that want to do
-    # their own error checking.
-    # @example
-    #   <% @response = goog.compile(args).to_response %>
-    # @return (#finish) 
-    def to_response
-      if @js_output_file
-        FileResponse.new @env, @js_output_file, 'application/javascript'
-      else
-        response = Rack::Response.new
-        response.headers['Content-Type'] = 'application/javascript'
-        response.headers["Cache-Control"] = 'max-age=0, private, must-revalidate'
-        response.write @stdout
-        response
-      end
-    end
-    
-    # Checks the compilation status and will log to the javascript console.
-    # This is the best technique for compiling unless you have different
-    # needs for reporting errors.
-    # @example
-    #   <% @response = goog.compile(args).to_response_with_console %>
-    def to_response_with_console
-      response = Rack::Response.new
-      # Closure Template Errors
-      templates_errors_js = Templates.errors_js @env
-      response.write templates_errors_js if templates_errors_js
-      # Closure Compiler Errors
-      if stderr and !stderr.empty?
-        split_log = stderr.split("\n")
+      @log = stderr
+      if !log.empty?
+        # Totals at the end make sense for the command line.  But at
+        # the start makes more sense for html and the Javascript console
+        split_log = log.split("\n")
         if split_log.last =~ /^\d+ err/i
           error_message = split_log.pop
         else
           error_message = split_log.shift
         end
-        error_log = "'Closure Compiler: %s', "
         if split_log.empty?
-          error_log += error_message.dump
+          @log = error_message
         else
-          error_log += (error_message + "\n\n" + split_log.join("\n")).dump
+          @log = error_message + "\n\n" + split_log.join("\n")
         end
-        if error_message =~ /^0 err/i
-          if error_message =~ / 0 warn/i
-            response.write "try{console.log(#{error_log})}catch(err){};\n"
-          else
-            response.write "try{console.warn(#{error_log})}catch(err){};\n"
-          end
-        else
-          response.write "try{console.error(#{error_log})}catch(err){};\n"
-        end
+        raise Error, log unless error_message =~ /^0 err/i
       end
-      # Finally, the javascript
-      return to_response if response.empty?
-      response.write javascript
+    end
+    
+    # @private deprecated
+    def to_response_with_console
+      response = to_response
+      if response.class == Rack::Response
+        msg = "#to_response_with_console deprecated, use #to_response"
+        response.write "try{console.warn(#{msg.dump})}catch(err){};\n"
+      end
+      response
+    end
+    
+    # Turn the compiled javascript into a Rack::Response object.
+    # Success and warning messages, which aren't raised like errors,
+    # will be logged to the javascript console.
+    # @example
+    #   <% @response = goog.compile(args).to_response %>
+    # @return (Rack::Response)
+    def to_response
+      response = Rack::Response.new
       response.headers['Content-Type'] = 'application/javascript'
       response.headers["Cache-Control"] = 'max-age=0, private, must-revalidate'
+      if log
+        consolable_log = '"Closure Compiler: %s\n\n", ' + log.rstrip.dump
+        if log.split("\n").first =~ / 0 warn/i
+          response.write "try{console.log(#{consolable_log})}catch(err){};\n"
+        else
+          response.write "try{console.warn(#{consolable_log})}catch(err){};\n"
+        end
+        response.write javascript
+      elsif @js_output_file
+        response = FileResponse.new @env, @js_output_file, 'application/javascript'
+      else
+        response.write javascript
+        response
+      end
       response
     end
 
@@ -159,10 +160,17 @@ class Closure
     # If nil, compilation was skipped because js_output_file was up to date.
     attr_accessor :stdout
     
-    # Results from compiler.jar.  The log, when there is one, is found here.
+    # Results from compiler.jar.  The raw log, when there is one, is found here.
     # Use `--summary_detail_level 3` to see log when no errors or warnings.
     # If nil, compilation was skipped because js_output_file was up to date.
     attr_accessor :stderr
+
+    # Results from compiler.jar. Contains the processed log file ordered
+    # for display in a web browser instead of the command line.
+    # Use `--summary_detail_level 3` to force a log when compilation
+    # generates no errors or warnings.
+    # If nil, compilation was skipped because js_output_file was up to date.
+    attr_accessor :log
 
   end
   

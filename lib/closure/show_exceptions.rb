@@ -29,12 +29,34 @@ class Closure
 
       def call(env)
         @app.call(env)
+      rescue Closure::Compiler::Error => e
+        raise e unless env[Script::ENV_ERROR_CONTENT_TYPE] == 'application/javascript'
+        body = 'try{console.error('
+        body += '"Closure Compiler: %s\n\n", '
+        body += "#{e.message.rstrip.dump}"
+        body += ')}catch(err){}'
+        body
+        [200,
+         {"Content-Type" => "application/javascript",
+          "Content-Length" => body.size.to_s},
+         [body]]
+      rescue Closure::Templates::Error => e
+        raise e unless env[Script::ENV_ERROR_CONTENT_TYPE] == 'application/javascript'
+        body = 'try{console.error('
+        body += '"Closure Templates: 1 error(s)\n\n", '
+        body += "#{e.message.rstrip.dump}"
+        body += ')}catch(err){}'
+        body
+        [200,
+         {"Content-Type" => "application/javascript",
+          "Content-Length" => body.size.to_s},
+         [body]]
       rescue StandardError, LoadError, SyntaxError => e
         raise e unless env[Script::ENV_ERROR_CONTENT_TYPE] == 'application/javascript'
         body = 'try{console.error('
-        body += '"Ruby Exception: %s\n\n", '
+        body += '"Closure Script: %s\n\n", '
         body += "#{e.class.to_s.dump}, "
-        body += "#{e.message.dump}, "
+        body += "#{e.message.rstrip.dump}, "
         body += '"\n\n", '
         body += "#{e.backtrace.join("\n").dump}"
         body += ')}catch(err){}'
@@ -44,11 +66,12 @@ class Closure
           "Content-Length" => body.size.to_s},
          [body]]
       end
+      
     end
     
     # @private - internal use only
     class Html < Rack::ShowExceptions
-      # We may implement our own someday
+      #TODO make our own someday
     end
   
     def initialize(app)

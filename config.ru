@@ -16,15 +16,7 @@ Closure.config.haml[:format] = :html5
 # use Rack::CommonLogger # slow
 use Rack::Reloader, 1
 use Rack::Lint # slow
-use Closure::Templates, %w{
-  --shouldProvideRequireSoyNamespaces
-  --cssHandlingScheme goog
-  --shouldGenerateJsdoc
-  --outputPathFormat {INPUT_DIRECTORY}{INPUT_FILE_NAME_NO_EXT}.js
-  scripts/**/*.soy
-}
 use Closure::Middleware, File.join(Closure.base_path, 'scripts', 'index.html')
-
 run Rack::File.new File.join(Closure.base_path, 'scripts')
 
 print "Closure Script development server started.\n"

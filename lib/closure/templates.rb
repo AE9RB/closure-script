@@ -38,29 +38,18 @@ class Closure
   
   class Templates
     
-    # Logs in env[ENV_ERRORS] will persist until the errors are fixed.
-    # It will be nil when no errors or a string with the Java exception.
-    # It will be an array if you have multiple Soy middlewares running.
-    # By default, these errors are available on the Javascript console
-    # after loading goog.deps_js or a Compiler#to_response_with_console.
-    ENV_ERRORS = 'closure.template.errors'
-    
-    # Creates javascript for errors in a Rack environment.
-    # @private - internal use only
-    # @param (Hash) env Rack environment.
-    def self.errors_js(env)
-      errors = [env[ENV_ERRORS]].flatten.compact
-      return nil if errors.empty?
-      out = 'try{console.error('
-      out += "'Closure Templates: #{errors.size} error(s)', "
-      out += '"\n\n", '
-      out += errors.join("\n").dump
-      out += ')}catch(err){}'
-      out
+    class Error < StandardError
     end
     
+    # As middleware, logs in env[ENV_ERRORS] will persist until fixed.
+    # It will be nil when no errors or a string with the Java exception.
+    # It will be an array if you have multiple middlewares running.
+    ENV_ERRORS = 'closure.template.errors'
+    
+    # Initialize as Rack middleware. If you're compiling with goog.compile,
+    # you'll likely find goog.soy_to_js a lot more convenient.
     # @param app [#call] The Rack application
-    # @param args [Array] Arguments for SoyToJsSrcCompiler.jar.  Supports globbing.
+    # @param args [Array] Arguments.
     # @param dwell [Float] in seconds.  
     def initialize(app, args, dwell = 1.0)
       @app = app
@@ -69,7 +58,6 @@ class Closure
       @check_after = Time.now.to_f
       @mtimes = {}
       @semaphore = Mutex.new
-      @errors = nil
     end
     
     # @return (Float) 
@@ -83,53 +71,10 @@ class Closure
       # (it is not to synchronize globals like in Closure::Sources)
       @semaphore.synchronize do
         if Time.now.to_f > @check_after
-          args = @args.collect {|a| a.to_s } # for bools and numerics
-          files = []
-          # expand filename globs
-          mode = :start
-          args_index = 0
-          while args_index < args.length
-            if mode == :start
-              if args[args_index] == '--outputPathFormat'
-                mode = :expand
-                args_index += 1
-              end
-              args_index += 1
-            else 
-              arg = args[args_index]
-              if arg =~ /\*/
-                args[args_index,1] = Dir.glob arg
-              else
-                args_index += 1
-              end
-            end
-          end
-          # extract filenames
-          mode = :start
-          args.each do |arg|
-            mode = :out and next if arg == '--outputPathFormat'
-            files << arg if mode == :collect
-            mode = :collect if mode == :out
-          end
-          # detect source changes
-          compiled = true
-          files.each do |file|
-            filename = File.expand_path file
-            mtime = File.mtime filename rescue Errno::ENOENT
-            last_mtime = @mtimes[filename]
-            if !mtime or !last_mtime or last_mtime != mtime
-              @mtimes[filename] = mtime
-              compiled = false
-            end
-          end
-          # compile as needed
-          if !compiled or @errors
-            out, err = Closure.run_java Closure.config.soy_js_jar, 'com.google.template.soy.SoyToJsSrcCompiler', args
-            if err.empty?
-              @errors = nil
-            else
-              @errors = err
-            end
+          begin
+            self.class.compile @args, @mtimes
+          rescue Error => e
+            @errors = e.message
           end
           @check_after = Time.now.to_f + @dwell
         end
@@ -147,6 +92,67 @@ class Closure
       # Onward
       @app.call(env)
     end
+    
+    # Compiles soy to javascript with SoyToJsSrcCompiler.jar.  If you pass and
+    # preserve the mtimes Hash, compilation will only be performed when source
+    # files change.  Supports globbing on source filename arguments.
+    # @param (String) base All source filenames will be expanded to this location.
+    def self.compile(args, mtimes={}, base = nil)
+      new_mtimes = {}
+      args = args.collect {|a| a.to_s } # for bools and numerics
+      files = []
+      # expand filename globs
+      mode = :start
+      args_index = 0
+      while args_index < args.length
+        if mode == :start
+          if args[args_index] == '--outputPathFormat'
+            mode = :expand
+            args_index += 1
+          end
+          args_index += 1
+        else 
+          arg = args[args_index]
+          arg = File.expand_path(arg, base) if base
+          if arg =~ /\*/
+            args[args_index,1] = Dir.glob arg
+          else
+            args[args_index,1] = arg
+            args_index += 1
+          end
+        end
+      end
+      # extract filenames
+      mode = :start
+      args.each do |arg|
+        mode = :out and next if arg == '--outputPathFormat'
+        files << arg if mode == :collect
+        mode = :collect if mode == :out
+      end
+      # detect source changes
+      compiled = true
+      files.each do |file|
+        filename = File.expand_path file
+        mtime = File.mtime filename rescue Errno::ENOENT
+        last_mtime = mtimes[filename]
+        if !mtime or !last_mtime or last_mtime != mtime
+          compiled = false
+        end
+        new_mtimes[filename] = mtime
+      end
+      # compile as needed
+      if !compiled
+        out, err = Closure.run_java Closure.config.soy_js_jar, 'com.google.template.soy.SoyToJsSrcCompiler', args
+        unless err.empty?
+          mtimes.clear
+          raise Error, err 
+        end
+      end
+      mtimes.clear
+      mtimes.merge! new_mtimes
+      return mtimes
+    end
+    
     
   end
   

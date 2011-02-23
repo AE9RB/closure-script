@@ -18,6 +18,9 @@ class Closure
   # Scripts render with an instance named goog in the context.
   
   class Goog
+
+    # @private
+    @@soy_to_js_mtimes_cache = {}
     
     def initialize(env, sources, render_stack)
       @sources = sources
@@ -34,8 +37,18 @@ class Closure
       dependency = File.expand_path dependency, @render_stack.last
       @dependencies << dependency unless @dependencies.include? dependency
     end
+    
+    # Convert soy templates to javascript.  Accepts all arguments that
+    # SoyToJsSrcCompiler.jar support plus it expands filename globs.
+    # All source filenames are relative to the script calling #soy_to_js.
+    # @param [Array<String>] args
+    def soy_to_js(args)
+      mtimes = @@soy_to_js_mtimes_cache[args] ||= {}
+      raise "@@soy_to_js_mtimes_cache leaking" if @@soy_to_js_mtimes_cache.length > 25
+      Templates::compile(args, mtimes, File.dirname(@render_stack.last))
+    end
 
-    # Run a compiler job.  Accepts every argument that compiler.jar supports.
+    # Compile javascript.  Accepts every argument that compiler.jar supports.
     # Accepts new `--ns namespace` option which literally expands into
     # `--js filename` arguments in place to satisfy the namespace.
     # If you specify a --js_output_file then the compiler will check File.mtime
@@ -47,9 +60,9 @@ class Closure
     #     --js_output_file ../public/myapp.js
     #     --ns myapp.HelloWorld
     #     --compilation_level ADVANCED_OPTIMIZATIONS
-    #   }).to_response_with_console %>
+    #   }).to_response %>
     # @param [Array<String>] args
-    # @return [Compilation]
+    # @return [Compiler]
     def compile(args)
       args = Array.new args
       files = []
@@ -141,12 +154,14 @@ class Closure
     # base.js explores the DOM looking for where to load deps.js.
     # @example view_test.erb
     #  <script src="<%= goog.base_js %>"></script>
+    # @return [String]
     def base_js
       @sources.base_js(@env)
     end
     
     # This is where base.js looks to find deps.js by default.  You will always
     # be served a Closure Script generated deps.js from this location.
+    # @return [String]
     def deps_js
       @sources.deps_js(@env)
     end

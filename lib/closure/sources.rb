@@ -17,17 +17,17 @@ require 'thread'
 
 class Closure
   
-  # @private
-  class MultipleClosureBaseError < StandardError
-  end
-
-  # @private
-  class ClosureBaseNotFoundError < StandardError
-  end
-  
   # This class is responsible for scanning source files and managing dependencies.
 
   class Sources
+
+    # @private
+    class MultipleBaseJsError < StandardError
+    end
+
+    # @private
+    class BaseJsNotFoundError < StandardError
+    end
     
     include Enumerable
     
@@ -98,7 +98,7 @@ class Closure
       end
       @semaphore.synchronize do
         refresh(env)
-        raise ClosureBaseNotFoundError unless @goog
+        raise BaseJsNotFoundError unless @goog
         @goog[:base_js]
       end
     end
@@ -115,7 +115,7 @@ class Closure
       end
       @semaphore.synchronize do
         refresh(env)
-        raise ClosureBaseNotFoundError unless @goog
+        raise BaseJsNotFoundError unless @goog
         @goog[:deps_js]
       end
     end
@@ -145,16 +145,8 @@ class Closure
           response.headers['Cache-Control'] = "max-age=#{[1,@dwell.floor].max}, private, must-revalidate"
           response.headers['Last-Modified'] = Time.now.httpdate
         end
-        templates_errors_js = Templates.errors_js env
         mod_since = Time.httpdate(env['HTTP_IF_MODIFIED_SINCE']) rescue nil
-        if templates_errors_js
-          response = Rack::Response.new
-          response.headers['Content-Type'] = 'application/javascript'
-          response.headers['Cache-Control'] = "max-age=0, private, must-revalidate"
-          response.write @deps[base].body
-          response.write templates_errors_js
-          response
-        elsif mod_since == Time.httpdate(@deps[base].headers['Last-Modified'])
+        if mod_since == Time.httpdate(@deps[base].headers['Last-Modified'])
           Rack::Response.new [], 304 # Not Modified
         else
           @deps[base]
@@ -188,7 +180,7 @@ class Closure
         end
         ns = @ns
         if !filenames or filenames.empty?
-          raise ClosureBaseNotFoundError unless @goog
+          raise BaseJsNotFoundError unless @goog
           filenames ||= []
           filenames << @goog[:base_filename]
         end
@@ -220,7 +212,9 @@ class Closure
     # Namespace recursion with circular stop on the filename
     def calcdeps(ns, namespace, filenames, prev = nil)
       unless source = ns[namespace]
-        raise "Namespace #{namespace.dump} not found." 
+        msg = "#{prev[:filename]}: " rescue ''
+        msg += "Namespace #{namespace.dump} not found."
+        raise msg
       end
       return if source == prev or filenames.include? source[:filename]
       source[:require].each do |required|
@@ -314,7 +308,7 @@ class Closure
     # We can't trust anything if we see more than one goog
     def multiple_base_js_failure
       reset_all_computed_instance_vars
-      raise MultipleClosureBaseError
+      raise MultipleBaseJsError
     end
     
     def reset_all_computed_instance_vars

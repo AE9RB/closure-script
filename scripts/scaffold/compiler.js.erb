@@ -33,6 +33,18 @@ when 'debug': %w{
 }
 end
 
-# Make it so.
-@response = goog.compile(args.flatten).to_response_with_console 
+# This will process all .soy files into .js files.
+# Be careful you don't make a file.soy to go with the
+# file.js you just started, it will overwrite file.js.
+# Touching any .soy file will trigger a recompile.
+goog.soy_to_js %w{
+  --shouldProvideRequireSoyNamespaces
+  --cssHandlingScheme goog
+  --shouldGenerateJsdoc
+  --outputPathFormat {INPUT_DIRECTORY}{INPUT_FILE_NAME_NO_EXT}.js
+  **/*.soy
+}
+
+# Compile the javascript.
+@response = goog.compile(args.flatten).to_response
 %>

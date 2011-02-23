@@ -19,4 +19,12 @@ when 'debug': %w{
 }
 end
 
-@response = goog.compile(args.flatten).to_response_with_console %>
+goog.soy_to_js %w{
+  --shouldProvideRequireSoyNamespaces
+  --cssHandlingScheme goog
+  --shouldGenerateJsdoc
+  --outputPathFormat {INPUT_DIRECTORY}{INPUT_FILE_NAME_NO_EXT}.js
+  **/*.soy
+}
+
+@response = goog.compile(args.flatten).to_response %>

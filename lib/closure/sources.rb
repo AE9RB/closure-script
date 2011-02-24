@@ -206,6 +206,12 @@ class Closure
       end
     end
     
+    # Certain Script operations, such as building Templates, will need
+    # to invalidate the cache.
+    def invalidate(env)
+      env.delete ENV_FLAG
+      @last_been_run = Time.at 0
+    end
 
     protected
     

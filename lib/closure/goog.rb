@@ -46,6 +46,7 @@ class Closure
       mtimes = @@soy_to_js_mtimes_cache[args] ||= {}
       raise "@@soy_to_js_mtimes_cache leaking" if @@soy_to_js_mtimes_cache.length > 25
       Templates::compile(args, mtimes, File.dirname(@render_stack.last))
+      @sources.invalidate @env
     end
 
     # Compile javascript.  Accepts every argument that compiler.jar supports.

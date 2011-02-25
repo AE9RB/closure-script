@@ -7,5 +7,4 @@ scripts/docs/closure/*
 scripts/docs/haml/*
 scripts/docs/rack/*
 scripts/docs/erb/*
-closure-library/closure/bin/*.pyc
-closure-library/closure/bin/build/*.pyc
+closure-library

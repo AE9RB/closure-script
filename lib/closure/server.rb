@@ -29,6 +29,7 @@ class Closure
     def initialize(sources, home_page = nil)
       @sources = sources
       @home_page = home_page
+      @working_dir = Dir.getwd
     end
     
     # Rack interface.
@@ -39,6 +40,7 @@ class Closure
       return not_found if path_info.include? '..' # unsafe
       # Stand-alone projects will find this useful
       if @home_page and path_info == '/'
+        Dir.chdir @working_dir
         response = FileResponse.new(env, @home_page)
         response = Script.new(env, @sources, @home_page).response unless response.found?
         return response.finish
@@ -48,12 +50,13 @@ class Closure
         if path_info == @sources.deps_js(env)
           return @sources.deps_response(File.dirname(path_info), env).finish
         end
-      rescue ClosureBaseNotFoundError
+      rescue Sources::BaseJsNotFoundError
       end
       # Then check all the sources
       @sources.each do |dir, path|
         next unless path
         if path_info =~ %r{^#{Regexp.escape(path)}(/.*|)$}
+          Dir.chdir @working_dir
           filename = File.join(dir, $1)
           response = FileResponse.new(env, filename)
           if !response.found? and File.extname(path_info) == ''

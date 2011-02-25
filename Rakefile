@@ -92,7 +92,6 @@ war_config = Warbler::Config.new do |config|
 
   config.dirs = %w(
     closure-compiler
-    closure-library
     closure-templates
     lib
     scripts

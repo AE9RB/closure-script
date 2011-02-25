@@ -52,11 +52,7 @@ class Closure
   
 
   # Scripts that are distributed with the gem.  These will help get you started quickly.
-  # Closure Script isn't tied to any Google Closure release, so feel free to use whatever
-  # version you want and check it in to your repository.
   BUILT_INS = {
-    :goog => File.join(base_path, 'closure-library', 'closure', 'goog'),
-    :goog_vendor => File.join(base_path, 'closure-library', 'third_party', 'closure', 'goog'),
     :soy => File.join(base_path, 'closure-templates'),
     :externs => File.join(base_path, 'scripts', 'externs'),
     :demos => File.join(base_path, 'scripts', 'demos'),
@@ -127,7 +123,6 @@ class Closure
   # - (String) *java* -- default: "java" -- Your Java executable. Not used under JRuby.
   # - (String) *compiler_jar* -- A compiler.jar to use instead of the packaged one.
   # - (String) *soy_js_jar* -- A SoyToJsSrcCompiler.jar to use instead of the packaged one.
-  # - (Hash) *haml* -- Options hash for haml engine.
   # - (Array) *engines* -- Add new script engines here.
   # @return [OpenStruct]
   def self.config
@@ -140,24 +135,9 @@ class Closure
     if !defined? JRUBY_VERSION
       @@config.java = 'java'
     end
-    # ERB
-    @@config.engines['.erb'] = Proc.new do |script, filename|
-      require 'erb'
-      erb = ::ERB.new(File.read(filename), nil, '-')
-      erb.filename = filename
-      script.extend ::ERB::Util
-      erb.result(script.instance_eval{binding})
-    end
-    # HAML
-    @@config.haml = {}
-    @@config.engines['.haml'] = Proc.new do |script, filename|
-      require 'haml'
-      options = config.haml.merge(:filename => filename)
-      ::Haml::Engine.new(File.read(filename), options).render(script)
-    end
-    #TODO add kramdown for .md/.markdown needs render_stack param (replace filename)
     @@config
   end
+  require 'closure/engines'
   
 end
 

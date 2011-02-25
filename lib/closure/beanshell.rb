@@ -36,6 +36,7 @@ class Closure
         return execute command
       rescue Errno::EPIPE
         # Shut down broken pipe; another will be started.
+        $stderr.print "#{self.class}: restarting Java.\n"
         $pipe.close
         $pipe = nil
       end

@@ -1,0 +1,148 @@
+<%
+
+class LibraryUpdater
+  require 'rexml/document'
+  @semaphore ||= Mutex.new
+  @status ||= nil
+  @log ||= ''
+  @path ||= nil
+  @updating_to ||= nil
+  class << self
+    attr_reader :log
+    attr_reader :status
+    attr_accessor :path
+    attr_accessor :updating_to
+    
+    def checkout(revision='HEAD')
+      @semaphore.synchronize do
+        return if @status
+        Thread.new do
+          @updating_to = revision
+          @local_revision = 'UPDATING'
+          @log = "Updating to revision #{updating_to}.  Stand by..."
+          if File.exist? path
+            @status = :update
+            @log = `svn update --revision #{revision.dump} #{path.dump} 2>&1`
+          else
+            @status = :checkout
+            @log = `svn checkout --revision #{revision.dump} #{url.dump} #{path.dump} 2>&1`
+          end
+          @updating_to = nil
+          @status = nil
+          @local_revision = nil
+        end
+      end
+    end
+  
+    def info(location)
+      p "Checking: #{location}" #TODO
+      doc = ::REXML::Document.new `svn info --xml #{location.dump}`
+      source = doc.root.elements['//info/entry/url'].text
+      doc.elements.each('info/entry/commit') do |element|
+        return {:url => source, :revision => element.attributes['revision']}
+      end
+    rescue
+      return {:url => nil, :revision => 'ERROR'}
+    end
+    
+    def local_revision
+      return @local_revision if @local_revision
+      local_info = info(path)
+      @url, @local_revision = local_info[:url], local_info[:revision]
+      @local_revision = 'NEW' unless File.exist?(path)
+      @local_revision
+    end
+
+    def url
+      local_revision # sets @url from info, if found
+      @url ||= 'http://closure-library.googlecode.com/svn/trunk/'
+    end
+    
+    def remote_revision
+      @semaphore.synchronize do
+        begin
+          # Refresh every 12 hours
+          raise if Time.now - @remote_revision_checked > 43200
+        rescue
+          @remote_revision = nil
+          @remote_revision_checked = Time.now
+        end
+        @remote_revision ||= info(url)[:revision]
+      end
+    end
+    
+    def update_available?
+      return false if LibraryUpdater.remote_revision == 'ERROR'
+      !(LibraryUpdater.remote_revision == LibraryUpdater.local_revision)
+    end
+
+  end
+  
+end
+
+
+if !(library_only ||= false)
+  LibraryUpdater.path ||= File.expand_path 'closure-library'
+  form_action = expand_src File.basename(__FILE__, File.extname(__FILE__))
+  input_disabled = LibraryUpdater.status ? 'disabled=disabled' : nil
+  input_value = input_disabled ? LibraryUpdater.updating_to : LibraryUpdater.remote_revision
+  input_value = '' if !LibraryUpdater.update_available?
+end
+
+if library_only ### render 'updater', :library_only => true
+  LibraryUpdater.path ||= File.expand_path 'closure-library', File.dirname(render_stack[-2])
+elsif post? ### handler for form submissions
+  if params.has_key? 'revision'
+    LibraryUpdater.checkout params['revision']
+    response.redirect path
+  end
+elsif render_stack.size > 1 ### render 'updater' -%>
+<form action='<%=h form_action %>' method="post">
+  Closure Library revision <%=h LibraryUpdater.local_revision %> in use.
+  <% if LibraryUpdater.update_available? -%>
+    Revision <%=h LibraryUpdater.remote_revision %> available.
+  <% else -%>
+    Up to date.
+  <% end -%>
+  Checkout revision:
+  <input type="text" name="revision" value="<%= input_value %>" size="8" <%= input_disabled %> >
+  <input type="submit" value="Execute" <%= input_disabled %> />
+</form>
+<% else ### GET path -%>
+<!DOCTYPE html>
+<html>
+  <head>
+    <style type="text/css" media="screen">
+      th {text-align: right; padding: 2px 10px 2px 0px}
+    </style>
+  </head>
+  <body>
+    <h1>Closure Library Subversion Updater</h1>
+    <table border="0" cellspacing="0" cellpadding="0">
+      <tr><th>Local folder:</th><td><%=h LibraryUpdater.path %></td></tr>
+      <tr><th>Local revision:</th><td><%=h LibraryUpdater.local_revision %></td></tr>
+      <tr><th>Repository URL:</th><td><%=h LibraryUpdater.url %></td></tr>
+      <tr><th>Repository revision:</th><td><%=h LibraryUpdater.remote_revision %></td></tr>
+    </table>
+
+    <p>
+    <form action='<%=h form_action %>' method="post">
+      Checkout revision:
+      <input type="text" name="revision" value="<%= input_value %>" size="8" <%= input_disabled %> >
+      <input type="submit" value="Execute" <%= input_disabled %> />
+    </form>
+    </p>
+
+    <pre><%=h LibraryUpdater.log %></pre>
+
+    <% if input_disabled -%>
+      <script type="text/javascript" charset="utf-8">
+        setTimeout("document.location.reload()", 1500);
+      </script>
+    <% else 
+         LibraryUpdater.log.replace ''
+       end -%>
+    
+  </body>
+</html>
+<% end -%>

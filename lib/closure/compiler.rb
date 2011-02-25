@@ -51,8 +51,7 @@ class Closure
     # @param (Array) args Arguments for the compiler.
     # @param (Array) dependencies Any other files to check mtime on, like makefiles.
     # @param (String) base All filenames will be expanded to this location.
-    # @param (Hash) env Rack environment.  Supply if you want a response that is cacheable
-    #  and for {Templates} errors to be processed.
+    # @param (Hash) env Rack environment.  Supply if you want a response that is cacheable.
     def initialize(args, dependencies = [], base = nil, env = {})
       @env = env
       return if args.empty? # otherwise java locks up

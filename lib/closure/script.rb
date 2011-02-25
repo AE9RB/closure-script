@@ -15,32 +15,30 @@
 
 class Closure
   
-  # @private nodoc
-  class ScriptNotFoundError < StandardError
-  end
-
-  # @private nodoc
-  class ScriptCallStackTooDeepError < StandardError
-  end
-  
   # A Closure::Script instance is the context in which scripts are rendered.
   # It inherits everything from Rack::Request and supplies a Response instance
   # you can use for redirects, cookies, and other controller actions.
   class Script < Rack::Request
+
+    class NotFound < StandardError
+    end
+
+    class RenderStackOverflow < StandardError
+    end
     
     ENV_ERROR_CONTENT_TYPE = 'closure.error.content_type'
     
     def initialize(env, sources, filename)
       super(env)
-      @closure_private_render_stack = []
-      @goog = Goog.new(env, sources, @closure_private_render_stack)
+      @render_stack = []
+      @goog = Goog.new(env, sources, @render_stack)
       @response = original_response = Rack::Response.new
       rendering = render(filename)
       if @response == original_response and @response.empty?
         @response.write rendering
       end
-    rescue ScriptCallStackTooDeepError, ScriptNotFoundError => e
-      if @closure_private_render_stack.size > 0
+    rescue RenderStackOverflow, NotFound => e
+      if @render_stack.size > 0
         # Make errors appear from the render instead of the engine.call
         e.set_backtrace e.backtrace[1..-1]
         env[ENV_ERROR_CONTENT_TYPE] = @response.finish[1]["Content-Type"] rescue nil
@@ -65,24 +63,34 @@ class Closure
     # @return [Goog]
     attr_accessor :goog
 
-    # Render another script.  The same Closure::Script instance is
-    # used for all internally rendered scripts so you can pass
-    # information with instance variables.
+    # An array of filenames representing the current render stack.
+    # @example
+    #  <%= if render_stack.size == 1
+    #        render 'html_version' 
+    #      else
+    #        render 'included_version'
+    #      end 
+    #  %>
+    # @return [<Array>]
+    attr_reader :render_stack
+
+    # Render another Script.
     # @example view_test.erb
     #   <%= render 'util/logger_popup' %>
-    # @param (String) filename Relative to current script.
-    def render(filename)
-      if @closure_private_render_stack.size > 100
-        # Since nobody sane would recurse through here, this mainly
+    # @param (String) filename Relative to current Script.
+    # @param (Hash) locals Local variables for the Script.
+    def render(filename, locals = {})
+      if render_stack.size > 100
+        # Since nobody sane should recurse through here, this mainly
         # finds a render self that you might get after a copy and paste
-        raise ScriptCallStackTooDeepError 
-      elsif @closure_private_render_stack.size > 0
+        raise RenderStackOverflow 
+      elsif render_stack.size > 0
         # Hooray for relative paths and easily movable files
-        filename = File.expand_path(filename, File.dirname(@closure_private_render_stack.last))
+        filename = File.expand_path(filename, File.dirname(render_stack.last))
       else
         # Underbar scripts are partials by convention; keep them from rendering at root
         filename = File.expand_path(filename)
-        raise ScriptNotFoundError if File.basename(filename) =~ /^_/
+        raise NotFound if File.basename(filename) =~ /^_/
       end
       ext = File.extname(filename)
       files1 = [filename]
@@ -92,38 +100,49 @@ class Closure
         Closure.config.engines.each do |ext, engine|
           files2 = [filename1+ext]
           files2 << filename1.gsub(/.html$/, ext) if File.extname(filename1) == '.html'
-          unless filename1 =~ /^_/ or @closure_private_render_stack.empty?
+          unless filename1 =~ /^_/ or render_stack.empty?
             files2 = files2 + files2.collect {|f| "#{File.dirname(f)}/_#{File.basename(f)}"} 
           end
           files2.each do |filename2|
             if File.file?(filename2) and File.readable?(filename2)
-              if @closure_private_render_stack.empty?
+              if render_stack.empty?
                 response.header["Content-Type"] = Rack::Mime.mime_type(File.extname(filename1), 'text/html')
               end
+              render_stack.push filename2
               @goog.add_dependency filename2
-              @closure_private_render_stack.push filename2
-              result = engine.call self, filename2
-              @closure_private_render_stack.pop
+              result = engine.call self, locals
+              render_stack.pop
               return result
             end
           end
         end
       end
-      raise ScriptNotFoundError
+      raise NotFound
     end
     
     # Helper for relative filenames.
-    # @param [String]
+    # @param [String] filename
     # @return [String]
-    def expand_path(s)
-      File.expand_path(s, File.dirname(@closure_private_render_stack.last))
+    def expand_path(filename)
+      File.expand_path(filename, File.dirname(render_stack.last))
     end
 
-    # Helper to add file mtime as query for future-expiry caching.
-    # @param [String]
+    # Helper to locate a file as a file server path.
+    # @param [String] filename
     # @return [String]
-    def expand_src(s)
-      @goog.path_for(expand_path(s)) rescue s
+    def expand_src(filename)
+      found = false
+      filename = expand_path(filename)
+      src = nil
+      @goog.each do |dir, path|
+        dir_range = (dir.length..-1)
+        if filename.index(dir) == 0
+          src = "#{path}#{filename.slice(dir_range)}"
+          break
+        end
+      end
+      raise Errno::ENOENT unless src
+      src
     end
     
   end

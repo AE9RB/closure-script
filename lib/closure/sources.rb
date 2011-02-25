@@ -191,11 +191,10 @@ class Closure
       calcdeps(ns, namespace, filenames)
     end
     
-
     # Calculate the file server path for a filename
     # @param (String) filename
     # @return (String)
-    def path_for(filename, env={})
+    def src_for(filename, env={})
       @semaphore.synchronize do
         refresh(env)
         f, dep = @files.find {|f, dep| f == filename}
@@ -205,7 +204,7 @@ class Closure
         "#{dep[:path]}?#{dep[:mtime].to_i}"
       end
     end
-    
+   
     # Certain Script operations, such as building Templates, will need
     # to invalidate the cache.
     def invalidate(env)

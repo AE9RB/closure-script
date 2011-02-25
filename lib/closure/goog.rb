@@ -34,8 +34,14 @@ class Closure
     # Closure::Script calls this for every render so you don't need
     # to define compiler arguments in the same script that calls compile.
     def add_dependency(dependency)
-      dependency = File.expand_path dependency, @render_stack.last
+      dependency = File.expand_path dependency, File.dirname(@render_stack.last)
       @dependencies << dependency unless @dependencies.include? dependency
+    end
+    
+    # If you change any javascript sources then you need to tell Script.
+    # This is a lazy refresh, you may call it repeatedly.
+    def refresh
+      @sources.invalidate @env
     end
     
     # Convert soy templates to javascript.  Accepts all arguments that
@@ -46,7 +52,7 @@ class Closure
       mtimes = @@soy_to_js_mtimes_cache[args] ||= {}
       raise "@@soy_to_js_mtimes_cache leaking" if @@soy_to_js_mtimes_cache.length > 25
       Templates::compile(args, mtimes, File.dirname(@render_stack.last))
-      @sources.invalidate @env
+      refresh
     end
 
     # Compile javascript.  Accepts every argument that compiler.jar supports.
@@ -117,7 +123,8 @@ class Closure
           while args_index < args.length
             option, value = args[args_index, 2]
             if option == '--js'
-              script_tag = "<script src=#{path_for(value).dump}></script>"
+              value = File.expand_path value, File.dirname(@render_stack.last)
+              script_tag = "<script src=#{src_for(value).dump}></script>"
               comp.stdout += "document.write(#{script_tag.dump});\n"
             end
             args_index = args_index + 2
@@ -127,6 +134,14 @@ class Closure
       ensure
         temp_deps_js.unlink if temp_deps_js
       end
+    end
+    
+    # Calculate the deps src for a filename.
+    # @param (String) filename
+    # @return (String) http path info with forward caching query.
+    def src_for(filename)
+      filename = File.expand_path filename
+      @sources.src_for(filename, @env)
     end
 
     # Calculate files needed to satisfy a namespace.
@@ -141,18 +156,9 @@ class Closure
       @sources.files_for(namespace, filenames, @env)
     end
 
-    # Calculate the file server path for a filename.
-    # @param (String) filename
-    # @return (String)
-    def path_for(filename)
-      @sources.path_for(filename, @env)
-    end
-
     # The Google Closure base.js script.
     # If you use this instead of a static link, you are free to relocate relative
     # to the Google Closure library without updating every html fixture page.
-    # Unfortunately, the better caching can't be used because of the way
-    # base.js explores the DOM looking for where to load deps.js.
     # @example view_test.erb
     #  <script src="<%= goog.base_js %>"></script>
     # @return [String]
@@ -162,6 +168,9 @@ class Closure
     
     # This is where base.js looks to find deps.js by default.  You will always
     # be served a Closure Script generated deps.js from this location.
+    # Very old Library versions may get confused by the forward caching query
+    # string; either update your base.js, install a deps_response Script where
+    # it's looking, or manually set CLOSURE_BASE_PATH.
     # @return [String]
     def deps_js
       @sources.deps_js(@env)
@@ -175,7 +184,7 @@ class Closure
       @sources.deps_response(File.dirname(Rack::Utils.unescape(@env["PATH_INFO"])), @env)
     end
 
-    # Very advanced scripts may need to know where the sources are.
+    # Advanced Scripts may need to know where all the sources are.
     # This has potential for a source browser, editor, and more.
     # @example
     #  goog.each {|directory, path| ... }

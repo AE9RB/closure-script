@@ -21,7 +21,7 @@ all_files.each do |file|
   if File.exist? File.join dest_dir, file
     dest = File.read File.join dest_dir, file
     source = File.read File.join source_dir, file
-    return :conflict if dest != source
+    status = :conflict if dest != source
   else
     status = :incomplete
   end
@@ -57,11 +57,11 @@ if get? -%>
     <% if status == :incomplete %>
       <form action='?' method="post">
         Prepare this folder?
-        <input type="submit" value="Write Scaffolding" />
+        <input type="submit" value="Write Scaffold" onclick="return this.disabled=true" />
       </form>
     <% else %>
       <span style="color:red">ERROR:</span>
-      Existing files prevent scaffolding install.
+      Existing files prevent scaffold install.
     <% end %>
     
   </body>

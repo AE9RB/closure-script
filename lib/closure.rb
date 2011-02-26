@@ -139,5 +139,21 @@ class Closure
   end
   require 'closure/engines'
   
+  # Run the welcome server.  Handy for gem users.
+  # @example
+  #  ruby -e "require 'rubygems'; gem 'closure'; require 'closure'; Closure.welcome"
+  def self.welcome
+    raise 'Unable to start welcome server, config.ru already exists.' if File.exist? 'config.ru'
+    gem 'rack', '>= 1.1.0'
+    require 'rack'
+    ENV["CLOSURE_SCRIPT_WELCOME"] = 'true'
+    server = Rack::Server.new :config => File.join(Closure.base_path, 'scripts', 'scaffold', 'config.ru')
+    # Make a phoney request so options[:Port] gets set from config.ru
+    Rack::MockRequest.new(server.app).request
+    port = server.options[:Port] || server.default_options[:Port]
+    print "Closure Script Welcome Server: http://localhost:#{port}/\n"
+    server.start
+  end
+  
 end
 

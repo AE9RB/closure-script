@@ -23,4 +23,3 @@ Closure.add_source :externs
 # The Closure middleware and a simple file server.
 use Closure::Middleware, 'index'
 run Rack::File.new '.'
-print "STARTED: http://localhost:8080/\n"

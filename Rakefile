@@ -23,7 +23,6 @@ gem 'rack', RACK_VER
 
 #TODO add java build (see example in warbler makefile)
 
-
 # SERVER
 
 desc 'Start the Closure Script server'
@@ -35,11 +34,10 @@ end
 desc 'Start the Closure Script welcome server'
 task 'welcome' do
   mkdir_p 'tmp' if !File.exist?('tmp')
-  rm Dir.glob 'tmp/*'
-  chdir 'tmp'
-  require 'rack'
-  print "Closure Script Welcome Server is running\n"
-  Rack::Server.start :config => "../scripts/welcome/config.ru"
+  rm_r Dir.glob 'tmp/*'
+  tmp = File.expand_path 'tmp'
+  chdir tmp
+  Closure.welcome
 end
 
 # TEST
@@ -111,12 +109,13 @@ war_config = Warbler::Config.new do |config|
     require 'rubygems'
     require 'java'
     $LOAD_PATH.unshift File.expand_path('lib')
+    Dir.chdir(java.lang.System.getProperty('user.dir'))
     if File.exist? File.join java.lang.System.getProperty('user.dir'), 'config.ru'
-      Dir.chdir(java.lang.System.getProperty('user.dir'))
       eval(File.read('config.ru'), binding, 'config.ru')
     else
-      eval(File.read('scripts/welcome/config.ru'), binding, 'welcome/config.ru')
-      Dir.chdir(java.lang.System.getProperty('user.dir'))
+      require 'closure'
+      ENV["CLOSURE_SCRIPT_WELCOME"] = 'true'
+      eval(File.read(File.join Closure.base_path, 'scripts/scaffold/config.ru'), binding, 'config.ru')
     end
   EOS
   

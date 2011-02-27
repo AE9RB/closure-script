@@ -30,9 +30,8 @@ if post? and !conflict
       f.write File.read File.join source_dir, file
     end
   end
-  #TODO http://closure-library.googlecode.com/svn/trunk/
   render 'svn', :svn_name => 'Closure Library', :svn_path => 'closure-library',
-      :svn_url => 'file:///Users/dturnbull/closure-library-repo/trunk', :svn_update => 'HEAD'
+      :svn_url => 'http://closure-library.googlecode.com/svn/trunk/', :svn_update => 'HEAD'
   response.redirect path
 end
 
@@ -54,7 +53,7 @@ if get? -%>
     <% if !conflict %>
       <form action='?' method="post">
         Prepare this folder?
-        <input type="submit" value="Write Scaffold" onclick="return this.disabled=true" />
+        <input type="submit" value="Write Scaffold" onclick="this.form.submit();return this.disabled=true" />
       </form>
     <% else %>
       <span style="color:red">ERROR:</span>

@@ -1,0 +1,219 @@
+<%
+# Copyright 2011 The Closure Script Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+require 'rexml/document'
+require 'thread'
+
+# This is an example of a complex Closure Script.
+# It would be easier to read and more performant if split up
+# into an includable .rb file and multiple templates.
+# But speed isn't a problem and the single file format makes
+# it just a touch easier to share and move around.
+
+# Example usage:
+#   render 'svn', :svn_name => 'Closure Library', :svn_path => 'closure-library',
+#          :svn_url => 'http://closure-library.googlecode.com/svn/trunk/'
+#
+# Include as many as you want and they can all be updating at once.
+# Don't supply any locals if you just want Closure::Svn for manual use.
+
+class Closure::Svn
+  
+  # Repositories are held in global class variable.
+  # Checking out or updating runs in a background thread.
+  # repo = Closure::Svn['lib-folder', 'http://svn.example.org/trunk']
+  # repo.update if repo.update_available?
+  @repos ||= {}
+  def self.[](path, url=nil, name=nil)
+    repo = @repos[path]
+    raise "url and name requried for setup" if !repo and (!url or !name)
+    @repos[path] ||= new path, url, name
+  end
+  
+  # Configurable Subversion shell command
+  def self.svn; @svn ||= 'svn'; end
+  def self.svn=(svn); @svn = svn; end
+
+  def initialize(path, url, name)
+    @semaphore = Mutex.new
+    @running = false
+    @path = path
+    @url = url
+    @name = name
+    @updating_to = ''
+    @log = nil
+  end
+  
+  attr_reader :running
+  attr_reader :path
+  attr_reader :url
+  attr_reader :name
+  attr_reader :updating_to
+  attr_accessor :log
+
+  # Update or checkout a Subverion repository.
+  # Closure Script is thread-safe and so is this.
+  # Although the locks in Subversion would prevent it
+  # from corrupting (one would hope), we don't want our
+  # global object to be in an indeterminate state with two 
+  # threads running because submit was hit twice.
+  def update(revision='HEAD')
+    @semaphore.synchronize do
+      return if running
+      @running = true
+      Thread.new do
+        @updating_to = revision.to_s
+        @log = "Updating to #{updating_to}.  Stand by..."
+        if File.exist? path
+          @local_revision = 'UPDATING'
+          cmd = "#{self.class.svn.dump} update --revision #{revision.dump} #{path.dump}"
+          @log = "$ #{cmd}\n" + `#{cmd} 2>&1`
+        else
+          @local_revision = 'INSTALLING'
+          cmd = "#{self.class.svn.dump} checkout --revision #{revision.dump} #{url.dump} #{path.dump}"
+          @log = "$ #{cmd}\n" + `#{cmd} 2>&1`
+        end
+        @running = false
+        @updating_to = ''
+        @local_revision = nil
+      end
+    end
+  end
+  
+  def info(location)
+    doc = ::REXML::Document.new `#{self.class.svn.dump} info --xml #{location.dump}`
+    source = doc.root.elements['//info/entry/url'].text
+    doc.elements.each('info/entry/commit') do |element|
+      return {:url => source, :revision => element.attributes['revision']}
+    end
+  rescue
+    return {:url => nil, :revision => 'ERROR'}
+  end
+    
+  def local_revision
+    return @local_revision if @local_revision
+    local_info = info(path)
+    @found_url, @local_revision = local_info[:url], local_info[:revision]
+    @local_revision = 'NEW' unless File.exist?(path)
+    @local_revision
+  end
+
+  def url
+    local_revision # sets real @url from info, if found
+    @found_url || @url
+  end
+  
+  def remote_revision
+    begin # Check every 12 hours
+      raise if Time.now - @remote_revision_checked > 43200
+    rescue
+      @remote_revision = nil
+      @remote_revision_checked = Time.now
+    end
+    @remote_revision ||= info(url)[:revision]
+  end
+  
+  def update_available?
+    return false if remote_revision == 'ERROR'
+    remote_revision != local_revision
+  end
+  
+end
+
+
+if defined? svn_path and defined? svn_url and defined? svn_name
+  svn = Closure::Svn[svn_path, svn_url, svn_name]
+  if defined? svn_update
+    svn.update svn_update
+  end
+elsif params['svn_path']
+  svn = Closure::Svn[params['svn_path']]
+  if post?
+    svn.update params['svn_update']
+    response.redirect params['return_to']
+  end
+end
+
+
+if get? and svn and render_stack.size > 1
+  is_running = !!svn.running
+  action = expand_src File.join File.dirname(__FILE__), File.basename(__FILE__, File.extname(__FILE__))
+  input_value = svn.remote_revision
+  input_value = '' if !svn.update_available?
+  input_value = 'HEAD' if svn.remote_revision == 'ERROR'
+-%>
+<form action='<%=h action %>' method="post">
+  <input type="hidden" name="svn_path" value="<%=h svn_path %>" size="8" />
+  <input type="hidden" name="return_to" value="<%=h path %>" size="8" />
+
+  <%=h svn.name %>
+  <% if is_running -%>
+    updating to <%=h svn.updating_to %>.
+  <% elsif svn.local_revision =~ /\d/ -%>
+    revision <%=h svn.local_revision %>.
+  <% else -%>
+    not installed.
+  <% end -%>
+  &nbsp;&nbsp;
+
+  <% if is_running %>
+    <% unless @svn_document_reload_on_page
+         @svn_document_reload_on_page = true -%>
+         <script type="text/javascript" charset="utf-8">
+           setTimeout("document.location.reload()", 2500);
+         </script>
+  <%   end
+     else -%>
+    <input type="text" name="svn_update" value="<%=h input_value %>" size="8" />
+    <input type="submit" value="Update" />
+    &nbsp;&nbsp;
+  <% end -%>
+  
+  <% if is_running -%>
+    Stand by...
+  <% elsif svn.log -%>
+    <% unless svn.remote_revision =~ /\d/ and svn.local_revision =~ /\d/ -%>
+    <span style="color:red">ERROR: </span>
+    <% end -%>
+    <a href="<%= action %>?svn_path=<%=u svn.path %>&return_to=<%=u path %>">VIEW LOG</a>
+  <% elsif svn.update_available? -%>
+    Newer revision available.
+  <% end -%>
+  
+</form>
+<% elsif get? and svn -%>
+<!DOCTYPE html>
+<html>
+  <head>
+    <style type="text/css" media="screen">
+      th {text-align: right; padding: 2px 10px 2px 0px}
+    </style>
+  </head>
+  <body>
+    <a href="<%=h params['return_to'] %>">Back</a>
+    <h1><%=h svn.name %></h1>
+    <table border="0" cellspacing="0" cellpadding="0">
+      <tr><th>Local folder:</th><td><%=h svn.path %></td></tr>
+      <tr><th>Local revision:</th><td><%=h svn.local_revision %></td></tr>
+      <tr><th>Repository URL:</th><td><%=h svn.url %></td></tr>
+      <tr><th>Repository revision:</th><td><%=h svn.remote_revision %></td></tr>
+    </table>
+    <h2>Results of last run:</h2>
+    <pre><%=h svn.log %></pre>
+    <a href="<%=h params['return_to'] %>">Back</a>
+    <% svn.log = nil %>
+  </body>
+</html>
+<% end -%>

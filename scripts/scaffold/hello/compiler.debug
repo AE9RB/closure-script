@@ -77,21 +77,25 @@ a: {
 }
 var $goog$userAgent$isVersionCache_$$ = {};
 function $goog$userAgent$isVersion$$($version$$7$$) {
-  if(!$goog$userAgent$isVersionCache_$$[$version$$7$$]) {
-    for(var $order$$inline_35$$ = 0, $v1Subs$$inline_36$$ = String($goog$userAgent$VERSION$$).replace(/^[\s\xa0]+|[\s\xa0]+$/g, "").split("."), $v2Subs$$inline_37$$ = String($version$$7$$).replace(/^[\s\xa0]+|[\s\xa0]+$/g, "").split("."), $subCount$$inline_38$$ = Math.max($v1Subs$$inline_36$$.length, $v2Subs$$inline_37$$.length), $subIdx$$inline_39$$ = 0;$order$$inline_35$$ == 0 && $subIdx$$inline_39$$ < $subCount$$inline_38$$;$subIdx$$inline_39$$++) {
+  var $JSCompiler_temp$$0_order$$inline_35$$;
+  if(!($JSCompiler_temp$$0_order$$inline_35$$ = $goog$userAgent$isVersionCache_$$[$version$$7$$])) {
+    $JSCompiler_temp$$0_order$$inline_35$$ = 0;
+    for(var $v1Subs$$inline_36$$ = String($goog$userAgent$VERSION$$).replace(/^[\s\xa0]+|[\s\xa0]+$/g, "").split("."), $v2Subs$$inline_37$$ = String($version$$7$$).replace(/^[\s\xa0]+|[\s\xa0]+$/g, "").split("."), $subCount$$inline_38$$ = Math.max($v1Subs$$inline_36$$.length, $v2Subs$$inline_37$$.length), $subIdx$$inline_39$$ = 0;$JSCompiler_temp$$0_order$$inline_35$$ == 0 && $subIdx$$inline_39$$ < $subCount$$inline_38$$;$subIdx$$inline_39$$++) {
       var $v1Sub$$inline_40$$ = $v1Subs$$inline_36$$[$subIdx$$inline_39$$] || "", $v2Sub$$inline_41$$ = $v2Subs$$inline_37$$[$subIdx$$inline_39$$] || "", $v1CompParser$$inline_42$$ = RegExp("(\\d*)(\\D*)", "g"), $v2CompParser$$inline_43$$ = RegExp("(\\d*)(\\D*)", "g");
       do {
         var $v1Comp$$inline_44$$ = $v1CompParser$$inline_42$$.exec($v1Sub$$inline_40$$) || ["", "", ""], $v2Comp$$inline_45$$ = $v2CompParser$$inline_43$$.exec($v2Sub$$inline_41$$) || ["", "", ""];
         if($v1Comp$$inline_44$$[0].length == 0 && $v2Comp$$inline_45$$[0].length == 0) {
           break
         }
-        $order$$inline_35$$ = $goog$string$compareElements_$$($v1Comp$$inline_44$$[1].length == 0 ? 0 : parseInt($v1Comp$$inline_44$$[1], 10), $v2Comp$$inline_45$$[1].length == 0 ? 0 : parseInt($v2Comp$$inline_45$$[1], 10)) || $goog$string$compareElements_$$($v1Comp$$inline_44$$[2].length == 0, $v2Comp$$inline_45$$[2].length == 0) || $goog$string$compareElements_$$($v1Comp$$inline_44$$[2], $v2Comp$$inline_45$$[2])
-      }while($order$$inline_35$$ == 0)
+        $JSCompiler_temp$$0_order$$inline_35$$ = $goog$string$compareElements_$$($v1Comp$$inline_44$$[1].length == 0 ? 0 : parseInt($v1Comp$$inline_44$$[1], 10), $v2Comp$$inline_45$$[1].length == 0 ? 0 : parseInt($v2Comp$$inline_45$$[1], 10)) || $goog$string$compareElements_$$($v1Comp$$inline_44$$[2].length == 0, $v2Comp$$inline_45$$[2].length == 0) || $goog$string$compareElements_$$($v1Comp$$inline_44$$[2], $v2Comp$$inline_45$$[2])
+      }while($JSCompiler_temp$$0_order$$inline_35$$ == 0)
     }
-    $goog$userAgent$isVersionCache_$$[$version$$7$$] = $order$$inline_35$$ >= 0
+    $JSCompiler_temp$$0_order$$inline_35$$ = $goog$userAgent$isVersionCache_$$[$version$$7$$] = $JSCompiler_temp$$0_order$$inline_35$$ >= 0
   }
+  return $JSCompiler_temp$$0_order$$inline_35$$
 }
 ;!$goog$userAgent$IE$$ || $goog$userAgent$isVersion$$("9");
+!$goog$userAgent$GECKO$$ && !$goog$userAgent$IE$$ || $goog$userAgent$IE$$ && $goog$userAgent$isVersion$$("9") || $goog$userAgent$GECKO$$ && $goog$userAgent$isVersion$$("1.9.1");
 $goog$userAgent$IE$$ && $goog$userAgent$isVersion$$("9");
 $goog$userAgent$IE$$ && $goog$userAgent$isVersion$$(8);
 var $goog$userAgent$jscript$DETECTED_HAS_JSCRIPT_$$;

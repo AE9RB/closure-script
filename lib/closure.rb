@@ -147,7 +147,7 @@ class Closure
     gem 'rack', '>= 1.1.0'
     require 'rack'
     ENV["CLOSURE_SCRIPT_WELCOME"] = 'true'
-    server = Rack::Server.new :config => File.join(Closure.base_path, 'scripts', 'scaffold', 'config.ru')
+    server = Rack::Server.new :config => File.join(base_path, 'scripts', 'scaffold', 'config.ru')
     # Make a phoney request so options[:Port] gets set from config.ru
     Rack::MockRequest.new(server.app).request
     port = server.options[:Port] || server.default_options[:Port]

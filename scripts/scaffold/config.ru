@@ -12,13 +12,13 @@ Closure.add_source :soy, '/soy'
 Closure.add_source :docs, '/docs'
 Closure.add_source :externs
 
+# Feel free to use your own compilers.
+# Closure.config.compiler_jar = 'closure-compiler/compiler.jar'
+# Closure.config.soy_js_jar = 'closure-templates/SoyToJsSrcCompiler.jar'
+
 # Ruby users may need to be specific about which java to use.
 # This is not used under JRuby or when running the .jar server.
 # Closure.config.java = 'java'
-
-# Feel free to change to your own compilers.
-# Closure.config.compiler_jar = 'closure-compiler/compiler.jar'
-# Closure.config.soy_js_jar = 'closure-templates/SoyToJsSrcCompiler.jar'
 
 # The Closure middleware and a simple file server.
 use Closure::Middleware, 'index'

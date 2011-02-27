@@ -14,28 +14,25 @@ all_files -= %w{
   hello/compiler.map
   hello/compiler.debug
   hello/compiler.build
+  hello/legume.js
 }
 
-status = :good
+conflict = false
 all_files.each do |file|
-  if File.exist? File.join dest_dir, file
-    dest = File.read File.join dest_dir, file
-    source = File.read File.join source_dir, file
-    status = :conflict if dest != source
-  else
-    status = :incomplete
-  end
+  conflict = true if File.exist? File.join dest_dir, file
+  break if conflict
 end
 
-if post? and status == :incomplete
+if post? and !conflict
   all_files.each do |file|
     FileUtils.mkdir_p File.dirname File.join dest_dir, file
     File.open(File.join(dest_dir, file), 'w') do |f|
       f.write File.read File.join source_dir, file
     end
   end
-  require 'svn'
-  Closure::Svn['closure-library', 'http://closure-library.googlecode.com/svn/trunk/'].update
+  #TODO http://closure-library.googlecode.com/svn/trunk/
+  render 'svn', :svn_name => 'Closure Library', :svn_path => 'closure-library',
+      :svn_url => 'file:///Users/dturnbull/closure-library-repo/trunk', :svn_update => 'HEAD'
   response.redirect path
 end
 
@@ -54,7 +51,7 @@ if get? -%>
     <dd><%=h dest_dir %></dd>
     </dl>
     
-    <% if status == :incomplete %>
+    <% if !conflict %>
       <form action='?' method="post">
         Prepare this folder?
         <input type="submit" value="Write Scaffold" onclick="return this.disabled=true" />

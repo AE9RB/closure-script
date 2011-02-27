@@ -1,79 +1,19 @@
-<%
-require 'svn'
-closure_lib = Closure::Svn['closure-library', 'http://closure-library.googlecode.com/svn/trunk/']
-if post?
-  if params.has_key? 'revision'
-    closure_lib.update params['revision']
-    response.redirect path
-  end
-elsif params.has_key? 'log' -%>
 <!DOCTYPE html>
 <html>
   <body>
-    <a href="/">Back</a>
-    <pre><%=h closure_lib.log %></pre>
-    <a href="/">Back</a>
-    <% closure_lib.log = nil %>
-  </body>
-</html>
-<% else -%>
-<!DOCTYPE html>
-<html>
-  <body>
-    
-    <form action='?' method="post">
 
-      <% is_running = !!closure_lib.status -%>
-
-      <% if is_running -%>
-        Closure Library updating to revision <%=h closure_lib.updating_to %>.
-      <% elsif closure_lib.local_revision =~ /\d/ -%>
-        Closure Library revision <%=h closure_lib.local_revision %> in use.
-      <% else -%>
-        Closure Library not yet downloaded.
-      <% end -%>
-      &nbsp;&nbsp;
-
-      <% if is_running -%>
-        <script type="text/javascript" charset="utf-8">
-          setTimeout("document.location.reload()", 1500);
-        </script>
-      <% else 
-        input_value = closure_lib.remote_revision
-        input_value = '' if !closure_lib.update_available?
-        input_value = 'HEAD' if closure_lib.remote_revision == 'ERROR'
-        -%>
-        Checkout:
-        <input type="text" name="revision" value="<%= input_value %>" size="8" />
-        <input type="submit" value="Execute" />
-        &nbsp;&nbsp;
-      <% end -%>
-      
-      <% if is_running -%>
-        Stand by...
-      <% elsif closure_lib.log -%>
-        <% unless closure_lib.remote_revision =~ /\d/ -%>
-        <span style="color:red">ERROR: </span>
-        <% end -%>
-        <a href="?log=true">VIEW LOG</a>
-      <% elsif closure_lib.update_available? -%>
-        Update available.
-      <% end -%>
-      
-      
-    </form>
-    
     <h1>index.erb</h1>
+    
+    <%= render 'svn', :svn_name => 'Closure Library', :svn_path => 'closure-library',
+        :svn_url => 'http://closure-library.googlecode.com/svn/trunk/' %>
+
+    <p>
+      This scaffold has been installed with some examples to get you started.<br />
+      Only the documentation will work until Closure Library is downloaded.<br />
+      You may need to manually download Closure Library if subversion fails.<br />
+    </p>
+
     <ul>
-      <li>
-        <a href='hello/hello'>Hello World - Raw</a>
-      </li>
-      <li>
-        <a href='hello/hello?build'>Hello World - Build</a>
-      </li>
-      <li>
-        <a href='hello/hello?debug'>Hello World - Debug</a>
-      </li>
       <li>
         <a href='/docs/index'>Closure Script Documentation</a>
       </li>
@@ -83,7 +23,15 @@ elsif params.has_key? 'log' -%>
       <li>
         <a href='/closure-library/closure/goog/demos/index'>Closure Library Demos</a>
       </li>
+      <li>
+        <a href='hello/hello'>Hello World - Raw</a>
+      </li>
+      <li>
+        <a href='hello/hello?build'>Hello World - Build</a>
+      </li>
+      <li>
+        <a href='hello/hello?debug'>Hello World - Debug</a>
+      </li>
     </ul>
   </body>
 </html>
-<% end -%>

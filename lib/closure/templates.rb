@@ -21,9 +21,8 @@ class Closure
     class Error < StandardError
     end
     
-    # Compiles soy to javascript with SoyToJsSrcCompiler.jar.  If you pass and
-    # preserve the mtimes Hash, compilation will only be performed when source
-    # files change.  Supports globbing on source filename arguments.
+    # Compiles soy to javascript with SoyToJsSrcCompiler.jar.
+    # Supports globbing on source filename arguments.
     # @example
     #  Closure::Templates.compile %w{
     #    --shouldProvideRequireSoyNamespaces
@@ -34,7 +33,8 @@ class Closure
     #    vendor/javascripts/**/*.soy
     #  }
     # @param (String) base All source filenames will be expanded to this location.
-    def self.compile(args, mtimes={}, base = nil)
+    def self.compile(args, base = nil)
+      mtimes = mtimes(args)
       new_mtimes = {}
       args = args.collect {|a| a.to_s } # for bools and numerics
       files = []
@@ -85,7 +85,23 @@ class Closure
           raise Error, err 
         end
       end
+      # success, keep the mtimes for next time
       mtimes.merge! new_mtimes
+    end
+    
+    private
+
+    # We are unable to determine an output file to compare mtimes against.
+    # Instead, we keep track of all the sources for each set of arguments.
+    # Toss away the oldest one if we end up with too many.
+    @mtimes_cache ||= {}
+    def self.mtimes(args)
+      mtimes = @mtimes_cache[args] ||= {:mtimes => {}}
+      mtimes[:used] = Time.now
+      if @mtimes_cache.length > 25
+        @mtimes_cache.delete @mtimes_cache.min{|a,b|a[1][:used]<=>b[1][:used]}[0]
+      end
+      mtimes[:mtimes]
     end
     
     

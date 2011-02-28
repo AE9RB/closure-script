@@ -19,7 +19,7 @@ args = %w{
 # it may be more convenient to accept options on the URL.
 # http://localhost:8080/compiler.js?build
 # http://localhost:8080/compiler.js?debug
-args << case query_string
+args += case query_string
 when 'build': %w{
   --compilation_level ADVANCED_OPTIMIZATIONS
   --js_output_file compiler.build
@@ -38,13 +38,13 @@ end
 # file.js you just started, it will overwrite file.js.
 # Touching any .soy file will trigger a recompile.
 goog.soy_to_js %w{
-  --shouldProvideRequireSoyNamespaces
   --cssHandlingScheme goog
   --shouldGenerateJsdoc
+  --shouldProvideRequireSoyNamespaces
   --outputPathFormat {INPUT_DIRECTORY}{INPUT_FILE_NAME_NO_EXT}.js
   **/*.soy
 }
 
 # Compile the javascript.
-@response = goog.compile(args.flatten).to_response
+@response = goog.compile(args).to_response
 %>

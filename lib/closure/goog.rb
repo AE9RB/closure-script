@@ -19,9 +19,6 @@ class Closure
   
   class Goog
 
-    # @private
-    @@soy_to_js_mtimes_cache = {}
-    
     def initialize(env, sources, render_stack)
       @sources = sources
       @env = env
@@ -49,9 +46,7 @@ class Closure
     # All source filenames are relative to the script calling #soy_to_js.
     # @param [Array<String>] args
     def soy_to_js(args)
-      mtimes = @@soy_to_js_mtimes_cache[args] ||= {}
-      raise "@@soy_to_js_mtimes_cache leaking" if @@soy_to_js_mtimes_cache.length > 25
-      Templates::compile(args, mtimes, File.dirname(@render_stack.last))
+      Templates::compile(args, File.dirname(@render_stack.last))
       refresh
     end
 
@@ -59,7 +54,7 @@ class Closure
     # Accepts new `--ns namespace` option which literally expands into
     # `--js filename` arguments in place to satisfy the namespace.
     # If you specify a --js_output_file then the compiler will check File.mtime
-    # on every source file plus all the closure-scripts and skip the compilation
+    # on every source file plus all the rendered Scripts and skip the compilation
     # if the js_output_file is newest.
     # Paths are relative to the script calling #compile.
     # @example myapp.js.erb

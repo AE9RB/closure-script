@@ -8,10 +8,11 @@ require 'yard'
 
 # All docs are distributed with the war
 # Only closure is packaged with the gem
-DOCS = %w{closure erb rack haml}
+DOCS = %w{closure erb rack haml kramdown}
 
 # These versions are important for war packaging.
 # Gem users are free to mix and match any sensible versions.
+KRAMDOWN_VER = '>= 0.13.2'
 HAML_VER = '= 3.0.25' # check for dwell on sass when upgrading
 JRUBY_JARS_VER = '= 1.5.6'
 # jruby-rack embeds a specific version of rack, keep in sync
@@ -20,6 +21,7 @@ RACK_VER = '= 1.2.1'
 
 gem 'haml', HAML_VER
 gem 'rack', RACK_VER
+gem 'kramdown', KRAMDOWN_VER
 
 #TODO add java build (see example in warbler makefile)
 
@@ -100,6 +102,7 @@ war_config = Warbler::Config.new do |config|
   config.gems << Gem::Dependency.new("jruby-jars", JRUBY_JARS_VER)
   config.gems << Gem::Dependency.new("jruby-rack", JRUBY_RACK_VER)
   config.gems << Gem::Dependency.new("haml", HAML_VER)
+  config.gems << Gem::Dependency.new("kramdown", KRAMDOWN_VER)
   
   config.features = %w(executable)
   config.bundler = false

@@ -23,4 +23,27 @@ Closure.config.engines['.haml'] = Proc.new do |script, locals|
 end
 
 # MARKDOWN
-#TODO kramdown for .md and .markdown
+Closure.config.kramdown = {}
+kramdown = Proc.new do |script, locals|
+  require 'kramdown'
+  html = ::Kramdown::Document.new(File.read(script.render_stack.last), Closure.config.kramdown).to_html
+  if script.render_stack.size == 1
+    <<-EOT
+<!DOCTYPE html>
+<html><head>
+<meta name="generator" content="kramdown #{::Kramdown::VERSION}" />
+<style type="text/css" media="screen">
+  body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small;}
+  select,input,button,textarea,button{font:99% arial,helvetica,clean,sans-serif;}
+  table{font-size:inherit;font:100%;}
+  pre,code,kbd,samp,tt{font-family:monospace;*font-size:108%;line-height:100%;}
+</style></head><body>
+#{html}
+</body></html>
+    EOT
+  else
+    html
+  end
+end
+Closure.config.engines['.md'] = kramdown
+Closure.config.engines['.markdown'] = kramdown

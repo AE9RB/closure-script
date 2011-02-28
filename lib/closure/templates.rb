@@ -16,86 +16,23 @@ require 'thread'
 
 class Closure
   
-  # The arguments to this middleware are the arguments you would use for
-  # SoyToJsSrcCompiler.jar (get them using: `java -jar SoyToJsSrcCompiler.jar`).
-  # Closure Script will expand filenames that appear to be globs,
-  # as shown in the examples.  You may still use static filenames.
-  # File modification times are remembered and compilation is run only
-  # when source changes are detected.
-  # @example config.ru
-  #  require 'closure'
-  #  Closure.add_source :soy, '/soy'
-  #  Closure.add_source 'app/javascripts', '/app'
-  #  Closure.add_source 'vendor/javascripts', '/vendor'
-  #  use Closure::Templates, %w{
-  #    --shouldProvideRequireSoyNamespaces
-  #    --cssHandlingScheme goog
-  #    --shouldGenerateJsdoc
-  #    --outputPathFormat {INPUT_DIRECTORY}{INPUT_FILE_NAME_NO_EXT}.js
-  #    app/javascripts/**/*.soy
-  #    vendor/javascripts/**/*.soy
-  #  }
-  
   class Templates
     
     class Error < StandardError
     end
     
-    # As middleware, logs in env[ENV_ERRORS] will persist until fixed.
-    # It will be nil when no errors or a string with the Java exception.
-    # It will be an array if you have multiple middlewares running.
-    ENV_ERRORS = 'closure.template.errors'
-    
-    # Initialize as Rack middleware. If you're compiling with goog.compile,
-    # you'll likely find goog.soy_to_js a lot more convenient.
-    # @param app [#call] The Rack application
-    # @param args [Array] Arguments.
-    # @param dwell [Float] in seconds.  
-    def initialize(app, args, dwell = 1.0)
-      @app = app
-      @args = args
-      @dwell = dwell
-      @check_after = Time.now.to_f
-      @mtimes = {}
-      @semaphore = Mutex.new
-    end
-    
-    # @return (Float) 
-    attr_accessor :dwell
-
-    # Rack interface.
-    # @param (Hash) env Rack environment.
-    # @return (Array)[status, headers, body]
-    def call(env)
-      # This lock will block all other threads until soy is compiled
-      # (it is not to synchronize globals like in Closure::Sources)
-      @semaphore.synchronize do
-        if Time.now.to_f > @check_after
-          begin
-            self.class.compile @args, @mtimes
-          rescue Error => e
-            @errors = e.message
-          end
-          @check_after = Time.now.to_f + @dwell
-        end
-      end
-      # Make always available the errors from every Soy in the stack
-      if env[ENV_ERRORS].kind_of?(Array)
-        env[ENV_ERRORS] << @errors
-      else
-        if env.has_key? ENV_ERRORS
-          env[ENV_ERRORS] = [env[ENV_ERRORS], @errors]
-        else
-          env[ENV_ERRORS] = @errors
-        end
-      end
-      # Onward
-      @app.call(env)
-    end
-    
     # Compiles soy to javascript with SoyToJsSrcCompiler.jar.  If you pass and
     # preserve the mtimes Hash, compilation will only be performed when source
     # files change.  Supports globbing on source filename arguments.
+    # @example
+    #  Closure::Templates.compile %w{
+    #    --shouldProvideRequireSoyNamespaces
+    #    --cssHandlingScheme goog
+    #    --shouldGenerateJsdoc
+    #    --outputPathFormat {INPUT_DIRECTORY}{INPUT_FILE_NAME_NO_EXT}.js
+    #    app/javascripts/**/*.soy
+    #    vendor/javascripts/**/*.soy
+    #  }
     # @param (String) base All source filenames will be expanded to this location.
     def self.compile(args, mtimes={}, base = nil)
       new_mtimes = {}
@@ -140,17 +77,15 @@ class Closure
         end
         new_mtimes[filename] = mtime
       end
+      mtimes.clear
       # compile as needed
       if !compiled
         out, err = Closure.run_java Closure.config.soy_js_jar, 'com.google.template.soy.SoyToJsSrcCompiler', args
         unless err.empty?
-          mtimes.clear
           raise Error, err 
         end
       end
-      mtimes.clear
       mtimes.merge! new_mtimes
-      return mtimes
     end
     
     

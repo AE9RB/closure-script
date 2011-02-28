@@ -115,21 +115,20 @@ class Closure
             args.unshift temp_deps_js.path
             args.unshift '--js'
           end
-          Compiler.new args, @dependencies, File.dirname(@render_stack.last), @env
+          Compiler.compile args, @dependencies, File.dirname(@render_stack.last), @env
         else
-          comp = Compiler.new []
-          comp.stdout = ''
+          javascript = ''
           args_index = 0
           while args_index < args.length
             option, value = args[args_index, 2]
             if option == '--js'
               value = File.expand_path value, File.dirname(@render_stack.last)
               script_tag = "<script src=#{src_for(value).dump}></script>"
-              comp.stdout += "document.write(#{script_tag.dump});\n"
+              javascript += "document.write(#{script_tag.dump});\n"
             end
             args_index = args_index + 2
           end
-          comp
+          Compiler::Compilation.new javascript, nil, nil, @env
         end
       ensure
         temp_deps_js.unlink if temp_deps_js

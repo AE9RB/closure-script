@@ -20,6 +20,68 @@ class Closure
     class Error < StandardError
     end
     
+    class Compilation
+      attr_accessor :log
+      
+      # @private
+      def initialize(javascript, js_output_file, log, env)
+        @javascript = javascript
+        @js_output_file = js_output_file
+        @log = log
+        @env = env
+      end
+      
+      # @private deprecated
+      def to_response_with_console
+        response = to_response
+        if response.class == Rack::Response
+          msg = "#to_response_with_console deprecated, use #to_response"
+          response.write "try{console.warn(#{msg.dump})}catch(err){};\n"
+        end
+        response
+      end
+
+      # Turn the compiled javascript into a Rack::Response object.
+      # Success and warning messages, which aren't raised like errors,
+      # will be logged to the javascript console.
+      # @example
+      #   <% @response = goog.compile(args).to_response %>
+      # @return (Rack::Response)
+      def to_response
+        response = Rack::Response.new
+        response.headers['Content-Type'] = 'application/javascript'
+        response.headers["Cache-Control"] = 'max-age=0, private, must-revalidate'
+        if log
+          consolable_log = '"Closure Compiler: %s\n\n", ' + log.rstrip.dump
+          if log.split("\n").first =~ / 0 warn/i
+            response.write "try{console.log(#{consolable_log})}catch(err){};\n"
+          else
+            response.write "try{console.warn(#{consolable_log})}catch(err){};\n"
+          end
+          response.write javascript
+        elsif @js_output_file
+          response = FileResponse.new @env, @js_output_file, 'application/javascript'
+        else
+          response.write javascript
+          response
+        end
+        response
+      end
+
+      # Always returns the compiled javascript (possibly an empty string).
+      # @example
+      #   <%= goog.compile(args) %>
+      def javascript
+        if @js_output_file
+          File.read(@js_output_file) rescue ''
+        else
+          @javascript
+        end
+      end
+      alias :to_s :javascript
+      
+    end
+    
     # Java won't let you change working directories and the Closure Compiler
     # doesn't allow setting a base path.  No problem, we can do it.
     
@@ -43,20 +105,17 @@ class Closure
       --variable_map_input_file
     }
     
-    #TODO upgrade Compiler to use the same middleware pattern as Templates
-    # self.compile should maybe return a new Compilation object
-    
-    # Instantiating will perform compilation.  It will check file modification times
+    # Compile Javascript. Checks file modification times
     # but does not support namespaces like {Goog#compile} does.
     # @param (Array) args Arguments for the compiler.
     # @param (Array) dependencies Any other files to check mtime on, like makefiles.
     # @param (String) base All filenames will be expanded to this location.
     # @param (Hash) env Rack environment.  Supply if you want a response that is cacheable.
-    def initialize(args, dependencies = [], base = nil, env = {})
-      @env = env
+    def self.compile(args, dependencies = [], base = nil, env = {})
       return if args.empty? # otherwise java locks up
       args = args.collect {|a| a.to_s } # for bools and numerics
       files = []
+      js_output_file = nil
       # Scan to expand paths and extend self with output options
       args_index = 0
       while args_index < args.length
@@ -66,27 +125,29 @@ class Closure
           files << args[args_index+1] = value
         end
         if OUTPUT_OPTIONS.include?(option)
-          var_name = option.sub(/^--/, '')
-          instance_variable_set "@#{var_name}", args[args_index+1] = value
-          eval "def self.#{var_name}; @#{var_name}; end"
+          js_output_file = value if option == '--js_output_file'
+          args[args_index+1] = value
         end
         args_index = args_index + 2
       end
       # We don't bother compiling if we can detect that no sources were modified
-      if @js_output_file
-        js_mtime = File.mtime @js_output_file rescue Errno::ENOENT
-        compiled = !!File.size?(@js_output_file) # catches empty files too
+      if js_output_file
+        js_mtime = File.mtime js_output_file rescue Errno::ENOENT
+        compiled = !!File.size?(js_output_file) # catches empty files too
         (files + dependencies).each do |filename|
           break unless compiled
           mtime = File.mtime filename
           compiled = false if !mtime or mtime > js_mtime
         end
-        return if compiled
-        File.unlink @js_output_file rescue Errno::ENOENT
+        if compiled
+          return Compilation.new '', js_output_file, nil, env
+        end
+        File.unlink js_output_file rescue Errno::ENOENT
       end
-      @stdout, @stderr = Closure.run_java Closure.config.compiler_jar, 'com.google.javascript.jscomp.CommandLineRunner', args
-      @log = stderr
-      if !log.empty?
+      stdout, log = Closure.run_java Closure.config.compiler_jar, 'com.google.javascript.jscomp.CommandLineRunner', args
+      if log.empty?
+        log = nil
+      else
         # Totals at the end make sense for the command line.  But at
         # the start makes more sense for html and the Javascript console
         split_log = log.split("\n")
@@ -96,81 +157,15 @@ class Closure
           error_message = split_log.shift
         end
         if split_log.empty?
-          @log = error_message
+          log = error_message
         else
-          @log = error_message + "\n\n" + split_log.join("\n")
+          log = error_message + "\n\n" + split_log.join("\n")
         end
         raise Error, log unless error_message =~ /^0 err/i
       end
+      Compilation.new stdout, js_output_file, log, env
     end
     
-    # @private deprecated
-    def to_response_with_console
-      response = to_response
-      if response.class == Rack::Response
-        msg = "#to_response_with_console deprecated, use #to_response"
-        response.write "try{console.warn(#{msg.dump})}catch(err){};\n"
-      end
-      response
-    end
-    
-    # Turn the compiled javascript into a Rack::Response object.
-    # Success and warning messages, which aren't raised like errors,
-    # will be logged to the javascript console.
-    # @example
-    #   <% @response = goog.compile(args).to_response %>
-    # @return (Rack::Response)
-    def to_response
-      response = Rack::Response.new
-      response.headers['Content-Type'] = 'application/javascript'
-      response.headers["Cache-Control"] = 'max-age=0, private, must-revalidate'
-      if log
-        consolable_log = '"Closure Compiler: %s\n\n", ' + log.rstrip.dump
-        if log.split("\n").first =~ / 0 warn/i
-          response.write "try{console.log(#{consolable_log})}catch(err){};\n"
-        else
-          response.write "try{console.warn(#{consolable_log})}catch(err){};\n"
-        end
-        response.write javascript
-      elsif @js_output_file
-        response = FileResponse.new @env, @js_output_file, 'application/javascript'
-      else
-        response.write javascript
-        response
-      end
-      response
-    end
-
-    # Always returns the compiled javascript (possibly an empty string).
-    # @example
-    #   <%= goog.compile(args) %>
-    def javascript
-      if @js_output_file
-        File.read(@js_output_file) rescue ''
-      else
-        @stdout
-      end
-    end
-    alias :to_s :javascript
-    
-    # Results from compiler.jar.  If you didn't specify a --js_output_file
-    # then this will be the compiled script.  Otherwise, it's usually empty
-    # but may contain output depending on the arguments.
-    # If nil, compilation was skipped because js_output_file was up to date.
-    attr_accessor :stdout
-    
-    # Results from compiler.jar.  The raw log, when there is one, is found here.
-    # Use `--summary_detail_level 3` to see log when no errors or warnings.
-    # If nil, compilation was skipped because js_output_file was up to date.
-    attr_accessor :stderr
-
-    # Results from compiler.jar. Contains the processed log file ordered
-    # for display in a web browser instead of the command line.
-    # Use `--summary_detail_level 3` to force a log when compilation
-    # generates no errors or warnings.
-    # If nil, compilation was skipped because js_output_file was up to date.
-    attr_accessor :log
-
   end
   
 end

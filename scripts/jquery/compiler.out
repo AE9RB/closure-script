@@ -1,1 +1,1 @@
-function a(){$(".jqtest").hide();document.write("<p>Compiled jQueryTest() executed.</p>")}var b="jQueryTest".split("."),c=this;!(b[0]in c)&&c.execScript&&c.execScript("var "+b[0]);for(var d;b.length&&(d=b.shift());)if(!b.length&&a!==undefined)c[d]=a;else c=c[d]?c[d]:c[d]={};
+function a(){$(".jqtest").hide();document.write("<span>Compiled jQueryTest() executed.</span>")}var b="jQueryTest".split("."),c=this;!(b[0]in c)&&c.execScript&&c.execScript("var "+b[0]);for(var d;b.length&&(d=b.shift());)if(!b.length&&a!==undefined)c[d]=a;else c=c[d]?c[d]:c[d]={};

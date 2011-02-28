@@ -2,12 +2,17 @@
 <html>
   <head>
     <script src='jquery_1.4.4.js'></script>
-    <script src='compiler.js?<%= query_string %>'></script>
+    <script src='compiler.js'></script>
   </head>
   <body>
-    <p class='jqtest'>
-      This will be hidden by jQuery.  Fail if you see this.
+    <p>
+      Use jQuery from advanced compiled code with:
+      <pre>goog.require('externs.jQuery');</pre>
     </p>
+    TEST RESULT:
+    <span class='jqtest'>
+      This will be hidden by jQuery.  Fail if you see this.
+    </span>
     <script type='text/javascript'>
       //<![CDATA[
         jQueryTest();

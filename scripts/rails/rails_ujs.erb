@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta content='authenticity_token' name='csrf-param'>
-    <meta content='cf50faa3fe97702ca1ae&lt;=?' name='csrf-token'>
+    <meta content='cf50faa3fe97702ca1ael=?' name='csrf-token'>
     <script src='<%= goog.base_js %>'></script>
     <script type='text/javascript'>
       //<![CDATA[
@@ -11,6 +11,13 @@
     </script>
   </head>
   <body>
+    <h1>rails_ujs.erb</h1>
+
+    <p>
+      These examples demonstrate how to implement<br />
+      the unobtrusive techniques expected by Rails 3.
+    </p>
+
     <ul>
       <li>
         <a data-confirm='Are you sure?' href='?'>a data-confirm</a>
@@ -26,11 +33,8 @@
       </li>
       <li>
         <form action='?' data-remote='true' method='post'>
-          <fieldset>
-            <label for='name'>Name:</label>
-            <input class='text' name='name' type='text'>
-            <input class='button' type='submit' value='Send'>
-          </fieldset>
+          <input class='text' name='name' type='text'>
+          <input class='button' type='submit' value='Send'>
         </form>
       </li>
     </ul>

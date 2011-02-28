@@ -31,7 +31,7 @@ require 'thread'
 
 class Closure::Svn
   
-  # Repositories are held in global class variable.
+  # Repository objects are held in global class variable.
   # Checking out or updating runs in a background thread.
   # repo = Closure::Svn['lib-folder', 'http://svn.example.org/trunk']
   # repo.update if repo.update_available?
@@ -39,19 +39,22 @@ class Closure::Svn
   def self.[](path, url=nil, name=nil)
     repo = @repos[path]
     raise "url and name requried for setup" if !repo and (!url or !name)
-    @repos[path] ||= new path, url, name
+    repo = @repos[path] ||= new(path, url)
+    repo.name ||= url
+    repo.name = name if name
+    repo
   end
   
   # Configurable Subversion shell command
   def self.svn; @svn ||= 'svn'; end
   def self.svn=(svn); @svn = svn; end
 
-  def initialize(path, url, name)
+  def initialize(path, url)
     @semaphore = Mutex.new
     @running = false
     @path = path
     @url = url
-    @name = name
+    @name = ''
     @updating_to = ''
     @log = nil
   end
@@ -59,7 +62,7 @@ class Closure::Svn
   attr_reader :running
   attr_reader :path
   attr_reader :url
-  attr_reader :name
+  attr_accessor :name
   attr_reader :updating_to
   attr_accessor :log
 
@@ -85,9 +88,9 @@ class Closure::Svn
           cmd = "#{self.class.svn.dump} checkout --revision #{revision.dump} #{url.dump} #{path.dump}"
           @log = "$ #{cmd}\n" + `#{cmd} 2>&1`
         end
-        @running = false
         @updating_to = ''
         @local_revision = nil
+        @running = false
       end
     end
   end
@@ -198,6 +201,10 @@ if get? and svn and render_stack.size > 1
 <html>
   <head>
     <style type="text/css" media="screen">
+      body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small;}
+      select,input,button,textarea,button{font:99% arial,helvetica,clean,sans-serif;}
+      table{font-size:inherit;font:100%;}
+      pre,code,kbd,samp,tt{font-family:monospace;*font-size:108%;line-height:100%;}
       th {text-align: right; padding: 2px 10px 2px 0px}
     </style>
   </head>
@@ -210,10 +217,12 @@ if get? and svn and render_stack.size > 1
       <tr><th>Repository URL:</th><td><%=h svn.url %></td></tr>
       <tr><th>Repository revision:</th><td><%=h svn.remote_revision %></td></tr>
     </table>
-    <h2>Results of last run:</h2>
-    <pre><%=h svn.log %></pre>
-    <a href="<%=h params['return_to'] %>">Back</a>
-    <% svn.log = nil %>
+    <% if svn.log -%>
+      <h2>Results of last run:</h2>
+      <pre><%=h svn.log %></pre>
+      <a href="<%=h params['return_to'] %>">Back</a>
+      <% svn.log = nil %>
+    <% end -%>
   </body>
 </html>
 <% end -%>

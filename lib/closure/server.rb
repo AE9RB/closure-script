@@ -45,7 +45,7 @@ class Closure
         response = Script.new(env, @sources, @home_page).response unless response.found?
         if response.header["X-Cascade"] == "pass"
           if ENV["CLOSURE_SCRIPT_WELCOME"]
-            welcome = File.join Closure.base_path, 'scripts', 'scaffold', 'welcome'
+            welcome = File.join Closure.base_path, 'scripts', 'welcome'
             response = Script.new(env, @sources, welcome).response
           end
         end

@@ -61,7 +61,7 @@ gem_spec = Gem::Specification.new do |s|
   s.add_dependency 'rack', '>= 1.0.0'
 
   s.files        = `git ls-files`.split("\n")
-  s.files       +=  FileList['scripts/docs/closure/**/*']
+  s.files       +=  FileList['docs/closure/**/*']
   s.executables  = `git ls-files`.split("\n").map{|f| f =~ /^bin\/(.*)/ ? $1 : nil}.compact
   s.test_files   = `git ls-files`.split("\n").map{|f| f =~ /^(test\/.*_test.rb)$/ ? $1 : nil}.compact
   s.require_path = 'lib'
@@ -73,7 +73,7 @@ file "closure.gemspec" => ["Rakefile"] do |t|
 end
 
 task 'gem:ensure_closure_docs' do
-  unless File.exists? "scripts/docs/closure/index.html"
+  unless File.exists? "docs/closure/index.html"
     print "ERROR: Docs for closure not found.\n"
     exit 1
   end
@@ -93,6 +93,8 @@ war_config = Warbler::Config.new do |config|
     closure-templates
     lib
     scripts
+    docs
+    externs
   )
   
   config.gems << Gem::Dependency.new("jruby-jars", JRUBY_JARS_VER)
@@ -115,11 +117,13 @@ war_config = Warbler::Config.new do |config|
     else
       require 'closure'
       ENV["CLOSURE_SCRIPT_WELCOME"] = 'true'
-      eval(File.read(File.join Closure.base_path, 'scripts/scaffold/config.ru'), binding, 'config.ru')
+      eval(File.read(File.join Closure.base_path, 'scripts/config.ru'), binding, 'config.ru')
     end
   EOS
   
-  # Closure::Server is thread-safe so one runtime is plenty
+  # Closure Script is thread-safe and multithreaded by default.
+  # We choose to be bound in a single runtime to allow Scripts easy
+  # access to globals for background processing with Ruby threads.
   config.webxml.jruby.min.runtimes = 1  
   config.webxml.jruby.max.runtimes = 1
   
@@ -140,7 +144,7 @@ task 'war' do
   mkdir_p dir if !File.exist?(dir)
   # ensure all docs were built
   DOCS.each do |gem_name|
-    unless File.exists? "scripts/docs/#{gem_name}/index.html"
+    unless File.exists? "docs/#{gem_name}/index.html"
       print "ERROR: Docs for #{gem_name} not found.\n"
       exit 1
     end
@@ -154,13 +158,17 @@ task 'war:clean' do
   # warbler maybe should support autodeploy_dir for this
 end
 
-desc 'Start the project .war server'
+desc 'Start the .war welcome server'
 task 'war:server' do
-  war_file = File.join war_config.autodeploy_dir, war_config.war_name + '.war'
+  war_file = File.expand_path File.join war_config.autodeploy_dir, war_config.war_name + '.war'
   unless File.exist?(war_file)
     print "ERROR: Build #{war_file} first.\n"
     exit 1
   end
+  mkdir_p 'tmp' if !File.exist?('tmp')
+  rm_r Dir.glob 'tmp/*'
+  tmp = File.expand_path 'tmp'
+  chdir tmp
   exec "java -jar #{war_file}"
 end
 
@@ -171,7 +179,7 @@ DOCS.each do |gem_name|
     base_path = '.'
   elsif %w{erb}.include? gem_name
     # Where yard won't magically find the wrong README
-    base_path = 'scripts/docs'
+    base_path = 'docs'
   else
     spec = Gem.loaded_specs[gem_name]
     unless spec
@@ -187,7 +195,7 @@ DOCS.each do |gem_name|
   elsif gem_name == 'haml'
     # Haml ships gem with incomplete docs
     # https://github.com/nex3/haml/issues/351
-    haml_ref_file = File.expand_path("scripts/docs/HAML_REFERENCE.md")
+    haml_ref_file = File.expand_path("docs/HAML_REFERENCE.md")
     extra = "- MIT-LICENSE #{haml_ref_file}"
   else
     extra = ''
@@ -196,7 +204,7 @@ DOCS.each do |gem_name|
   task "docs:#{gem_name}" do
     db_dir = File.expand_path(".yardoc_#{gem_name}")
     rm_rf db_dir # ensure full build
-    out_dir = File.expand_path("scripts/docs/#{gem_name}")
+    out_dir = File.expand_path("docs/#{gem_name}")
     rm_rf out_dir
     save_dir = Dir.getwd
     Dir.chdir(base_path)

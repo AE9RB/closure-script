@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
+/*
+goog.provide('externs.jQuery.v1_3_2')
+*/
+ 
 /**
- * @fileoverview Externs for jQuery 1.4.2.
- * The externs defined here are in the order of the jQuery 1.3.2 (HA HA!) documentation pages.
+ * @fileoverview Externs for jQuery 1.3.2.
+ * The externs defined here are in the order of the jQuery documentation pages.
  * Note that some functions use different return types depending on the number
  * of parameters passed in. In this cases, you may need to annotate the type
  * of the result in your code, so the JSCompiler understands which type you're
  * expecting. For example:
  *    <code>var elt = /** @type {Element} * / (foo.get(0));</code>
  * @see http://docs.jquery.com/
-*
  */
 
-/*
-goog.provide('externs.jQuery.v1_4_2')
-*/
-
 /**
- * @param {(string|Node|Element|Array.<Element>|jQueryObject|Function)=} arg
- * @param {(Element|jQueryObject|Document|Object)=} opt_arg
+ * @param {string|Node|Element|Array.<Element>|Function|Window} arg
+ * @param {(jQueryObject|Document)=} opt_arg
  * @return {jQueryObject}
  */
 var $ = function(arg, opt_arg) {};
@@ -70,7 +69,7 @@ jQueryObject.prototype.context = function() {};
 jQueryObject.prototype.get = function(opt_index) {};
 
 /**
- * @param {(string|Element|jQueryObject)=} subject
+ * @param {Element|jQueryObject} subject
  * @return {number}
  */
 jQueryObject.prototype.index = function(subject) {};
@@ -79,8 +78,8 @@ jQueryObject.prototype.index = function(subject) {};
 // http://docs.jquery.com/Core - Data
 
 /**
- * @param {(Object|string)=} name
- * @param {*=} opt_value
+ * @param {string} name
+ * @param {string=} opt_value
  * @return {*}
  */
 jQueryObject.prototype.data = function(name, opt_value) {};
@@ -124,7 +123,7 @@ jQueryObject.prototype.removeAttr = function(name) {};
 // http://docs.jquery.com/Attributes - Class
 
 /**
- * @param {string|function(number, string):string} klass
+ * @param {string} klass
  * @return {jQueryObject}
  */
 jQueryObject.prototype.addClass = function(klass) {};
@@ -136,35 +135,35 @@ jQueryObject.prototype.addClass = function(klass) {};
 jQueryObject.prototype.hasClass = function(klass) {};
 
 /**
- * @param {(string|function(number, string):string)=} opt_klass
+ * @param {string=} opt_klass
  * @return {jQueryObject}
  */
 jQueryObject.prototype.removeClass = function(opt_klass) {};
 
 /**
- * @param {string|function(number,string):string} klassOrFunction
+ * @param {string} klass
  * @param {boolean=} opt_switch
  * @return {jQueryObject}
  */
-jQueryObject.prototype.toggleClass = function(klassOrFunction, opt_switch) {};
+jQueryObject.prototype.toggleClass = function(klass, opt_switch) {};
 
 
 // http://docs.jquery.com/Attributes - HTML, Text, Value
 
 /**
- * @param {(string|function(number, string):string)=} opt_val
+ * @param {string} opt_val
  * @return {string|jQueryObject}
  */
 jQueryObject.prototype.html = function(opt_val) {};
 
 /**
- * @param {(string|function(number,string):string)=} opt_val
+ * @param {string=} opt_val
  * @return {string|jQueryObject}
  */
 jQueryObject.prototype.text = function(opt_val) {};
 
 /**
- * @param {(string|Array.<string>|function(number,*))=} opt_val
+ * @param {string|Array.<string>} opt_val
  * @return {string|Array|jQueryObject}
  */
 jQueryObject.prototype.val = function(opt_val) {};
@@ -197,7 +196,7 @@ jQueryObject.prototype.is = function(expr) {};
 jQueryObject.prototype.map = function(callback) {};
 
 /**
- * @param {string|Element|Array.<Element>|function(number):boolean} expr
+ * @param {string} expr
  * @return {jQueryObject}
  */
 jQueryObject.prototype.not = function(expr) {};
@@ -214,10 +213,9 @@ jQueryObject.prototype.slice = function(start, opt_end) {};
 
 /**
  * @param {string|Element|Array.<Element>} expr
- * @param {Element=} context
  * @return {jQueryObject}
  */
-jQueryObject.prototype.add = function(expr, context) {};
+jQueryObject.prototype.add = function(expr) {};
 
 /**
  * @param {string=} opt_expr
@@ -227,10 +225,9 @@ jQueryObject.prototype.children = function(opt_expr) {};
 
 /**
  * @param {string} expr
- * @param {Element=} context
  * @return {jQueryObject}
  */
-jQueryObject.prototype.closest = function(expr, context) {};
+jQueryObject.prototype.closest = function(expr) {};
 
 /**
  * @return {jQueryObject}
@@ -304,7 +301,7 @@ jQueryObject.prototype.end = function() {};
 // http://docs.jquery.com/Manipulation
 
 /**
- * @param {string|Element|jQueryObject|function(number, string):string} content
+ * @param {string|Node|Element|jQueryObject} content
  * @return {jQueryObject}
  */
 jQueryObject.prototype.append = function(content) {};
@@ -316,7 +313,7 @@ jQueryObject.prototype.append = function(content) {};
 jQueryObject.prototype.appendTo = function(selector) {};
 
 /**
- * @param {string|Element|jQueryObject|function(number, string):string} content
+ * @param {string|Node|Element|jQueryObject} content
  * @return {jQueryObject}
  */
 jQueryObject.prototype.prepend = function(content) {};
@@ -328,13 +325,13 @@ jQueryObject.prototype.prepend = function(content) {};
 jQueryObject.prototype.prependTo = function(selector) {};
 
 /**
- * @param {string|Element|jQueryObject|function(number):string } content
+ * @param {string|Node|Element|jQueryObject} content
  * @return {jQueryObject}
  */
 jQueryObject.prototype.after = function(content) {};
 
 /**
- * @param {string|Element|jQueryObject|function():string} content
+ * @param {string|Node|Element|jQueryObject} content
  * @return {jQueryObject}
  */
 jQueryObject.prototype.before = function(content) {};
@@ -352,25 +349,25 @@ jQueryObject.prototype.insertAfter = function(selector) {};
 jQueryObject.prototype.insertBefore = function(selector) {};
 
 /**
- * @param {string|jQueryObject|Element|Function} arg
+ * @param {string|Element} arg
  * @return {jQueryObject}
  */
 jQueryObject.prototype.wrap = function(arg) {};
 
 /**
- * @param {string|jQueryObject|Element} arg
+ * @param {string|Element} arg
  * @return {jQueryObject}
  */
 jQueryObject.prototype.wrapAll = function(arg) {};
 
 /**
- * @param {string|jQueryObject|Element|Function} arg
+ * @param {string|Element} arg
  * @return {jQueryObject}
  */
 jQueryObject.prototype.wrapInner = function(arg) {};
 
 /**
- * @param {string|Element|jQueryObject|Function} content
+ * @param {string|Node|Element|jQueryObject} content
  * @return {jQueryObject}
  */
 jQueryObject.prototype.replaceWith = function(content) {};
@@ -409,10 +406,9 @@ jQueryObject.prototype.clone = function(opt_cloneEvents) {};
 jQueryObject.prototype.css = function(nameOrProperties, opt_value) {};
 
 /**
- * @param {(Object|function(number, Object):Object)=} objectOrFunction
- * @return {Object|jQueryObject}
+ * @return {Object}
  */
-jQueryObject.prototype.offset = function(objectOrFunction) {};
+jQueryObject.prototype.offset = function() {};
 
 /**
  * @return {Object}
@@ -707,143 +703,16 @@ jQueryObject.prototype.animate = function(
  */
 jQueryObject.prototype.stop = function(opt_clearQueue, opt_gotoEnd) {};
 
-/**
- * @param {string|Object} events
- * @param {Object=} eventData
- * @param {Function=} handler
- * @return {jQueryObject}
- */
-jQueryObject.prototype.bind = function(events, eventData, handler) {};
-
-/**
- * @param {string|Object} eventType
- * @param {Function=} handler
- * @return {jQueryObject}
- */
-jQueryObject.prototype.unbind = function(eventType, handler) {};
-
-/**
- * @param {string=} queueName
- * @return {jQueryObject}
- */
-jQueryObject.prototype.clearQueue = function(queueName) {};
-
-/**
- * @param {number} duration
- * @param {string=} queueName
- * @return {jQueryObject}
- */
-jQueryObject.prototype.delay = function(duration, queueName) {};
-
-/**
- * @param {string=} selector
- * @return {jQueryObject}
- */
-jQueryObject.prototype.detach = function(selector) {};
-
-/**
- * @return {jQueryObject}
- */
-jQueryObject.prototype.first = function() {};
-
-/**
- * @param {function(Object)} handler
- * @return {jQueryObject}
- */
-jQueryObject.prototype.focusin = function(handler) {};
-
-/**
- * @param {function(Object)} handler
- * @return {jQueryObject}
- */
-jQueryObject.prototype.focusout = function(handler) {};
-
-/**
- * @param {string|Element} selectorOrElement
- * @return {jQueryObject}
- */
-jQueryObject.prototype.has = function(selectorOrElement) {};
-
-/**
- * @return {jQueryObject}
- */
-jQueryObject.prototype.last = function() {};
-
-/**
- * @param {string=} selector
- * @return {jQueryObject}
- */
-jQueryObject.prototype.nextUntil = function(selector) {};
-
-/**
- * @param {string=} selector
- * @return {jQueryObject}
- */
-jQueryObject.prototype.parentsUntil = function(selector) {};
-
-/**
- * @param {string=} selector
- * @return {jQueryObject}
- */
-jQueryObject.prototype.prevUntil = function(selector) {};
-
-/**
- * @return {Array}
- */
-jQueryObject.prototype.toArray = function() {};
-
-/**
- * @return {jQueryObject}
- */
-jQueryObject.prototype.unwrap = function() {};
-
-/**
- * @param {Element} element
- * @param {string} key
- * @param {*=} value
- * @return {jQueryObject|Object}
- */
-jQuery.data = function(element, key, value) {};
-
-
-/**
- * @param {Object} obj
- * @return {boolean}
- */
-jQuery.isEmptyObject = function(obj) {};
-
-/**
- * @param {Object} obj
- * @return {boolean}
- */
-jQuery.isPlainObject = function(obj) {};
-
-/**
- * @return {Function}
- */
-jQuery.noop = function() {};
-
-/**
- * @param {Array|Object} arrayOrObject
- * @param {boolean=} traditional
- * @return {string}
- */
-jQuery.param = function(arrayOrObject, traditional) {};
-
-/**
- * @param {Function|Object} functionOrContext
- * @param {Object|string} contextOrName
- * @return {Function}
- */
-jQuery.proxy = function(functionOrContext, contextOrName) {};
-
-/**
- * @param {string} str
- * @return {string}
- */
-jQuery.trim = function(str) {};
-
 jQuery.fx = {};
 
 /** @type {boolean} */
 jQuery.fx.off;
+
+// http://docs.jquery.com/Utilities
+
+/**
+ * @param {number|string|Object} value
+ * @param {Array} array
+ * @return {number}
+ */
+jQueryObject.prototype.inArray = function(value, array) {};

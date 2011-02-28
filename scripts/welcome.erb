@@ -3,19 +3,30 @@ require 'fileutils'
 
 source_dir = File.expand_path File.dirname(__FILE__)
 dest_dir = Dir.getwd
+
 begin
-  Dir.chdir source_dir 
-  all_files = Dir.glob '**/*.*'
+  Dir.chdir source_dir
+  all_files = []
+  # Everything in base except self
+  Dir.glob('*').each do |file|
+    next if File.expand_path(file) == __FILE__
+    all_files << file
+  end
+  # Plus these folders of examples
+  %w{hello rails jquery}.each do |path|
+    all_files += Dir.glob("#{path}/**/*")
+  end
+  # Minus compiler output
+  all_files -= %w{
+    hello/compiler.debug
+    hello/compiler.build
+    hello/compiler.map
+    hello/legume.js
+    jquery/compiler.out
+  }
 ensure
   Dir.chdir dest_dir
 end
-all_files -= %w{
-  welcome.erb
-  hello/compiler.map
-  hello/compiler.debug
-  hello/compiler.build
-  hello/legume.js
-}
 
 conflict = false
 all_files.each do |file|
@@ -25,13 +36,14 @@ end
 
 if post? and !conflict
   all_files.each do |file|
+    next if File.directory? File.join source_dir, file
     FileUtils.mkdir_p File.dirname File.join dest_dir, file
     File.open(File.join(dest_dir, file), 'w') do |f|
       f.write File.read File.join source_dir, file
     end
   end
   render 'svn', :svn_name => 'Closure Library', :svn_path => 'closure-library',
-      :svn_url => 'http://closure-library.googlecode.com/svn/trunk/', :svn_update => 'HEAD'
+      :svn_url => 'http://closure-library.googlecode.com/svn/trunk', :svn_update => 'HEAD'
   response.redirect path
 end
 
@@ -41,8 +53,12 @@ if get? -%>
   <head>
     <meta name="Content-Type" content="text/html; charset=UTF-8" />
     <title>Welcome to Closure</title>
+    <style type="text/css" media="screen">
+      body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small;}
+    </style>
   </head>
   <body>
+    
     <h1>Welcome to Closure</h1>
     
     <dl>
@@ -53,6 +69,7 @@ if get? -%>
     <% if !conflict %>
       <form action='?' method="post">
         Prepare this folder?
+        &nbsp;
         <input type="submit" value="Write Scaffold" onclick="this.form.submit();return this.disabled=true" />
       </form>
     <% else %>

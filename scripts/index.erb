@@ -1,21 +1,49 @@
 <!DOCTYPE html>
 <html>
+<style type="text/css" media="screen">
+  body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small;}
+  select,input,button,textarea,button{font:99% arial,helvetica,clean,sans-serif;}
+</style>
   <body>
-    <%= render 'scaffold/updater' %>
+
     <h1>Closure Script</h1>
+    <h2>index.erb</h2>
+    
+    <%= render 'svn', :svn_name => 'Closure Library', :svn_path => 'closure-library',
+        :svn_url => 'http://closure-library.googlecode.com/svn/trunk/' %>
+
+    <p>
+      Only the documentation will work until Closure Library is downloaded.
+      <br />
+      You may need to manually download Closure Library if Subversion fails.
+    </p>
+
     <ul>
       <li>
-        <a href='/demos/index'>Closure Script Demos</a>
+        <a href='docs/index'>Closure Script Documentation</a>
       </li>
       <li>
-        <a href='/goog/demos/index'>Closure Library Demos</a>
+        <a href='closure-library/all_tests'>Closure Library Tests</a>
       </li>
       <li>
-        <a href='/scaffold/index'>Scaffold Index</a>
+        <a href='closure-library/closure/goog/demos/index'>Closure Library Demos</a>
       </li>
       <li>
-        <a href='/docs/index'>Closure Script Docs</a>
+        <a href='hello/hello'>Hello World - Raw</a>
       </li>
+      <li>
+        <a href='hello/hello?build'>Hello World - Build</a>
+      </li>
+      <li>
+        <a href='hello/hello?debug'>Hello World - Debug</a>
+      </li>
+      <li>
+        <a href='rails/rails_ujs'>Rails unobtrusive</a>
+      </li>    
+      <li>
+        <a href='jquery/index'>jQuery externs example</a>
+      </li>    
     </ul>
+    
   </body>
 </html>

@@ -4,10 +4,10 @@ Licensed under the Apache License, Version 2.0 (the "License");
 <http://www.apache.org/licenses/LICENSE-2.0>
 
 
-Step 1: Download to an empty folder: 
+Step 1: Download to a new folder: 
 <https://github.com/dturnbull/closure-script/downloads>
         
-Step 2: Run with Java: 
+Step 2: Run from the new folder with Java: 
 ```java -jar closure.jar```
         
 Step 3: Open a web browser:

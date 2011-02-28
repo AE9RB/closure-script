@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src='jquery_1.4.4.js'></script>
+    <script src='compiler.js?<%= query_string %>'></script>
+  </head>
+  <body>
+    <p class='jqtest'>
+      This will be hidden by jQuery.  Fail if you see this.
+    </p>
+    <script type='text/javascript'>
+      //<![CDATA[
+        jQueryTest();
+      //]]>
+    </script>
+  </body>
+</html>

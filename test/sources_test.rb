@@ -4,7 +4,7 @@ require 'test_helper'
 
 class SourcesTest < Test::Unit::TestCase
 
-  CLOSURE_LIBRARY = File.join(Closure.base_path, 'closure-library')
+  CLOSURE_LIBRARY = File.join(Closure.base_path, 'scripts', 'closure-library')
 
   NAMESPACES = ["goog.editor.Field", "goog.ds.JsonDataSource"]
   FIELD_JS = File.join(CLOSURE_LIBRARY, 'closure', 'goog', 'editor', 'field.js')
@@ -16,8 +16,12 @@ class SourcesTest < Test::Unit::TestCase
   FILES = []
   sources = Closure::Sources.new
   sources.add CLOSURE_LIBRARY
-  sources.files_for(NAMESPACES[0], FILES)
-  sources.files_for(NAMESPACES[1], FILES)
+  begin
+    sources.files_for(NAMESPACES[0], FILES)
+    sources.files_for(NAMESPACES[1], FILES)
+  rescue Closure::Sources::BaseJsNotFoundError
+    raise "ERROR: it looks like closure-library isn't downloaded yet"
+  end
 
   def test_files_against_closurebuilder
     closurebuilder_files = `#{CLOSUREBUILDER} --root=#{CLOSURE_LIBRARY.dump} -n #{NAMESPACES[0].dump} -n #{NAMESPACES[1].dump} 2>/dev/null`

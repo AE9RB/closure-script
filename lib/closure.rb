@@ -54,9 +54,8 @@ class Closure
   # Scripts that are distributed with the gem.  These will help get you started quickly.
   BUILT_INS = {
     :soy => File.join(base_path, 'closure-templates'),
-    :externs => File.join(base_path, 'scripts', 'externs'),
-    :demos => File.join(base_path, 'scripts', 'demos'),
-    :docs => File.join(base_path, 'scripts', 'docs')
+    :externs => File.join(base_path, 'externs'),
+    :docs => File.join(base_path, 'docs')
   }
   
   
@@ -143,12 +142,12 @@ class Closure
   # @example
   #  ruby -e "require 'rubygems'; gem 'closure'; require 'closure'; Closure.welcome"
   def self.welcome
-    raise 'Unable to start welcome server, config.ru already exists.' if File.exist? 'config.ru'
+    raise 'Use rackup, config.ru already exists.' if File.exist? 'config.ru'
     gem 'rack', '>= 1.1.0'
     require 'rack'
     ENV["CLOSURE_SCRIPT_WELCOME"] = 'true'
-    server = Rack::Server.new :config => File.join(base_path, 'scripts', 'scaffold', 'config.ru')
-    # Make a phoney request so options[:Port] gets set from config.ru
+    server = Rack::Server.new :config => File.join(base_path, 'scripts', 'config.ru')
+    # Make a phony request so options[:Port] gets set from config.ru
     Rack::MockRequest.new(server.app).request
     port = server.options[:Port] || server.default_options[:Port]
     print "Closure Script Welcome Server: http://localhost:#{port}/\n"

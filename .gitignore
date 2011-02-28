@@ -3,8 +3,8 @@ closure.gemspec
 .yardoc*
 pkg/*
 tmp/*
-scripts/docs/closure/*
-scripts/docs/haml/*
-scripts/docs/rack/*
-scripts/docs/erb/*
-closure-library
+docs/closure/*
+docs/haml/*
+docs/rack/*
+docs/erb/*
+scripts/closure-library

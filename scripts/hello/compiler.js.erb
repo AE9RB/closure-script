@@ -1,7 +1,7 @@
 <% 
 # Closure Compiler is run from a Script.  To obtain
 # the dynamically generated javascript from this file:
-# http://localhost:8080/compiler.js
+# http://localhost:8080/hello/compiler.js
 
 # These are the same options as compiler.jar.  Two exceptions:
 # 1. No --compilation_level will load the original sources 
@@ -10,8 +10,6 @@
 #    turns these into --js arguments before calling the compiler.
 args = %w{
   --summary_detail_level 3
-  --define goog.DEBUG=false
-  --warning_level VERBOSE
   --ns myapp.hello
 }
 
@@ -22,16 +20,16 @@ args = %w{
 args += case query_string
 when 'build': %w{
   --compilation_level ADVANCED_OPTIMIZATIONS
-  --js_output_file compiler.build
-  --create_source_map compiler.map
+  --js_output_file compiler_build.js
+  --create_source_map compiler_build.map
 }
 when 'debug': %w{
   --debug true
   --formatting PRETTY_PRINT
   --compilation_level ADVANCED_OPTIMIZATIONS
-  --js_output_file compiler.debug
+  --js_output_file compiler_debug.js
 }
-end
+else;[];end
 
 # This will process all .soy files into .js files.
 # Be careful you don't make a file.soy to go with the

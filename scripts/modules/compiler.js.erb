@@ -1,0 +1,34 @@
+<% 
+# The --module option no longer needs a file count if you
+# use '*' to mean 'everything until the next --module'.
+# This way everything is automatic when using namespaces.
+args = %w{
+  --summary_detail_level 3
+  --module app:*
+  --ns example.initializer.app
+  --module api:*:app 
+  --ns example.initializer.api
+  --module settings:*:app 
+  --ns example.initializer.settings
+}
+
+# js_output_file will contain generated module information you
+# must distribute with your sources.  It is also used for the
+# mtime check against the sources.
+args += case query_string
+when 'build': %w{
+  --js_output_file compiler_build.js
+  --module_output_path_prefix compiler_build_
+  --create_source_map compiler_build.map
+  --compilation_level ADVANCED_OPTIMIZATIONS
+}
+when 'debug': %w{
+  --js_output_file compiler_debug.js
+  --module_output_path_prefix compiler_debug_
+  --debug true
+  --formatting PRETTY_PRINT
+  --compilation_level ADVANCED_OPTIMIZATIONS
+}
+else;[];end
+
+@response = goog.compile(args).to_response %>

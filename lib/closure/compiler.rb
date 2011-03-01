@@ -22,10 +22,13 @@ class Closure
     
     class Compilation
       attr_accessor :log
+
+      # @private api work in progress
+      attr_reader :js_output_file
       
       # @private
       def initialize(javascript, js_output_file, log, env)
-        @javascript = javascript
+        @javascript = [javascript]
         @js_output_file = js_output_file
         @log = log
         @env = env
@@ -48,24 +51,32 @@ class Closure
       #   <% @response = goog.compile(args).to_response %>
       # @return (Rack::Response)
       def to_response
-        response = Rack::Response.new
-        response.headers['Content-Type'] = 'application/javascript'
-        response.headers["Cache-Control"] = 'max-age=0, private, must-revalidate'
-        if log
-          consolable_log = '"Closure Compiler: %s\n\n", ' + log.rstrip.dump
-          if log.split("\n").first =~ / 0 warn/i
-            response.write "try{console.log(#{consolable_log})}catch(err){};\n"
-          else
-            response.write "try{console.warn(#{consolable_log})}catch(err){};\n"
-          end
-          response.write javascript
-        elsif @js_output_file
+        if !log and @js_output_file
           response = FileResponse.new @env, @js_output_file, 'application/javascript'
         else
-          response.write javascript
-          response
+          response = Rack::Response.new
+          response.headers['Content-Type'] = 'application/javascript'
+          response.headers["Cache-Control"] = 'max-age=0, private, must-revalidate'
+          if log
+            consolable_log = '"Closure Compiler: %s\n\n", ' + log.rstrip.dump
+            if log.split("\n").first =~ / 0 warn/i
+              response.write "try{console.log(#{consolable_log})}catch(err){};\n"
+            else
+              response.write "try{console.warn(#{consolable_log})}catch(err){};\n"
+            end
+          end
+          javascript.each {|js| response.write js }
         end
         response
+      end
+      
+      # @private api work in progress
+      def <<(js)
+        if @js_output_file
+          @javascript << File.read(@js_output_file) rescue ''
+          @js_output_file = nil
+        end
+        @javascript << js
       end
 
       # Always returns the compiled javascript (possibly an empty string).
@@ -75,7 +86,7 @@ class Closure
         if @js_output_file
           File.read(@js_output_file) rescue ''
         else
-          @javascript
+          @javascript.join(nil)
         end
       end
       alias :to_s :javascript
@@ -89,11 +100,12 @@ class Closure
     # If supplied as arguments, output options are available as instance
     # variables and attributes that have been expanded to the new base.
     OUTPUT_OPTIONS = %w{
-      --create_source_map
       --js_output_file
+      --create_source_map
       --output_manifest
       --property_map_output_file
       --variable_map_output_file
+      --module_output_path_prefix
     }
     
     # These are filename options and will be expanded to a new base.
@@ -112,7 +124,6 @@ class Closure
     # @param (String) base All filenames will be expanded to this location.
     # @param (Hash) env Rack environment.  Supply if you want a response that is cacheable.
     def self.compile(args, dependencies = [], base = nil, env = {})
-      return if args.empty? # otherwise java locks up
       args = args.collect {|a| a.to_s } # for bools and numerics
       files = []
       js_output_file = nil
@@ -129,6 +140,10 @@ class Closure
           args[args_index+1] = value
         end
         args_index = args_index + 2
+      end
+      if files.empty?
+        # otherwise java locks up waiting for stdin
+        return Compilation.new '', nil, nil, env
       end
       # We don't bother compiling if we can detect that no sources were modified
       if js_output_file
@@ -166,6 +181,82 @@ class Closure
       Compilation.new stdout, js_output_file, log, env
     end
     
+    
+    # @private api work in progress
+    def self.module_info(mods)
+      js = "var MODULE_INFO = {"
+      js += mods.map do |name, options|
+        # p options
+        reqs = options[:requires].map{ |r| r.dump }
+        s = "#{name.dump}: [#{reqs.join ', '}]"
+      end.join ', '
+      js += "};\n"
+    end
+
+
+    # @private api work in progress
+    def self.module_raw_uris(mods, sources)
+      js = "var MODULE_URIS = {\n"
+      js += mods.map do |name, options|
+        files = options[:files].map{ |r| (sources.src_for r).dump }
+        s = "#{name.dump}: [\n#{files.join ",\n"}]"
+      end.join ",\n"
+      js += "\n};\n"
+    end
+    
+    
+    # @private api work in progress
+    def self.module_compiled_uris(mods, sources, prefix)
+      js = "var MODULE_URIS = {\n"
+      js += mods.map do |name, options|
+        file = sources.src_for prefix + name + '.js'
+        s = "#{name.dump}: [#{file.dump}]"
+      end.join ",\n"
+      js += "\n};\n"
+    end
+  
+  
+    # @private api work in progress
+    def self.modulize(args)
+      found_starred = false
+      found_numeric = false
+      js_files = []
+      mods = []
+      args_index = args.length
+      while args_index > 0
+        args_index = args_index - 2
+        option, value = args[args_index, 2]
+        if option == '--js'
+          js_files.unshift value
+        elsif option == '--module'
+          if js_files.empty?
+            raise "No --js files for module #{value}" 
+          end
+          mod = value.split ':'
+          if mod[1] == '*'
+            mod[1] = js_files.size 
+            found_starred = true
+          else
+            found_numeric = true
+          end
+          # mods.unshift mod
+          mods.unshift [mod[0], {
+            :requires => mod[2..-1],
+            :files => js_files
+          }]
+          js_files = []
+          args[args_index+1] = mod.join ':'
+        end
+      end
+      unless js_files.empty? or mods.empty?
+        raise 'Automatic --module must appear before first --js option.'
+      end
+      if found_starred and found_numeric
+        raise 'Static and automatic --module options can not be mixed.'
+      end
+      mods
+    end
+
   end
   
 end

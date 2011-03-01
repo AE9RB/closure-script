@@ -9,3 +9,4 @@ docs/rack/*
 docs/erb/*
 docs/kramdown/*
 scripts/closure-library
+scripts/**/compiler_*

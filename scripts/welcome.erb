@@ -9,21 +9,17 @@ begin
   all_files = []
   # Everything in base except self
   Dir.glob('*').each do |file|
+    next if File.directory? file
     next if File.expand_path(file) == __FILE__
     all_files << file
   end
   # Plus these folders of examples
-  %w{hello rails jquery}.each do |path|
+  %w{hello rails jquery modules}.each do |path|
     all_files += Dir.glob("#{path}/**/*")
   end
   # Minus compiler output
-  all_files -= %w{
-    hello/compiler.debug
-    hello/compiler.build
-    hello/compiler.map
-    hello/legume.js
-    jquery/compiler.out
-  }
+  all_files -= %w{hello/legume.js}
+  all_files.reject!{|f|f=~/compiler_/}
 ensure
   Dir.chdir dest_dir
 end

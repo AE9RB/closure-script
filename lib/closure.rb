@@ -105,7 +105,7 @@ class Closure
         Java::ClosureScript.run(jar, mainClass, cmdout.path, cmderr.path, args)
       else
         @@beanshell ||= BeanShell.new File.join(base_path, 'lib', 'shim.jar')
-        java_opts = args.collect{|a|a.dump}.join(', ')
+        java_opts = args.collect{|a|a.to_s.dump}.join(', ')
         cmd = "ClosureScript.run(#{jar.dump}, #{mainClass.dump}, #{cmdout.path.dump}, #{cmderr.path.dump}, new String[]{#{java_opts}});"
         @@beanshell.run(cmd)
       end

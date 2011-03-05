@@ -51,28 +51,12 @@ class Closure
     # @param (String) base All filenames will be expanded to this location.
     # @param (Hash) env Rack environment.  Supply if you want a response that is cacheable.
     def self.compile(args, dependencies = [], base = nil, env = {})
-      args = args.collect {|a| a.to_s } # for bools and numerics
-      files = []
-      js_output_file = nil
-      # Scan to expand paths and extend self with output options
-      args_index = 0
-      while args_index < args.length
-        option, value = args[args_index, 2]
-        value = File.expand_path(value, base) if base
-        if INPUT_OPTIONS.include?(option)
-          files << args[args_index+1] = value
-        end
-        if OUTPUT_OPTIONS.include?(option)
-          js_output_file = value if option == '--js_output_file'
-          args[args_index+1] = value
-        end
-        args_index = args_index + 2
-      end
-      if files.empty?
-        # otherwise java locks up waiting for stdin
-        return Compilation.new '', nil, 'No input files specified', env
+      if Util.arg_values(args, '--js').empty?
+        return Compilation.new '', nil, 'No source javascript specified', env
       end
       # We don't bother compiling if we can detect that no sources were modified
+      files = Util.arg_values(args, INPUT_OPTIONS)
+      js_output_file = Util.arg_values(args, '--js_output_file').last
       if js_output_file
         js_mtime = File.mtime js_output_file rescue Errno::ENOENT
         compiled = !!File.size?(js_output_file) # catches empty files too
@@ -184,15 +168,32 @@ class Closure
     
     
     # Closure Script extends compiler.jar by transforming the arguments in novel ways.
-    # The simplest augmentation is to support --ns for compiling namespaces.
+    # The most obvious augmentation is to support --ns for compiling namespaces.
     # We can also expand paths to a new base, work with modules, and much more.
+    # These all will directly modify args.
     # @private This is a high value target for refactoring in minor version updates.
     class Util
 
-      #TODO this won't have proper paths.  expander should be a util with all this junk
+      # Expands all filesystem argument values to a specified folder.
+      # @param [Array<String>] args
+      # @return [Array<String>] args
+      def self.expand_paths(args, base)
+        file_options = INPUT_OPTIONS + OUTPUT_OPTIONS
+        args_index = 0
+        while args_index < args.length
+          option, value = args[args_index, 2]
+          value = File.expand_path value, base
+          if file_options.include? option
+            args[args_index+1] = value
+          end
+          args_index = args_index + 2
+        end
+        args
+      end
   
       # Transforms arguments to support --module name:* syntax.
-      # Returns an array of hashes with the extracted information.
+      # @param [Array<String>] args
+      # @return [Array<Hash>] mods
       def self.module_augment(args)
         found_starred = false
         found_numeric = false
@@ -234,6 +235,7 @@ class Closure
       end
       
       # The javascript snippet for module info
+      # @param [Array<Hash>] mods
       def self.module_info(mods)
         js = "var MODULE_INFO = {"
         js += mods.map do |mod|
@@ -245,6 +247,7 @@ class Closure
 
 
       # The javascript snippet for raw module file locations
+      # @param [Array<Hash>] mods
       def self.module_uris_raw(mods, sources)
         js = "var MODULE_URIS = {\n"
         js += mods.map do |mod|
@@ -256,6 +259,7 @@ class Closure
     
     
       # The javascript snippet for compiled module file locations
+      # @param [Array<Hash>] mods
       def self.module_uris_compiled(mods, sources, prefix)
         js = "var MODULE_URIS = {\n"
         js += mods.map do |mod|
@@ -265,19 +269,28 @@ class Closure
         js += "\n};\n"
       end
       
-      # Extracts the values for an option in the arguments.
+      # Extracts the values for a options in the arguments.
       # Use Array#last to emulate compiler.jar for single options.
-      def self.arg_values(args, option)
+      # Will collect from an array of options.
+      # @param [Array<String>] args
+      # @param [String|Array<String>] options One or more options.
+      # @return [Array<String>]
+      def self.arg_values(args, options)
+        options = [options].flatten unless options.kind_of? Array
         values = []
         args_index = 0
         while args_index < args.length
-          values << args[args_index+1] if args[args_index] == option
+          if options.include? args[args_index]
+            values << args[args_index+1] 
+          end
           args_index = args_index + 2
         end
         values
       end
       
       # Converts --ns arguments into --js arguments
+      # @param [Array<String>] args
+      # @return [Array<String>] args
       def self.namespace_augment(args, sources, env={})
         files = []
         files_index = 0
@@ -302,8 +315,8 @@ class Closure
             args_index = args_index + 2
           end
         end
+        args
       end
-    
       
     end
   end

@@ -51,12 +51,14 @@ class Closure
     end
 
     # Compile javascript.  Accepts every argument that compiler.jar supports.
-    # Accepts new `--ns namespace` option which literally expands into
-    # `--js filename` arguments in place to satisfy the namespace.
-    # If you specify a --js_output_file then the compiler will check File.mtime
-    # on every source file plus all the rendered Scripts and skip the compilation
-    # if the js_output_file is newest.
-    # Paths are relative to the script calling #compile.
+    # This method supports all compiler augmentations added by Closure Script.
+    # Path options are expanded relative to the script calling #compile.
+    # - `--ns namespace` expands in place to `--js filename` arguments which satisfy the namespace.
+    # - `--module name:*:dep` File count will be filled in automatically.  The * is replaced with the
+    #   count of files up to next --module or the end.
+    # - `--js_output_file file` is compared against sources modification times to determine
+    #   if compilation is to be performed.
+    # - `--compilation_level` when not supplied, the scripts are loaded raw.
     # @example myapp.js.erb
     #   <% @response = goog.compile(%w{
     #     --js_output_file ../public/myapp.js
@@ -64,15 +66,15 @@ class Closure
     #     --compilation_level ADVANCED_OPTIMIZATIONS
     #   }).to_response %>
     # @param [Array<String>] args
-    # @return [Compiler]
+    # @return [Compilation]
     def compile(args)
       args = Array.new args # work on a copy
       pre_js_tempfile = nil
       begin
-        orig_externs = Compiler::Util.arg_values(args, '--externs')
-        Compiler::Util.namespace_augment(args, @sources, @env)
+        Compiler::Util.expand_paths args, File.dirname(@render_stack.last)
+        orig_externs = Compiler::Util.arg_values args, '--externs'
+        Compiler::Util.namespace_augment args, @sources, @env
         mods = Compiler::Util.module_augment args
-
         if Compiler::Util.arg_values(args, '--compilation_level').empty?
           # Raw mode
           comp = Compiler::Compilation.new '', nil, nil, @env
@@ -123,7 +125,7 @@ class Closure
             # File mtime is rolled back to not trigger compilation.
             File.utime(Time.now, Time.at(0), pre_js_tempfile.path)
           end
-          comp = Compiler.compile args, @dependencies, File.dirname(@render_stack.last), @env
+          comp = Compiler.compile args, @dependencies, @env
           unless mods.empty?
             refresh
             prefix =  File.expand_path module_output_path_prefix, File.dirname(@render_stack.last)

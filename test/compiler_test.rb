@@ -1,19 +1,34 @@
 require 'test_helper'
 
-# Closure::Compiler.compile is well tested with the functional tests in the
-# scripts folder.  These tests are mostly for the arguments transformations.
-
 describe Closure::Compiler do
   before do
     @util = Closure::Compiler::Util
   end
 
+  # Closure::Compiler.compile is primarily supported with functional tests.
   describe 'compile' do
     it 'does not lock up when no --js file specified ' do
       args = %w{ --js_output_file jstest.out }
       Closure::Compiler.compile(args)
-      # without input files, compiler.jar will wait on stdin
       # simply not getting stuck in an endless loop is passing
+      assert true
+    end
+  end
+
+  describe 'Util.expand_paths' do
+    it 'expands relative options to the new path' do
+      args = %w{
+        --externs rails.ujs
+        --create_source_map ../map.js
+        --js file1.js
+        --js /plugh/file2.js
+      }
+      @util.expand_paths(args, '/abc/xyzzy').must_equal %w{
+        --externs /abc/xyzzy/rails.ujs
+        --create_source_map /abc/map.js
+        --js /abc/xyzzy/file1.js
+        --js /plugh/file2.js
+      }
     end
   end
   
@@ -24,8 +39,18 @@ describe Closure::Compiler do
         --js not_a_real_file.js
         --js still_fake.js
       }
-      @util.arg_values(args, '--js').must_equal ['not_a_real_file.js', 'still_fake.js']
-      @util.arg_values(args, '--js_output_file').must_equal ['jstest.out']
+      @util.arg_values(args, '--js').must_equal %w{
+        not_a_real_file.js
+        still_fake.js
+      }
+      @util.arg_values(args, '--js_output_file').must_equal %w{
+        jstest.out
+      }
+      @util.arg_values(args, ['--js', '--js_output_file']).must_equal %w{
+        jstest.out
+        not_a_real_file.js
+        still_fake.js
+      }
     end
   end
   
@@ -88,7 +113,7 @@ describe Closure::Compiler do
       proc { @util.module_augment(args) }.must_raise RuntimeError
     end
 
-    it "disallows --js before --module" do
+    it "disallows --js before --module x:*" do
       args = %w{
         --js not_a_real_file.js
         --module app:*

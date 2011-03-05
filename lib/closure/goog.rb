@@ -66,39 +66,44 @@ class Closure
     # @param [Array<String>] args
     # @return [Compiler]
     def compile(args)
-      args = Array.new args
-      files = []
-      files_index = 0
-      args_index = 0
+      args = Array.new args # work on a copy
       pre_js_tempfile = nil
-      compilation_level = nil
-      module_output_path_prefix = nil
-      use_externs_hack = false
       begin
-        while args_index < args.length
-          option, value = args[args_index, 2]
-          compilation_level = value if option == '--compilation_level'
-          module_output_path_prefix = value if option == '--module_output_path_prefix'
-          if option == '--ns'
-            files_for(value, files)
-            replacement = []
-            while files_index < files.length
-              if files[files_index] =~ /\.externs$/
-                use_externs_hack = true
-                replacement.push '--externs'
-              else
-                replacement.push '--js'
-              end
-              replacement.push files[files_index]
-              files_index = files_index + 1
+        orig_externs = Compiler::Util.arg_values(args, '--externs')
+        Compiler::Util.namespace_augment(args, @sources, @env)
+        mods = Compiler::Util.module_augment args
+
+        if Compiler::Util.arg_values(args, '--compilation_level').empty?
+          # Raw mode
+          comp = Compiler::Compilation.new '', nil, nil, @env
+          unless mods.empty?
+            comp << Compiler::Util.module_info(mods)
+            comp << Compiler::Util.module_uris_raw(mods, @sources)
+          end
+          js_counter = 0
+          args_index = 0
+          while args_index < args.length
+            option, value = args[args_index, 2]
+            if option == '--js'
+              value = File.expand_path value, File.dirname(@render_stack.last)
+              script_tag = "<script src=#{src_for(value).dump}></script>"
+              comp << "document.write(#{script_tag.dump});\n"
+              js_counter += 1
+              # For modules, just the files for the first module
+              break if !mods.empty? and js_counter >= mods[0][:files].length
             end
-            args[args_index, 2] = replacement
-          else
             args_index = args_index + 2
           end
-        end
-        if compilation_level
-          if use_externs_hack
+        else
+          # Compiled mode
+          module_output_path_prefix = Compiler::Util.arg_values(args, '--module_output_path_prefix').last
+          if !mods.empty? and !module_output_path_prefix
+            # raise this before compilation so we don't write to a weird place
+            raise "--module_output_path_prefix is required when using --module"
+          end
+          # If the externs were changed by namespace_augment then we need to include
+          # a temp file containing the goog.provide statements that satisfy compiler.jar.
+          if orig_externs != Compiler::Util.arg_values(args, '--externs')
             pre_js_tempfile = Tempfile.new 'closure_pre_js'
             # Insert before the first --js (in case of modules)
             args_index = 0
@@ -118,48 +123,24 @@ class Closure
             # File mtime is rolled back to not trigger compilation.
             File.utime(Time.now, Time.at(0), pre_js_tempfile.path)
           end
-          mods = Compiler.modulize args
-          if !mods.empty? and !module_output_path_prefix
-            # raise this before compilation so we don't write to a weird place
-            raise "--module_output_path_prefix is required when using --module"
-          end
           comp = Compiler.compile args, @dependencies, File.dirname(@render_stack.last), @env
-          if !mods.empty?
+          unless mods.empty?
             refresh
             prefix =  File.expand_path module_output_path_prefix, File.dirname(@render_stack.last)
             if comp.js_output_file
               File.open comp.js_output_file, 'w' do |f|
-                f.write Compiler.module_info mods
-                f.write Compiler.module_compiled_uris mods, @sources, prefix
+                f.write Compiler::Util.module_info mods
+                f.write Compiler::Util.module_uris_compiled mods, @sources, prefix
               end
             else
-              comp << Compiler.module_info(mods)
-              comp << Compiler.module_compiled_uris(mods, @sources, prefix)
+              comp << Compiler::Util.module_info(mods)
+              comp << Compiler::Util.module_uris_compiled(mods, @sources, prefix)
             end
             # Load the first module
-            first_module_file = module_output_path_prefix + mods[0][0] + '.js'
+            first_module_file = module_output_path_prefix + mods[0][:name] + '.js'
             first_module_file = File.expand_path first_module_file, File.dirname(@render_stack.last)
             script_tag = "<script src=#{src_for(first_module_file).dump}></script>"
             comp << "document.write(#{script_tag.dump});\n"
-          end
-        else
-          mods = Compiler.modulize args
-          comp = Compiler::Compilation.new '', nil, nil, @env
-          comp << Compiler.module_info(mods)
-          comp << Compiler.module_raw_uris(mods, @sources)
-          js_counter = 0
-          args_index = 0
-          while args_index < args.length
-            option, value = args[args_index, 2]
-            if option == '--js'
-              value = File.expand_path value, File.dirname(@render_stack.last)
-              script_tag = "<script src=#{src_for(value).dump}></script>"
-              comp << "document.write(#{script_tag.dump});\n"
-              js_counter += 1
-              # For modules, just the files for the first module
-              break if !mods.empty? and js_counter >= mods[0][1][:files].length
-            end
-            args_index = args_index + 2
           end
         end
         comp

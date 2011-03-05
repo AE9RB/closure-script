@@ -96,6 +96,7 @@ class Closure
     # Toss away the oldest one if we end up with too many.
     @mtimes_cache ||= {}
     def self.mtimes(args)
+      #TODO base needs to be in key
       mtimes = @mtimes_cache[args] ||= {:mtimes => {}}
       mtimes[:used] = Time.now
       if @mtimes_cache.length > 25

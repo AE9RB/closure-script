@@ -20,14 +20,12 @@ describe Closure::Compiler do
       args = %w{
         --externs rails.ujs
         --create_source_map ../map.js
-        --js file1.js
-        --js /plugh/file2.js
+        --js /plugh/file.js
       }
       @util.expand_paths(args, '/abc/xyzzy').must_equal %w{
         --externs /abc/xyzzy/rails.ujs
         --create_source_map /abc/map.js
-        --js /abc/xyzzy/file1.js
-        --js /plugh/file2.js
+        --js /plugh/file.js
       }
     end
   end

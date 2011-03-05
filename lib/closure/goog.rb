@@ -77,7 +77,7 @@ class Closure
         mods = Compiler::Util.module_augment args
         if Compiler::Util.arg_values(args, '--compilation_level').empty?
           # Raw mode
-          comp = Compiler::Compilation.new '', nil, nil, @env
+          comp = Compiler::Compilation.new @env
           unless mods.empty?
             comp << Compiler::Util.module_info(mods)
             comp << Compiler::Util.module_uris_raw(mods, @sources)
@@ -127,7 +127,7 @@ class Closure
           end
           comp = Compiler.compile args, @dependencies, @env
           unless mods.empty?
-            refresh
+            refresh # compilation may add new files, module_uris_compiled uses src_for
             prefix =  File.expand_path module_output_path_prefix, File.dirname(@render_stack.last)
             if comp.js_output_file
               File.open comp.js_output_file, 'w' do |f|

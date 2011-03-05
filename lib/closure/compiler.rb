@@ -50,23 +50,23 @@ class Closure
     # @param (Array) dependencies Any other files to check mtime on, like makefiles.
     # @param (String) base All filenames will be expanded to this location.
     # @param (Hash) env Rack environment.  Supply if you want a response that is cacheable.
-    def self.compile(args, dependencies = [], base = nil, env = {})
+    def self.compile(args, dependencies = [], env = {})
       if Util.arg_values(args, '--js').empty?
-        return Compilation.new '', nil, 'No source javascript specified', env
+        return Compilation.new env, nil, 'No source javascript specified'
       end
       # We don't bother compiling if we can detect that no sources were modified
-      files = Util.arg_values(args, INPUT_OPTIONS)
       js_output_file = Util.arg_values(args, '--js_output_file').last
       if js_output_file
         js_mtime = File.mtime js_output_file rescue Errno::ENOENT
         compiled = !!File.size?(js_output_file) # catches empty files too
-        (files + dependencies).each do |filename|
+        files = Util.arg_values(args, INPUT_OPTIONS) + dependencies
+        files.each do |filename|
           break unless compiled
           mtime = File.mtime filename
           compiled = false if !mtime or mtime > js_mtime
         end
         if compiled
-          return Compilation.new '', js_output_file, nil, env
+          return Compilation.new env, js_output_file
         end
         File.unlink js_output_file rescue Errno::ENOENT
       end
@@ -89,7 +89,7 @@ class Closure
         end
         raise Error, log unless error_message =~ /^0 err/i
       end
-      Compilation.new stdout, js_output_file, log, env
+      Compilation.new(env, js_output_file, log) << stdout
     end
     
     
@@ -97,14 +97,11 @@ class Closure
       attr_reader :log
       attr_reader :js_output_file
       
-      #TODO flip to always having js_output_file with javascript overriding when available
-      
-      # @private don't use yet, soon
-      def initialize(javascript, js_output_file, log, env)
-        @javascript = [javascript]
+      def initialize(env, js_output_file=nil, log=nil)
+        @javascript = []
+        @env = env
         @js_output_file = js_output_file
         @log = log
-        @env = env
       end
       
       # @private deprecated
@@ -124,7 +121,7 @@ class Closure
       #   <% @response = goog.compile(args).to_response %>
       # @return (Rack::Response)
       def to_response
-        if !log and @js_output_file
+        if !log and @javascript.empty? and @js_output_file
           response = FileResponse.new @env, @js_output_file, 'application/javascript'
         else
           response = Rack::Response.new
@@ -138,18 +135,16 @@ class Closure
               response.write "try{console.warn(#{consolable_log})}catch(err){};\n"
             end
           end
-          javascript.each {|js| response.write js }
+          response.write javascript
         end
         response
       end
       
-      # @private api work in progress
-      def <<(js)
-        if @js_output_file
-          @javascript << File.read(@js_output_file) rescue ''
-          @js_output_file = nil
-        end
-        @javascript << js
+      # Appends a string to the javascript.
+      # @param [String] javascript
+      def <<(javascript)
+        @javascript << javascript
+        self
       end
 
       # Always returns the compiled javascript (possibly an empty string).
@@ -157,9 +152,10 @@ class Closure
       #   <%= goog.compile(args) %>
       def javascript
         if @js_output_file
-          File.read(@js_output_file) rescue ''
+          file_js = File.read(@js_output_file) rescue ''
+          ([file_js] + @javascript).join nil
         else
-          @javascript.join(nil)
+          @javascript.join nil
         end
       end
       alias :to_s :javascript

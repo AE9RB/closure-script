@@ -1,9 +1,18 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Test page for module loading</title>
+    <style type="text/css" media="screen">
+      body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small;}
+      select,input,button,textarea,button{font:99% arial,helvetica,clean,sans-serif;}
+    </style>
   </head>
   <body>
+    <p>
+      Thanks to the <a href="http://plovr.com/">plovr</a> project.<br />
+      This is one of their 
+      <a href="http://code.google.com/p/plovr/source/browse/#hg%2Ftestdata%2Fmodules">tests</a>
+      with the hacks removed.
+    </p>
     <div id="content"></div>
     <script src='compiler.js?<%=query_string%>'></script>
   </body>

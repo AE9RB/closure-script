@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'minitest/autorun'
-require 'rubygems'
 require 'rack/mock'
 
 closure_lib_path = File.expand_path('../lib', File.dirname(__FILE__))

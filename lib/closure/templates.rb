@@ -32,9 +32,10 @@ class Closure
     #    app/javascripts/**/*.soy
     #    vendor/javascripts/**/*.soy
     #  }
+    # @param (String) args Arguments for SoyToJsSrcCompiler.jar.
     # @param (String) base All source filenames will be expanded to this location.
     def self.compile(args, base = nil)
-      mtimes = mtimes(args)
+      mtimes = mtimes(args, base)
       new_mtimes = {}
       args = args.collect {|a| a.to_s } # for bools and numerics
       files = []
@@ -95,9 +96,8 @@ class Closure
     # Instead, we keep track of all the sources for each set of arguments.
     # Toss away the oldest one if we end up with too many.
     @mtimes_cache ||= {}
-    def self.mtimes(args)
-      #TODO base needs to be in key
-      mtimes = @mtimes_cache[args] ||= {:mtimes => {}}
+    def self.mtimes(args, base)
+      mtimes = @mtimes_cache[[args, base]] ||= {:mtimes => {}}
       mtimes[:used] = Time.now
       if @mtimes_cache.length > 25
         @mtimes_cache.delete @mtimes_cache.min{|a,b|a[1][:used]<=>b[1][:used]}[0]

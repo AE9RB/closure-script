@@ -13,8 +13,8 @@ args = %w{
 }
 
 # js_output_file will contain generated module information you
-# must distribute with your sources.  It is also used for the
-# mtime check against the sources.
+# must distribute with your compiled modules.  It is also used
+# for the mtime check against the sources.
 args += case query_string
 when 'build': %w{
   --js_output_file compiler_build.js

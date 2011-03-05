@@ -2,7 +2,7 @@ require 'test_helper'
 
 # Python is required as a dependency of calcdeps.py and closurebuilder.py
 
-class SourcesTest < Test::Unit::TestCase
+class SourcesTest < MiniTest::Unit::TestCase
 
   CLOSURE_LIBRARY = File.join(Closure.base_path, 'scripts', 'closure-library')
 

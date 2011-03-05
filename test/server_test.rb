@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class ServerTest < Test::Unit::TestCase
+class ServerTest < MiniTest::Unit::TestCase
 
   def setup
     sources = Closure::Sources.new

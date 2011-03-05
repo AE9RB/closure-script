@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class BeanShellTest < Test::Unit::TestCase
+class BeanShellTest < MiniTest::Unit::TestCase
   
   BEANSHELL = Closure::BeanShell.new
 

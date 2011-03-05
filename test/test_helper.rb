@@ -1,4 +1,5 @@
-require 'test/unit'
+require 'rubygems'
+require 'minitest/autorun'
 require 'rubygems'
 require 'rack/mock'
 

@@ -24,8 +24,6 @@ class Closure
     # doesn't allow setting a base path.  No problem, we can do it.
     
     # These are filename options and will be expanded to a new base.
-    # If supplied as arguments, output options are available as instance
-    # variables and attributes that have been expanded to the new base.
     OUTPUT_OPTIONS = %w{
       --js_output_file
       --create_source_map
@@ -48,7 +46,6 @@ class Closure
     # but does not support namespaces like {Goog#compile} does.
     # @param (Array) args Arguments for the compiler.
     # @param (Array) dependencies Any other files to check mtime on, like makefiles.
-    # @param (String) base All filenames will be expanded to this location.
     # @param (Hash) env Rack environment.  Supply if you want a response that is cacheable.
     def self.compile(args, dependencies = [], env = {})
       if Util.arg_values(args, '--js').empty?

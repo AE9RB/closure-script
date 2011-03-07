@@ -1,17 +1,9 @@
 closure_lib_path = File.expand_path('lib', File.dirname(__FILE__))
 $LOAD_PATH.unshift(closure_lib_path) if !$LOAD_PATH.include?(closure_lib_path)
-require 'closure'
-require 'warbler'
-require 'rake/gempackagetask'
-require 'rake/testtask'
-require 'yard'
-
-# All docs are distributed with the war
-# Only closure is packaged with the gem
-DOCS = %w{closure erb rack haml kramdown}
 
 # These versions are important for war packaging.
 # Gem users are free to mix and match any sensible versions.
+WARBLER_VER = '>= 1.3.0.beta'
 KRAMDOWN_VER = '>= 0.13.2'
 HAML_VER = '= 3.0.25' # check for dwell on sass when upgrading
 JRUBY_JARS_VER = '= 1.5.6'
@@ -22,6 +14,17 @@ RACK_VER = '= 1.2.1'
 gem 'haml', HAML_VER
 gem 'rack', RACK_VER
 gem 'kramdown', KRAMDOWN_VER
+gem 'warbler', WARBLER_VER
+
+require 'closure'
+require 'rake/gempackagetask'
+require 'rake/testtask'
+require 'yard'
+require 'warbler'
+
+# All docs are distributed with the war
+# Only closure is packaged with the gem
+DOCS = %w{closure erb rack haml kramdown}
 
 #TODO add java build (see example in warbler makefile)
 

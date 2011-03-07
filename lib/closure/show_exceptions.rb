@@ -18,6 +18,10 @@ class Closure
   # This is Rack middleware to show Ruby exceptions.  It is automatically loaded when
   # using Closure::Middleware.  It works very much like Rack::ShowExceptions but will
   # use the Javascript console when it can detect the request was for javascript.
+  #
+  # If Javascript detection isn't working because you're not using .js.erb for the
+  # extension, add this as the first line of your script:
+  #     <% @response.headers['Content-Type'] = 'application/javascript' %>
   
   class ShowExceptions
     

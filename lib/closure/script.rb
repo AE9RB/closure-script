@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'pathname'
 
 class Closure
   
@@ -120,19 +121,20 @@ class Closure
       raise NotFound
     end
     
-    # Helper for relative filenames.
+    # Helper for finding files relative to Scripts.
     # @param [String] filename
-    # @return [String]
-    def expand_path(filename)
-      File.expand_path(filename, File.dirname(render_stack.last))
+    # @return [String] absolute filesystem path
+    def expand_path(filename, dir=nil)
+      dir ||= File.dirname render_stack.last
+      File.expand_path filename, dir
     end
 
     # Helper to locate a file as a file server path.
     # @param [String] filename
-    # @return [String]
-    def expand_src(filename)
+    # @return [String] absolute http path
+    def expand_src(filename, dir=nil)
       found = false
-      filename = expand_path(filename)
+      filename = expand_path filename, dir
       src = nil
       @goog.each do |dir, path|
         dir_range = (dir.length..-1)
@@ -143,6 +145,15 @@ class Closure
       end
       raise Errno::ENOENT unless src
       src
+    end
+    
+    # Helper to locate a file as a file server path.
+    # @param [String] filename
+    # @return [String] relative http path
+    def relative_src(filename, dir=nil)
+      file = expand_src filename, dir
+      base = Pathname.new File.dirname path_info
+      Pathname.new(file).relative_path_from(base).to_s
     end
     
   end

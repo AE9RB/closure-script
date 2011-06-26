@@ -11,14 +11,16 @@
 
   </head>
   <body>
-    <div id="gems">
-      <h2>Docs</h2>
-      <% Dir.glob(expand_path '*').sort.each do |gem_name|
-         next unless File.exist? "#{gem_name}/frames.html"
-         gem_name = File.basename gem_name %>
-         <a href="/docs/<%= gem_name %>/frames"><%= gem_name %></a><br />
-      <% end %>
-    </div>
+    <% if File.exist? expand_path "closure/frames.html" -%>
+      <div id="gems">
+        <h2>Docs</h2>
+        <% Dir.glob(expand_path '*').sort.each do |gem_name|
+           next unless File.exist? "#{gem_name}/frames.html"
+           gem_name = File.basename gem_name %>
+           <a href="/docs/<%= gem_name %>/frames"><%= gem_name %></a><br />
+        <% end -%>
+      </div>
+    <% end -%>
     <%= render 'SCRIPT' %>
   </body>
 </html>

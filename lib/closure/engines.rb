@@ -37,6 +37,7 @@ kramdown = Proc.new do |script, locals|
   select,input,button,textarea,button{font:99% arial,helvetica,clean,sans-serif;}
   table{font-size:inherit;font:100%;}
   pre,code,kbd,samp,tt{font-family:monospace;*font-size:108%;line-height:100%;}
+  pre{padding:5px 12px;margin-top:4px;border:1px solid #eef;background:#f5f5ff;}
 </style></head><body>
 #{html}
 </body></html>

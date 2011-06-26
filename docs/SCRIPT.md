@@ -7,7 +7,7 @@ With Script, you build HTML or Javascript with embedded Ruby.
 The core Script technology is very simple and all Scripts execute in the same context
 regardless if they are test, demo, or compiler scripts.
 
-Exploring or extending the examples is the best way to learn <a href="http://www.closure-script.com/">Closure Script</a>.  If you
+Exploring or extending the examples is the best way to learn <a href="https://github.com/dturnbull/closure-script">Closure Script</a>.  If you
 are looking for information about Closure in general, 
 <a href="http://oreilly.com/catalog/0636920001416">Closure: The Definitive Guide</a>
 is a solid reference.
@@ -121,7 +121,7 @@ The .jar only needs Java.  It contains JRuby and the Closure tools.  Guaranteed 
 
 The gem should work on any kind of Ruby that is like version 1.8 or greater.
 The Script source code is non-magical so any issues will be easy to fix.
-Mac, Linux, and Windows all work.  If you can get Rack 1.0.0 running, Closure
+Mac, Linux, and Windows all work.  If you can get Rack running, Closure
 Script should be no problem.
 
 ## Script Engines

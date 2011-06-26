@@ -1,5 +1,4 @@
 .DS_Store
-closure.gemspec
 .yardoc*
 pkg/*
 tmp/*

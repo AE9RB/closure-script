@@ -3,16 +3,19 @@ $LOAD_PATH.unshift(closure_lib_path) if !$LOAD_PATH.include?(closure_lib_path)
 
 begin
   require 'bundler/setup'
-rescue LoadError => e
-  puts "ERROR: Rakefile must be used with `bundle exec`"
+rescue Exception, LoadError => e
+  puts "ERROR: Try using `bundle exec rake`"
   exit 1
 end
+
+# Although psych is faster, it fails.
+YAML::ENGINE.yamler='syck' if defined?(YAML::ENGINE)
 
 require 'closure'
 require 'rake/gempackagetask'
 require 'rake/testtask'
-require 'yard'
 require 'warbler'
+
 
 # All docs are distributed with the war
 # Only closure is packaged with the gem
@@ -47,28 +50,6 @@ end
 
 # GEM
 
-gem_spec = Gem::Specification.new do |s|
-  s.name        = "closure"
-  s.version     = Closure::VERSION
-  s.platform    = Gem::Platform::RUBY
-  s.homepage    = "http://www.closure-script.com/"
-  s.summary     = "Google Closure Compiler, Library, Script, and Templates."
-
-  s.required_rubygems_version = ">= 1.3"
-  s.add_dependency 'rack', '>= 1.0.0'
-
-  s.files        = `git ls-files`.split("\n")
-  s.files       +=  FileList['docs/closure/**/*']
-  s.executables  = `git ls-files`.split("\n").map{|f| f =~ /^bin\/(.*)/ ? $1 : nil}.compact
-  s.test_files   = `git ls-files`.split("\n").map{|f| f =~ /^(test\/.*_test.rb)$/ ? $1 : nil}.compact
-  s.require_path = 'lib'
-end
-
-file "closure.gemspec" => ["Rakefile"] do |t|
-  require 'yaml'
-  open(t.name, "w") { |f| f.puts gem_spec.to_yaml }
-end
-
 task 'gem:ensure_closure_docs' do
   unless File.exists? "docs/closure/index.html"
     print "ERROR: Docs for closure not found.\n"
@@ -77,9 +58,20 @@ task 'gem:ensure_closure_docs' do
 end
 task 'gem' => 'gem:ensure_closure_docs'
 
-gem_task = Rake::GemPackageTask.new(gem_spec) {}
+gem_task = Rake::GemPackageTask.new(Gem::Specification.load 'closure.gemspec') {}
 
 # WAR
+
+# You win, Warbler. I will cheat now.
+module Warbler
+  module Traits
+    class Gemspec
+      def self.detect?
+        false
+      end
+    end
+  end
+end
 
 war_config = Warbler::Config.new do |config|
   config.autodeploy_dir = gem_task.package_dir
@@ -103,7 +95,6 @@ war_config = Warbler::Config.new do |config|
   config.features = %w(executable)
   config.webxml.booter = :rack
 
-  # Make no locals or attributes in this rackup.
   # A clean binding is more important than being dry.
   config.webxml.rackup = <<-EOS
     require 'rubygems'
@@ -134,6 +125,7 @@ war_config = Warbler::Config.new do |config|
   # every request when we know nothing will ever be found.
   config.webxml.jruby.rack.filter.adds.html = true
   config.webxml.jruby.rack.filter.verifies.resource = true
+  
 end
 
 task 'war' do
@@ -177,7 +169,7 @@ DOCS.each do |gem_name|
   if %w{closure}.include? gem_name
     base_path = '.'
   elsif %w{erb}.include? gem_name
-    # Where yard won't magically find the wrong README
+    # Anywhere yard won't magically find the wrong README
     base_path = 'docs'
   else
     spec = Gem.loaded_specs[gem_name]
@@ -190,12 +182,12 @@ DOCS.each do |gem_name|
   if gem_name == 'rack'
     extra = '- SPEC'
   elsif gem_name == 'erb'
-    extra = '--default-return "" --hide-void-return --title ERB --no-yardopts erb.rb'
+    extra = '--default-return "" --hide-void-return --title ERB --no-yardopts ../vendor/erb.rb'
   elsif gem_name == 'haml'
     # Haml ships gem with incomplete docs
     # https://github.com/nex3/haml/issues/351
-    haml_ref_file = File.expand_path("docs/HAML_REFERENCE.md")
-    extra = "- MIT-LICENSE #{haml_ref_file}"
+    haml_ref_file = File.expand_path("vendor/HAML_REFERENCE.md")
+    extra = "--main #{haml_ref_file.dump} - README.md MIT-LICENSE #{haml_ref_file.dump}"
   else
     extra = ''
   end

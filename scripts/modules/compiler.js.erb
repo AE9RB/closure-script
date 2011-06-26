@@ -16,13 +16,13 @@ args = %w{
 # must distribute with your compiled modules.  It is also used
 # for the mtime check against the sources.
 args += case query_string
-when 'build': %w{
+when 'build' then %w{
   --js_output_file compiler_build.js
   --module_output_path_prefix compiler_build_
   --create_source_map compiler_build.map
   --compilation_level ADVANCED_OPTIMIZATIONS
 }
-when 'debug': %w{
+when 'debug' then %w{
   --js_output_file compiler_debug.js
   --module_output_path_prefix compiler_debug_
   --debug true

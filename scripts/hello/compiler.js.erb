@@ -18,12 +18,12 @@ args = %w{
 # http://localhost:8080/hello/compiler.js?build
 # http://localhost:8080/hello/compiler.js?debug
 args += case query_string
-when 'build': %w{
+when 'build' then %w{
   --compilation_level ADVANCED_OPTIMIZATIONS
   --js_output_file compiler_build.js
   --create_source_map compiler_build.map
 }
-when 'debug': %w{
+when 'debug' then %w{
   --debug true
   --formatting PRETTY_PRINT
   --compilation_level ADVANCED_OPTIMIZATIONS

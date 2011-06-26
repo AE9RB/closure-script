@@ -1,20 +1,12 @@
 closure_lib_path = File.expand_path('lib', File.dirname(__FILE__))
 $LOAD_PATH.unshift(closure_lib_path) if !$LOAD_PATH.include?(closure_lib_path)
 
-# These versions are important for war packaging.
-# Gem users are free to mix and match any sensible versions.
-WARBLER_VER = '>= 1.3.0.beta'
-KRAMDOWN_VER = '>= 0.13.2'
-HAML_VER = '= 3.0.25' # check for dwell on sass when upgrading
-JRUBY_JARS_VER = '= 1.5.6'
-# jruby-rack embeds a specific version of rack, keep in sync
-JRUBY_RACK_VER = '= 1.0.6'
-RACK_VER = '= 1.2.1'
-
-gem 'haml', HAML_VER
-gem 'rack', RACK_VER
-gem 'kramdown', KRAMDOWN_VER
-gem 'warbler', WARBLER_VER
+begin
+  require 'bundler/setup'
+rescue LoadError => e
+  puts "ERROR: Rakefile must be used with `bundle exec`"
+  exit 1
+end
 
 require 'closure'
 require 'rake/gempackagetask'
@@ -91,7 +83,7 @@ gem_task = Rake::GemPackageTask.new(gem_spec) {}
 
 war_config = Warbler::Config.new do |config|
   config.autodeploy_dir = gem_task.package_dir
-  config.war_name = "closure-#{gem_task.version}"
+  config.jar_name = "closure-#{gem_task.version}"
 
   config.dirs = %w(
     closure-compiler
@@ -101,16 +93,16 @@ war_config = Warbler::Config.new do |config|
     docs
     externs
   )
-  
-  config.gems << Gem::Dependency.new("jruby-jars", JRUBY_JARS_VER)
-  config.gems << Gem::Dependency.new("jruby-rack", JRUBY_RACK_VER)
-  config.gems << Gem::Dependency.new("haml", HAML_VER)
-  config.gems << Gem::Dependency.new("kramdown", KRAMDOWN_VER)
+
+  config.bundler = false
+  config.gems << Gem.loaded_specs['jruby-jars']
+  config.gems << Gem.loaded_specs['jruby-rack']
+  config.gems << Gem.loaded_specs['haml']
+  config.gems << Gem.loaded_specs['kramdown']
   
   config.features = %w(executable)
-  config.bundler = false
-
   config.webxml.booter = :rack
+
   # Make no locals or attributes in this rackup.
   # A clean binding is more important than being dry.
   config.webxml.rackup = <<-EOS
@@ -175,6 +167,7 @@ task 'war:server' do
   rm_r Dir.glob 'tmp/*'
   tmp = File.expand_path 'tmp'
   chdir tmp
+  ENV.delete 'RUBYOPT' # detach from bundler
   exec "java -jar #{war_file}"
 end
 

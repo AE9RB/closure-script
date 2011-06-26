@@ -1,0 +1,35 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    haml (3.1.2)
+    jruby-jars (1.6.2)
+    jruby-rack (1.0.9)
+    kramdown (0.13.3)
+    maruku (0.6.0)
+      syntax (>= 1.0.0)
+    minitest (2.3.1)
+    rack (1.2.2)
+    rake (0.8.7)
+    rubyzip (0.9.4)
+    syntax (1.0.0)
+    warbler (1.3.1)
+      jruby-jars (>= 1.4.0)
+      jruby-rack (>= 1.0.0)
+      rake (~> 0.8.7)
+      rubyzip (>= 0.9.4)
+    yard (0.7.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  haml
+  jruby-jars
+  jruby-rack (= 1.0.9)
+  kramdown
+  maruku
+  minitest
+  rack (= 1.2.2)
+  rake
+  warbler (>= 1.3)
+  yard

@@ -70,7 +70,7 @@ write to @response or change it to another object then the rendering is discarde
 
 Regardless of your language background, cut-and-paste programming from the
 scaffold examples should be practical.  That's the idea anyways.
-If you can conditionally build arrays of strings if Ruby, you're good to go. 
+If you can conditionally build arrays of strings in Ruby, you're good to go. 
 But, of course, the more Ruby you know the more you'll be able to do.
 
 ## config.ru
@@ -120,7 +120,7 @@ jars are fetched with URLClassLoader and don't need to be in any Java paths.
 The .jar only needs Java.  It contains JRuby and the Closure tools.  Guaranteed success.
 
 The gem should work on any kind of Ruby that is like version 1.8 or greater.
-The Script source code is really boring so any issues will be easy to fix.
+The Script source code is non-magical so any issues will be easy to fix.
 Mac, Linux, and Windows all work.  If you can get Rack 1.0.0 running, Closure
 Script should be no problem.
 

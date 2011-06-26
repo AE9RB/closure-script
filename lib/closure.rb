@@ -30,7 +30,6 @@ class Closure
   
   autoload(:VERSION, 'closure/version')
   autoload(:BeanShell, 'closure/beanshell')
-  autoload(:Sass, 'closure/sass')
   autoload(:Script, 'closure/script')
   autoload(:Sources, 'closure/sources')
   autoload(:FileResponse, 'closure/file_response')

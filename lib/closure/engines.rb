@@ -23,7 +23,7 @@ Closure.config.engines['.haml'] = Proc.new do |script, locals|
 end
 
 # MARKDOWN
-Closure.config.kramdown = {}
+Closure.config.kramdown = {:input => 'Markdown'}
 kramdown = Proc.new do |script, locals|
   require 'kramdown'
   html = ::Kramdown::Document.new(File.read(script.render_stack.last), Closure.config.kramdown).to_html

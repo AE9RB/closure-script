@@ -131,7 +131,7 @@ If you want something else, it is easy to add new engines to Script
 with the Closure.config.engines setting.
 
 ERB (.erb)
-: The is plain old HTML with support for Ruby in <% %> and <%= %> tags.
+: This is plain old HTML with support for Ruby in <% %> and <%= %> tags.
   ERB::Util is mixed in for <%=h 'string' %> and <%=u 'string' %> helpers.
 
 Haml (.haml)

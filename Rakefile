@@ -50,6 +50,8 @@ end
 
 # GEM
 
+gem_spec = Gem::Specification.load 'closure.gemspec'
+
 task 'gem:ensure_closure_docs' do
   unless File.exists? "docs/closure/index.html"
     print "ERROR: Docs for closure not found.\n"
@@ -58,7 +60,7 @@ task 'gem:ensure_closure_docs' do
 end
 task 'gem' => 'gem:ensure_closure_docs'
 
-gem_task = Rake::GemPackageTask.new(Gem::Specification.load 'closure.gemspec') {}
+gem_task = Rake::GemPackageTask.new(gem_spec) {}
 
 # WAR
 
@@ -85,7 +87,8 @@ war_config = Warbler::Config.new do |config|
     docs
     externs
   )
-
+  config.excludes += FileList['scripts/closure-library/**/*', 'scripts/fixtures/**/*']
+  
   config.bundler = false
   config.gems << Gem.loaded_specs['jruby-jars']
   config.gems << Gem.loaded_specs['jruby-rack']

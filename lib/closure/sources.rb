@@ -169,6 +169,7 @@ class Closure
           @files.each do |filename, dep|
             dep[:provide].each do |provide|
               if @ns[provide]
+                @ns = nil
                 raise "Namespace #{provide.dump} provided more than once."
               end
               @ns[provide] = {

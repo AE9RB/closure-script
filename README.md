@@ -5,15 +5,15 @@ Licensed under the Apache License, Version 2.0 (the "License");
 
 ## Java
 
-### Step 1: Download to a new folder:
+### Step 1: Download to a new folder
 
 <https://github.com/dturnbull/closure-script/downloads>
 
-### Step 2: Run from the new folder with Java: 
+### Step 2: Run from the new folder with Java
 
 ``` java -jar closure.jar ```
 
-### Step 3: Open a web browser:
+### Step 3: Open a web browser
 
 <http://localhost:8080/>
 
@@ -32,7 +32,7 @@ You can switch to the Ruby Gem at any time.
 
 ``` rackup ```
 
-### Step 4: Open a web browser:
+### Step 4: Open a web browser
 
 <http://localhost:8080/>
 

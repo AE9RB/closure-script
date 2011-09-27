@@ -12,7 +12,7 @@ end
 YAML::ENGINE.yamler='syck' if defined?(YAML::ENGINE)
 
 require 'closure'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 require 'rake/testtask'
 require 'warbler'
 
@@ -60,7 +60,7 @@ task 'gem:ensure_closure_docs' do
 end
 task 'gem' => 'gem:ensure_closure_docs'
 
-gem_task = Rake::GemPackageTask.new(gem_spec) {}
+gem_task = Gem::PackageTask.new(gem_spec) {}
 
 # WAR
 
@@ -77,7 +77,7 @@ end
 
 war_config = Warbler::Config.new do |config|
   config.autodeploy_dir = gem_task.package_dir
-  config.jar_name = "closure-#{gem_task.version}"
+  config.jar_name = "closure-#{gem_spec.version}"
 
   config.dirs = %w(
     closure-compiler
@@ -153,7 +153,7 @@ end
 
 desc 'Start the .war welcome server'
 task 'war:server' do
-  war_file = File.expand_path File.join war_config.autodeploy_dir, war_config.war_name + '.war'
+  war_file = File.expand_path File.join war_config.autodeploy_dir, war_config.jar_name + '.war'
   unless File.exist?(war_file)
     print "ERROR: Build #{war_file} first.\n"
     exit 1

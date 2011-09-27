@@ -16,5 +16,5 @@ gem 'warbler', '>= 1.3'
 
 # jruby-rack embeds a specific version of rack
 # keep in sync so the jar distribution has the correct docs
-gem 'jruby-rack', '= 1.0.9'
-gem 'rack', '= 1.2.2'
+gem 'jruby-rack', '= 1.0.10'
+gem 'rack', '= 1.3.2'

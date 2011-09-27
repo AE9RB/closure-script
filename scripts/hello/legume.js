@@ -10,11 +10,11 @@ goog.require('soy.StringBuilder');
 /**
  * @param {Object.<string, *>=} opt_data
  * @param {soy.StringBuilder=} opt_sb
- * @return {string|undefined}
+ * @return {string}
  * @notypecheck
  */
 myapp.legume.hello = function(opt_data, opt_sb) {
   var output = opt_sb || new soy.StringBuilder();
   output.append('\tHello ', soy.$$escapeHtml(opt_data.subject), '!');
-  if (!opt_sb) return output.toString();
+  return opt_sb ? '' : output.toString();
 };

@@ -226,7 +226,6 @@ class Closure
       # @param [Array<String>] args
       # @return [Array<Hash>] mods
       def self.augment(args, sources, env={})
-        args_dup = args
         mods = extract_modules args
         if mods
           module_augment args, sources, mods, env

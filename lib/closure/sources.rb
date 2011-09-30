@@ -192,28 +192,45 @@ class Closure
       calcdeps(ns, namespace, filenames)
     end
     
+    
     # Calculate the file server path for a filename
     # @param (String) filename
     # @return (String)
     def src_for(filename, env={})
       @semaphore.synchronize do
         refresh(env)
-        f, dep = @files.find {|f, dep| f == filename}
-        unless dep and dep.has_key? :path
+        file = @files[filename]
+        unless file and file.has_key? :path
           raise "#{filename.dump} is not available from file server"
         end
-        "#{dep[:path]}?#{dep[:mtime].to_i}"
+        "#{file[:path]}?#{file[:mtime].to_i}"
       end
     end
    
+   
+    # Return all provided and required namespaces for a file.
+    # @param (String) filename
+    # @return (String)
+    def namespaces_for(filename, env={})
+      @semaphore.synchronize do
+        refresh(env)
+        file = @files[filename]
+        raise "#{filename.dump} not found" unless file
+        file[:provide] + file[:require]
+      end
+    end
+
+
     # Certain Script operations, such as building Templates, will need
     # to invalidate the cache.
     def invalidate(env)
       env.delete ENV_FLAG
       @last_been_run = Time.at 0
     end
+    
 
     protected
+
     
     # Namespace recursion with circular stop on the filename
     def calcdeps(ns, namespace, filenames, prev = nil)

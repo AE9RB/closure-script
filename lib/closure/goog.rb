@@ -73,12 +73,11 @@ class Closure
       begin
         Compiler::Util.expand_paths args, File.dirname(@render_stack.last)
         orig_externs = Compiler::Util.arg_values args, '--externs'
-        Compiler::Util.namespace_augment args, @sources, @env
-        mods = Compiler::Util.module_augment args
+        mods = Compiler::Util.augment args, @sources, @env
         if Compiler::Util.arg_values(args, '--compilation_level').empty?
           # Raw mode
           comp = Compiler::Compilation.new @env
-          unless mods.empty?
+          if mods
             comp << Compiler::Util.module_info(mods)
             comp << Compiler::Util.module_uris_raw(mods, @sources)
           end
@@ -92,14 +91,14 @@ class Closure
               comp << "document.write(#{script_tag.dump});\n"
               js_counter += 1
               # For modules, just the files for the first module
-              break if !mods.empty? and js_counter >= mods[0][:files].length
+              break if mods and js_counter >= mods[0][:files].length
             end
             args_index = args_index + 2
           end
         else
           # Compiled mode
           module_output_path_prefix = Compiler::Util.arg_values(args, '--module_output_path_prefix').last
-          if !mods.empty? and !module_output_path_prefix
+          if mods and !module_output_path_prefix
             # raise this before compilation so we don't write to a weird place
             raise "--module_output_path_prefix is required when using --module"
           end
@@ -126,7 +125,7 @@ class Closure
             File.utime(Time.now, Time.at(0), pre_js_tempfile.path)
           end
           comp = Compiler.compile args, @dependencies, @env
-          unless mods.empty?
+          if mods
             refresh # compilation may add new files, module_uris_compiled uses src_for
             prefix =  File.expand_path module_output_path_prefix, File.dirname(@render_stack.last)
             if comp.js_output_file

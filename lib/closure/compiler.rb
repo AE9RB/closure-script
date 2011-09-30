@@ -184,49 +184,7 @@ class Closure
         args
       end
   
-      # Transforms arguments to support --module name:* syntax.
-      # @param [Array<String>] args
-      # @return [Array<Hash>] mods
-      def self.module_augment(args)
-        found_starred = false
-        found_numeric = false
-        js_files = []
-        mods = []
-        args_index = args.length
-        while args_index > 0
-          args_index = args_index - 2
-          option, value = args[args_index, 2]
-          if option == '--js'
-            js_files.unshift value
-          elsif option == '--module'
-            if js_files.empty?
-              raise "No --js files for --module #{value}" 
-            end
-            mod = value.split ':'
-            if mod[1] == '*'
-              mod[1] = js_files.size 
-              found_starred = true
-            else
-              found_numeric = true
-            end
-            mods.unshift({
-              :name => mod[0],
-              :requires => mod[2..-1],
-              :files => js_files
-            })
-            js_files = []
-            args[args_index+1] = mod.join ':'
-          end
-        end
-        unless js_files.empty? or mods.empty?
-          raise 'Automatic --module must appear before first --js option.'
-        end
-        if found_starred and found_numeric
-          raise 'Static and automatic --module options can not be mixed.'
-        end
-        mods
-      end
-      
+        
       # The javascript snippet for module info
       # @param [Array<Hash>] mods
       def self.module_info(mods)
@@ -262,6 +220,23 @@ class Closure
         js += "\n};\n"
       end
       
+      
+      # Main function to convert --ns arguments into --js arguments.
+      # Returns module info when modules are processed.
+      # @param [Array<String>] args
+      # @return [Array<Hash>] mods
+      def self.augment(args, sources, env={})
+        args_dup = args
+        mods = extract_modules args
+        if mods
+          module_augment args, sources, mods, env
+        else
+          namespace_augment args, sources, [], env
+        end
+        mods
+      end
+      
+      
       # Extracts the values for a options in the arguments.
       # Use Array#last to emulate compiler.jar for single options.
       # Will collect from an array of options.
@@ -281,12 +256,42 @@ class Closure
         values
       end
       
+      
+      private
+      
+      
       # Converts --ns arguments into --js arguments
       # @param [Array<String>] args
-      # @return [Array<String>] args
-      def self.namespace_augment(args, sources, env={})
+      def self.module_augment(args, sources, mods, env)
+        walk_modules sources, mods, env
         files = []
-        files_index = 0
+        mods.each do |mod|
+          mod_args = mod[:args]
+          mod_files = (mod[:files] ||= [])
+          # We are adding the bubbled namespaces to the end.
+          # This allows moduleManager.setLoaded to fire earlier
+          # since the bubbled files are needed only for the children.
+          mod[:bubble].each do |mod_bubble|
+            namespaces = sources.namespaces_for mod_bubble, env
+            namespaces.each do |ns|
+              mod_args << '--ns' << ns
+            end
+          end
+          namespace_augment(mod_args, sources, files, env)
+          args << '--module'
+          args << "#{mod[:name]}:#{mod_args.size / 2}:#{mod[:requires].join(',')}"
+          mod_args.each_slice(2) do |a,b|
+            args << a << b
+            mod_files << b
+          end
+        end
+      end
+      
+      
+      # Converts --ns arguments into --js arguments
+      # @param [Array<String>] args
+      def self.namespace_augment(args, sources, files, env)
+        files_index = files.length
         args_index = 0
         while args_index < args.length
           option, value = args[args_index, 2]
@@ -295,7 +300,6 @@ class Closure
             replacement = []
             while files_index < files.length
               if files[files_index] =~ /\.externs$/
-                # use_externs_hack = true
                 replacement.push '--externs'
               else
                 replacement.push '--js'
@@ -308,7 +312,91 @@ class Closure
             args_index = args_index + 2
           end
         end
-        args
+      end
+
+      
+      # Insanity-inducing recursive explorer to find common files in child modules.
+      # Try every branch in the tree and bubble up common files as we see them.
+      def self.walk_modules(sources, mods, env, seek=nil, mods_seen=[], files_seen=[])
+        files = []
+        mods_seen << seek
+        mods.each do |mod|
+          if (!seek and mod[:requires].empty?) or mod[:requires].include? seek
+            next if mods_seen.include? mod[:name]
+            # Find the needed files for this module's --ns args
+            files_seen_dup = files_seen.dup
+            mod[:args].each_slice(2) do |option, value|
+              if option == '--ns'
+                sources.files_for(value, files_seen_dup, env)
+              end
+            end
+            mod_files = files_seen_dup[files_seen.size..-1]
+            # Get the needed files for each of the modules requiring this mod
+            files_sets = walk_modules(sources, mods, env, mod[:name], mods_seen.dup, files_seen_dup)
+            # Find the common files that will bubble up
+            common_files = []
+            child_files = files_sets.reduce([]){|memo, v|common_files |= memo&v; memo|v}
+            mod[:bubble] = common_files
+            # Clear bubbling files from children
+            mods.each do |child_mod|
+              if child_mod[:requires].include? mod[:name]
+                child_mod[:bubble] -= common_files
+              end
+            end
+            # Add to result array
+            files << (mod_files + child_files).uniq
+          end
+        end
+        files_seen += files.reduce([]){|memo, v| memo|v}
+        files
+      end
+      
+
+      # @param [Array<String>] args
+      # @return [Array<Hash>] mods
+      def self.extract_modules(args)
+        found_starred = false
+        found_numeric = false
+        mod_args = []
+        mods = []
+        args_index = args.length
+        while args_index > 0
+          args_index = args_index - 2
+          option, value = args[args_index, 2]
+          if %w{--js --ns}.include? option
+            mod_args.unshift args.delete_at args_index + 1
+            mod_args.unshift args.delete_at args_index
+          elsif option == '--module'
+            if mod_args.empty?
+              raise "No --js or --ns files for --module #{value}" 
+            end
+            mod = value.split ':'
+            if mod[1] == '*'
+              found_starred = true
+            else
+              found_numeric = true
+            end
+            mods.unshift({
+              :name => mod[0],
+              :requires => (mod[2]||'').split(','),
+              :args => mod_args
+            })
+            mod_args = []
+            2.times {args.delete_at args_index}
+          end
+        end
+        unless mod_args.empty? or mods.empty?
+          raise 'Automatic --module must appear before first --js option.'
+        end
+        if found_starred and found_numeric
+          raise 'Static and automatic --module options can not be mixed.'
+        end
+        if mods.empty?
+          args.insert -1, *mod_args
+          nil
+        else
+          mods
+        end
       end
       
     end

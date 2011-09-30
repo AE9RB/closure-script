@@ -59,7 +59,7 @@ describe Closure::Compiler do
       args = %w{
         --ns rails.ujs
       }
-      @util.namespace_augment(args, sources)
+      @util.augment(args, sources)
       args.wont_include '--ns'
       args.wont_include 'rails.ujs'
       args.length.must_be :>, 50
@@ -68,21 +68,25 @@ describe Closure::Compiler do
 
   describe 'Util.module_augment' do
     it "fills in counts" do
+      sources = Closure::Sources.new
+      sources.add File.join Closure.base_path, 'scripts'
       args = %w{
         --module app:*
         --js not_a_real_file.js
         --js still_fake.js
       }
       expected_args = %w{
-        --module app:2
+        --module app:2:
         --js not_a_real_file.js
         --js still_fake.js
       }
-      @util.module_augment(args)
+      @util.augment(args, sources)
       args.must_equal expected_args
     end
 
     it "builds array of module info" do
+      sources = Closure::Sources.new
+      sources.add File.join Closure.base_path, 'scripts'
       args = %w{
         --module app:*
         --js not_a_real_file.js
@@ -92,39 +96,49 @@ describe Closure::Compiler do
       expected_mods = [{
         :name => 'app',
         :files => %w{not_a_real_file.js},
-        :requires => %w{}
+        :requires => %w{},
+        :args => ["--js", "not_a_real_file.js"],
+        :bubble => []
       },{
         :name => 'stuff',
         :files => %w{still_fake.js},
-        :requires => %w{app}
+        :requires => %w{app},
+        :args => ["--js", "still_fake.js"],
+        :bubble => []
       }]
-      @util.module_augment(args).must_equal expected_mods
+      @util.augment(args, sources).must_equal expected_mods
     end
 
     it "disallows mixing --module formats" do
+      sources = Closure::Sources.new
+      sources.add File.join Closure.base_path, 'scripts'
       args = %w{
         --module app:*
         --js not_a_real_file.js
         --module sets:1
         --js still_fake.js
       }
-      proc { @util.module_augment(args) }.must_raise RuntimeError
+      proc { @util.augment(args, sources) }.must_raise RuntimeError
     end
 
     it "disallows --js before --module x:*" do
+      sources = Closure::Sources.new
+      sources.add File.join Closure.base_path, 'scripts'
       args = %w{
         --js not_a_real_file.js
         --module app:*
         --js still_fake.js
       }
-      proc { @util.module_augment(args) }.must_raise RuntimeError
+      proc { @util.augment(args, sources) }.must_raise RuntimeError
     end
 
     it "disallows --module with an automatic count of 0" do
+      sources = Closure::Sources.new
+      sources.add File.join Closure.base_path, 'scripts'
       args = %w{
         --module app:*
       }
-      proc { @util.module_augment(args) }.must_raise RuntimeError
+      proc { @util.augment(args, sources) }.must_raise RuntimeError
     end
 
   end

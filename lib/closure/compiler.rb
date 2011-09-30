@@ -271,7 +271,7 @@ class Closure
           # We are adding the bubbled namespaces to the end.
           # This allows moduleManager.setLoaded to fire earlier
           # since the bubbled files are needed only for the children.
-          mod[:bubble].each do |mod_bubble|
+          (mod[:bubble]||[]).each do |mod_bubble|
             namespaces = sources.namespaces_for mod_bubble, env
             namespaces.each do |ns|
               mod_args << '--ns' << ns
@@ -327,12 +327,12 @@ class Closure
             files_seen_dup = files_seen.dup
             mod[:args].each_slice(2) do |option, value|
               if option == '--ns'
-                sources.files_for(value, files_seen_dup, env)
+                sources.files_for value, files_seen_dup, env
               end
             end
             mod_files = files_seen_dup[files_seen.size..-1]
             # Get the needed files for each of the modules requiring this mod
-            files_sets = walk_modules(sources, mods, env, mod[:name], mods_seen.dup, files_seen_dup)
+            files_sets = walk_modules sources, mods, env, mod[:name], mods_seen, files_seen
             # Find the common files that will bubble up
             common_files = []
             child_files = files_sets.reduce([]){|memo, v|common_files |= memo&v; memo|v}

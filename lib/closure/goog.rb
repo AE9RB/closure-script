@@ -72,7 +72,6 @@ class Closure
       pre_js_tempfile = nil
       begin
         Compiler::Util.expand_paths args, File.dirname(@render_stack.last)
-        orig_externs = Compiler::Util.arg_values args, '--externs'
         mods = Compiler::Util.augment args, @sources, @env
         if Compiler::Util.arg_values(args, '--compilation_level').empty?
           # Raw mode
@@ -101,28 +100,6 @@ class Closure
           if mods and !module_output_path_prefix
             # raise this before compilation so we don't write to a weird place
             raise "--module_output_path_prefix is required when using --module"
-          end
-          # If the externs were changed by namespace_augment then we need to include
-          # a temp file containing the goog.provide statements that satisfy compiler.jar.
-          if orig_externs != Compiler::Util.arg_values(args, '--externs')
-            pre_js_tempfile = Tempfile.new 'closure_pre_js'
-            # Insert before the first --js (in case of modules)
-            args_index = 0
-            while args_index < args.length
-              if args[args_index] == '--js'
-                args.insert args_index, '--js', pre_js_tempfile.path
-                break
-              end
-              args_index = args_index + 2
-            end
-            pre_js_tempfile.open
-            @sources.deps_response(File.dirname(base_js), @env).each do |s|
-              next unless s =~ /^goog\.provide/
-              pre_js_tempfile.write s
-            end
-            pre_js_tempfile.close
-            # File mtime is rolled back to not trigger compilation.
-            File.utime(Time.now, Time.at(0), pre_js_tempfile.path)
           end
           comp = Compiler.compile args, @dependencies, @env
           if mods

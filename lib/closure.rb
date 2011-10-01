@@ -53,7 +53,6 @@ class Closure
   # Scripts that are distributed with the gem.  These will help get you started quickly.
   BUILT_INS = {
     :soy => File.join(base_path, 'closure-templates'),
-    :externs => File.join(base_path, 'externs'),
     :docs => File.join(base_path, 'docs')
   }
   
@@ -61,7 +60,7 @@ class Closure
   # Easy config. This adds to the global instance of sources and
   # supports using the {BUILT_INS}.
   # @example
-  #   Closure.add_source :goog, '/goog'
+  #   Closure.add_source :soy, '/soy_js'
   #   Closure.add_source './myapp', '/myapp'
   # @overload add_source(directory, path=nil)
   # @overload add_source(built_in, path=nil)

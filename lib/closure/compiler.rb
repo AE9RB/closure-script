@@ -298,11 +298,7 @@ class Closure
             sources.files_for(value, files, env)
             replacement = []
             while files_index < files.length
-              if files[files_index] =~ /\.externs$/
-                replacement.push '--externs'
-              else
-                replacement.push '--js'
-              end
+              replacement.push '--js'
               replacement.push files[files_index]
               files_index = files_index + 1
             end
@@ -331,7 +327,7 @@ class Closure
             end
             mod_files = files_seen_dup[files_seen.size..-1]
             # Get the needed files for each of the modules requiring this mod
-            files_sets = walk_modules sources, mods, env, mod[:name], mods_seen, files_seen
+            files_sets = walk_modules sources, mods, env, mod[:name], mods_seen, files_seen_dup
             # Find the common files that will bubble up
             common_files = []
             child_files = files_sets.reduce([]){|memo, v|common_files |= memo&v; memo|v}
@@ -385,7 +381,7 @@ class Closure
           end
         end
         unless mod_args.empty? or mods.empty?
-          raise 'Automatic --module must appear before first --js option.'
+          raise 'Automatic --module must appear before first --js or --ns option.'
         end
         if found_starred and found_numeric
           raise 'Static and automatic --module options can not be mixed.'

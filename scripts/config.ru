@@ -10,7 +10,6 @@ Closure.add_source '.', '/'
 # Add some useful built-ins.
 Closure.add_source :soy, '/soy'
 Closure.add_source :docs, '/docs'
-Closure.add_source :externs
 
 # Feel free to use your own compilers.
 # Closure.config.compiler_jar = 'closure-compiler/compiler.jar'

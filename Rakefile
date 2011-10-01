@@ -85,7 +85,6 @@ war_config = Warbler::Config.new do |config|
     lib
     scripts
     docs
-    externs
   )
   config.excludes += FileList['scripts/closure-library/**/*', 'scripts/fixtures/**/*']
   

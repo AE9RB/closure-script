@@ -131,11 +131,7 @@ class Closure
           response = @deps[base] ||= Rack::Response.new
           response.write "// Dynamic Deps by Closure Script\n"
           @files.sort{|a,b|(a[1][:path]||'')<=>(b[1][:path]||'')}.each do |filename, dep|
-            if filename =~ /\.externs$/
-              dep[:provide].each do |dep_provide|
-                response.write "goog.provide(#{dep_provide.dump});\n"
-              end
-            elsif dep[:path]
+            if dep[:path]
               path = Pathname.new(dep[:path]).relative_path_from(base)
               path = "#{path}?#{dep[:mtime].to_i}"
               response.write "goog.addDependency(#{path.dump}, #{dep[:provide].inspect}, #{dep[:require].inspect});\n"
@@ -265,7 +261,7 @@ class Closure
       # Scan filesystem for changes.
       @sources.each do |dir, path|
         dir_range = (dir.length..-1)
-        Dir.glob(File.join(dir,'**','*.{js,externs}')).each do |filename|
+        Dir.glob(File.join(dir,'**','*.js')).each do |filename|
           dep = (@files[filename] ||= {})
           dep.delete(:not_found)
           mtime = File.mtime(filename)

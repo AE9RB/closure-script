@@ -342,7 +342,6 @@ class Closure
             files << (mod_files + child_files).uniq
           end
         end
-        files_seen += files.reduce([]){|memo, v| memo|v}
         files
       end
       

@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+begin
+  require 'rubygems'
+rescue LoadError
+end
+require 'rack'
+closure_lib_path = File.expand_path('../lib', File.dirname(__FILE__))
+if File.exist? File.join closure_lib_path, 'closure.rb'
+  $LOAD_PATH.unshift(closure_lib_path) if !$LOAD_PATH.include?(closure_lib_path)
+end
+if File.exist? 'config.ru'
+  Rack::Server.start
+else
+  require 'closure'
+  ENV["CLOSURE_SCRIPT_WELCOME"] = 'true'
+  Rack::Server.start :config => File.join(Closure.base_path, 'scripts/config.ru')
+end
+
+

@@ -7,9 +7,9 @@ GEM
     kramdown (0.13.3)
     maruku (0.6.0)
       syntax (>= 1.0.0)
-    minitest (2.6.0)
+    minitest (2.6.2)
     rack (1.3.2)
-    rake (0.9.2)
+    rake (0.9.2.2)
     rubyzip (0.9.4)
     syntax (1.0.0)
     warbler (1.3.2)
@@ -17,7 +17,7 @@ GEM
       jruby-rack (>= 1.0.0)
       rake (>= 0.8.7)
       rubyzip (>= 0.9.4)
-    yard (0.7.2)
+    yard (0.7.3)
 
 PLATFORMS
   ruby

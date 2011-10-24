@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'rack'
 require 'ostruct'
 require 'tempfile'
 
@@ -28,19 +29,6 @@ require 'tempfile'
 
 class Closure
   
-  autoload(:VERSION, 'closure/version')
-  autoload(:BeanShell, 'closure/beanshell')
-  autoload(:Script, 'closure/script')
-  autoload(:Sources, 'closure/sources')
-  autoload(:FileResponse, 'closure/file_response')
-  autoload(:Middleware, 'closure/middleware')
-  autoload(:Compiler, 'closure/compiler')
-  autoload(:Server, 'closure/server')
-  autoload(:Goog, 'closure/goog')
-  autoload(:Templates, 'closure/templates')
-  autoload(:ShowExceptions, 'closure/show_exceptions')
-  
-
   # Filesystem location of the Closure Script install.
   # Typically, where the gem was installed.  This is mainly used
   # internally but may be useful for experimental configurations.
@@ -134,7 +122,6 @@ class Closure
     end
     @@config
   end
-  require 'closure/engines'
   
   # Run the welcome server.  Handy for gem users.
   # @example
@@ -154,3 +141,4 @@ class Closure
   
 end
 
+Dir.glob(File.expand_path('**/*.rb', File.dirname(__FILE__))).each {|f| require f}

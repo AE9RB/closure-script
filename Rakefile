@@ -28,7 +28,7 @@ DOCS = %w{closure erb rack haml kramdown}
 desc 'Start the Closure Script server'
 task 'server' do
   require 'rack'
-  Rack::Server.start :config => "config.ru"
+  ::Rack::Server.start :config => "config.ru"
 end
 
 desc 'Start the Closure Script welcome server'

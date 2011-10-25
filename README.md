@@ -19,11 +19,11 @@ under Windows.  Mac OSX and most Linux will have a compatible Ruby by default.
 ### Step 1: Download to a new folder
 
     cd ~/empty-dir
-    curl -LO https://github.com/downloads/dturnbull/closure-script/closure-1.4.1.jar
+    curl -LO https://github.com/downloads/dturnbull/closure-script/closure-1.4.2.jar
 
 ### Step 2: Start server from the new folder
 
-    java -jar closure-1.4.1.jar
+    java -jar closure-1.4.2.jar
 
 ### Step 3: Open a web browser
 

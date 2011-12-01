@@ -61,6 +61,7 @@ class Closure
       raise "Unknown built-in: #{directory}" unless dir
       directory = dir
     end
+    raise Errno::ENOENT, File.expand_path(directory, Dir.pwd) unless File.directory? directory
     sources.add directory, path
   end
 

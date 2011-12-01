@@ -228,16 +228,21 @@ class Closure
     protected
 
     
-    # Namespace recursion with circular stop on the filename
-    def calcdeps(ns, namespace, filenames, prev = nil)
+    # Namespace recursion with two-way circular stop
+    def calcdeps(ns, namespace, filenames, prev = [])
       unless source = ns[namespace]
-        msg = "#{prev[:filename]}: " rescue ''
+        msg = "#{prev.last[:filename]}: " rescue ''
         msg += "Namespace #{namespace.dump} not found."
         raise msg
       end
-      return if source == prev or filenames.include? source[:filename]
+      if prev.include? source
+        return
+      else
+        prev.push source
+      end
+      return if filenames.include?(source[:filename])
       source[:require].each do |required|
-        calcdeps ns, required, filenames, source
+        calcdeps ns, required, filenames, prev
       end
       filenames.push source[:filename]
     end

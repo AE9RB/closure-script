@@ -30,7 +30,7 @@ require 'thread'
 # Don't supply any locals if you just want Closure::Svn for manual use.
 
 class Closure::Svn
-  
+
   # Repository objects are held in global class variable.
   # Checking out or updating runs in a background thread.
   # repo = Closure::Svn['lib-folder', 'http://svn.example.org/trunk']
@@ -44,7 +44,7 @@ class Closure::Svn
     repo.name = name if name
     repo
   end
-  
+
   # Configurable Subversion shell command
   def self.svn; @svn ||= 'svn'; end
   def self.svn=(svn); @svn = svn; end
@@ -58,7 +58,7 @@ class Closure::Svn
     @updating_to = ''
     @log = nil
   end
-  
+
   attr_reader :running
   attr_reader :path
   attr_reader :url
@@ -70,7 +70,7 @@ class Closure::Svn
   # Closure Script is thread-safe and so is this.
   # Although the locks in Subversion would prevent it
   # from corrupting (one would hope), we don't want our
-  # global object to be in an indeterminate state with two 
+  # global object to be in an indeterminate state with two
   # threads running because submit was hit twice.
   def update(revision='HEAD')
     @semaphore.synchronize do
@@ -94,7 +94,7 @@ class Closure::Svn
       end
     end
   end
-  
+
   def info(location)
     doc = ::REXML::Document.new `#{self.class.svn.dump} info --xml #{location.dump}`
     source = doc.root.elements['//info/entry/url'].text
@@ -104,7 +104,7 @@ class Closure::Svn
   rescue
     return {:url => nil, :revision => 'ERROR'}
   end
-    
+
   def local_revision
     return @local_revision if @local_revision
     local_info = info(path)
@@ -117,7 +117,7 @@ class Closure::Svn
     local_revision # sets real @url from info, if found
     @found_url || @url
   end
-  
+
   def remote_revision
     begin # Check every 12 hours
       raise if Time.now - @remote_revision_checked > 43200
@@ -127,12 +127,12 @@ class Closure::Svn
     end
     @remote_revision ||= info(url)[:revision]
   end
-  
+
   def update_available?
     return false if remote_revision == 'ERROR'
     remote_revision != local_revision
   end
-  
+
 end
 
 
@@ -183,7 +183,7 @@ if get? and svn and render_stack.size > 1
     <input type="submit" value="Update" />
     &nbsp;&nbsp;
   <% end -%>
-  
+
   <% if is_running -%>
     Stand by...
   <% elsif svn.log -%>
@@ -194,7 +194,7 @@ if get? and svn and render_stack.size > 1
   <% elsif svn.update_available? -%>
     Newer revision available.
   <% end -%>
-  
+
 </form>
 <% elsif get? and svn -%>
 <!DOCTYPE html>

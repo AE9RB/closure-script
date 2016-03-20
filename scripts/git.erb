@@ -1,0 +1,183 @@
+<%
+# Copyright 2011 The Closure Script Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+require 'rexml/document'
+require 'thread'
+
+# This is an example of a complex Closure Script.
+# It would be easier to read and more performant if split up
+# into an includable .rb file and multiple templates.
+# But speed isn't a problem and the single file format makes
+# it just a touch easier to share and move around.
+
+# Example usage:
+#   render 'git', :git_name => 'Closure Library', :git_path => 'closure-library',
+#          :git_url => 'http://closure-library.googlecode.com/git/trunk/'
+#
+# Include as many as you want and they can all be updating at once.
+# Don't supply any locals if you just want Closure::Git for manual use.
+
+class Closure::Git
+
+  # Repository objects are held in global class variable.
+  # Checking out runs in a background thread.
+  # repo = Closure::Git['lib-folder', 'http://git.example.org/trunk']
+  @repos ||= {}
+  def self.[](path, url=nil, name=nil)
+    repo = @repos[path]
+    raise "url and name requried for setup" if !repo and (!url or !name)
+    repo = @repos[path] ||= new(path, url)
+    repo.name ||= url
+    repo.name = name if name
+    repo
+  end
+
+  # Configurable Subversion shell command
+  def self.git; @git ||= 'git'; end
+  def self.git=(git); @git = git; end
+
+  def initialize(path, url)
+    @semaphore = Mutex.new
+    @running = false
+    @path = path
+    @url = url
+    @name = ''
+    @log = nil
+  end
+
+  attr_reader :running
+  attr_reader :path
+  attr_reader :url
+  attr_accessor :name
+  attr_accessor :log
+
+  # Update or checkout a Git repository.
+  # Closure Script is thread-safe and so is this.
+  # Although the locks in Subversion would prevent it
+  # from corrupting (one would hope), we don't want our
+  # global object to be in an indeterminate state with two
+  # threads running because submit was hit twice.
+  def update(version='TODO')
+    @semaphore.synchronize do
+      return if running
+      @running = true
+      Thread.new do
+        @log = "Cloning. Stand by..."
+        @local_revision = 'CLONING'
+        cmd = "#{self.class.git.dump} clone #{url.dump} #{path.dump}"
+        @log = "$ #{cmd}\n" + `#{cmd} 2>&1`
+        @local_revision = nil
+        @running = false
+      end
+    end
+  end
+
+  def info(location)
+    result = `#{self.class.git.dump} -C #{location.dump} name-rev --name-only HEAD`
+    return result if $? == 0
+    return nil
+  end
+
+  def local_revision
+    return @local_revision if @local_revision
+    @local_revision = info(path)
+  end
+
+end
+
+
+if defined? git_path and defined? git_url and defined? git_name
+  git = Closure::Git[git_path, git_url, git_name]
+  if defined? git_update
+    git.update git_update
+  end
+elsif params['git_path']
+  git = Closure::Git[params['git_path']]
+  if post?
+    git.update params['git_update']
+    response.redirect params['return_to']
+  end
+end
+
+
+if get? and git and render_stack.size > 1
+  is_running = !!git.running
+  action = expand_src File.join File.dirname(__FILE__), File.basename(__FILE__, File.extname(__FILE__))
+-%>
+<form action='<%=h action %>' method="post">
+  <input type="hidden" name="git_path" value="<%=h git_path %>" size="8" />
+  <input type="hidden" name="return_to" value="<%=h path %>" size="8" />
+
+  <%=h git.name %>
+  <% if is_running -%>
+    is cloning.
+  <% elsif git.local_revision -%>
+    installed: <%=h git.local_revision %>
+  <% else -%>
+    not installed.
+  <% end -%>
+  &nbsp;&nbsp;
+
+  <% if is_running %>
+    <% unless @git_document_reload_on_page
+         @git_document_reload_on_page = true -%>
+         <script type="text/javascript" charset="utf-8">
+           setTimeout("document.location.reload()", 2500);
+         </script>
+  <%   end
+     elsif !git.local_revision -%>
+    <input type="submit" value="Clone" />
+    &nbsp;&nbsp;
+  <% end -%>
+
+  <% if is_running -%>
+    Stand by...
+  <% elsif git.log -%>
+    <% unless git.local_revision -%>
+    <span style="color:red">ERROR: </span>
+    <% end -%>
+    <a href="<%= action %>?git_path=<%=u git.path %>&return_to=<%=u path %>">VIEW LOG</a>
+  <% end -%>
+
+</form>
+<% elsif get? and git -%>
+<!DOCTYPE html>
+<html>
+  <head>
+    <style type="text/css" media="screen">
+      body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small;}
+      select,input,button,textarea,button{font:99% arial,helvetica,clean,sans-serif;}
+      table{font-size:inherit;font:100%;}
+      pre,code,kbd,samp,tt{font-family:monospace;*font-size:108%;line-height:100%;}
+      th {text-align: right; padding: 2px 10px 2px 0px}
+    </style>
+  </head>
+  <body>
+    <a href="<%=h params['return_to'] %>">Back</a>
+    <h1><%=h git.name %></h1>
+    <table border="0" cellspacing="0" cellpadding="0">
+      <tr><th>Local folder:</th><td><%=h git.path %></td></tr>
+      <tr><th>Local revision:</th><td><%=h git.local_revision %></td></tr>
+      <tr><th>Repository URL:</th><td><%=h git.url %></td></tr>
+    </table>
+    <% if git.log -%>
+      <h2>Results of last run:</h2>
+      <pre><%=h git.log %></pre>
+      <a href="<%=h params['return_to'] %>">Back</a>
+      <% git.log = nil %>
+    <% end -%>
+  </body>
+</html>
+<% end -%>

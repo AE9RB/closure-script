@@ -14,7 +14,7 @@
 
 
 class Closure
-  
+
   # This is Rack middleware to show Ruby exceptions.  It is automatically loaded when
   # using Closure::Middleware.  It works very much like Rack::ShowExceptions but will
   # use the Javascript console when it can detect the request was for javascript.
@@ -22,9 +22,9 @@ class Closure
   # If Javascript detection isn't working because you're not using .js.erb for the
   # extension, add this as the first line of your script:
   #     <% @response.headers['Content-Type'] = 'application/javascript' %>
-  
+
   class ShowExceptions
-    
+
     # @private - internal use only
     class Javascript
       def initialize(app)
@@ -36,7 +36,7 @@ class Closure
       rescue Closure::Compiler::Error => e
         raise e unless env[Script::ENV_ERROR_CONTENT_TYPE] == 'application/javascript'
         body = 'try{console.error('
-        body += '"Closure Compiler: %s\n\n", '
+        body += '"Closure Compiler: %s\n", '
         body += "#{e.message.rstrip.dump}"
         body += ')}catch(err){}'
         body
@@ -47,7 +47,7 @@ class Closure
       rescue Closure::Templates::Error => e
         raise e unless env[Script::ENV_ERROR_CONTENT_TYPE] == 'application/javascript'
         body = 'try{console.error('
-        body += '"Closure Templates: 1 error(s)\n\n", '
+        body += '"Closure Templates: 1 error(s)\n$s", '
         body += "#{e.message.rstrip.dump}"
         body += ')}catch(err){}'
         body
@@ -58,10 +58,13 @@ class Closure
       rescue StandardError, LoadError, SyntaxError => e
         raise e unless env[Script::ENV_ERROR_CONTENT_TYPE] == 'application/javascript'
         body = 'try{console.error('
-        body += '"Closure Script: %s\n\n", '
-        body += "#{e.class.to_s.dump}, "
+        if e.class.to_s == e.message.rstrip
+            body += '"Closure Script: %s\n%s", '
+        else
+            body += '"Closure Script: %s\n\n%s\n\n%s", '
+            body += "#{e.class.to_s.dump}, "
+        end
         body += "#{e.message.rstrip.dump}, "
-        body += '"\n\n", '
         body += "#{e.backtrace.join("\n").dump}"
         body += ')}catch(err){}'
         body
@@ -70,14 +73,14 @@ class Closure
           "Content-Length" => body.size.to_s},
          [body]]
       end
-      
+
     end
-    
+
     # @private - internal use only
     class Html < Rack::ShowExceptions
       #TODO make our own someday
     end
-  
+
     def initialize(app)
       @app = Html.new(Javascript.new(app))
     end

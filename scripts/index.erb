@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="Content-Type" content="text/html; charset=UTF-8" />
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
     <title>Welcome to Closure</title>
     <style type="text/css" media="screen">
       html {font-family: sans-serif; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;}
@@ -12,13 +13,15 @@
 
     <h1>Closure Script</h1>
 
-    <%= render 'svn', :svn_name => 'Closure Library', :svn_path => 'closure-library',
-        :svn_url => 'http://closure-library.googlecode.com/svn/trunk/' %>
+    <%= render 'git', :git_name => 'Closure Library', :git_path => 'closure-library',
+        :git_url => 'https://anon:anon@github.com/google/closure-library.git' %>
 
     <p>
       Only the documentation will work until Closure Library is downloaded.
       <br />
-      You may need to manually download Closure Library if Subversion fails.
+      Documentation requires kramdown gem to be installed.
+      <br />
+      You may need to manually download Closure Library if git fails.
     </p>
 
     <ul>

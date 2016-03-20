@@ -14,9 +14,9 @@
 
 
 class Closure
-  
+
   # Scripts render with an instance named goog in the context.
-  
+
   class Goog
 
     def initialize(env, sources, render_stack)
@@ -25,7 +25,7 @@ class Closure
       @render_stack = render_stack
       @dependencies = []
     end
-    
+
     # You can add additional files to have their mtimes scanned.
     # Perhaps you want to use a .yml file to define build options.
     # Closure::Script calls this for every render so you don't need
@@ -34,13 +34,13 @@ class Closure
       dependency = File.expand_path dependency, File.dirname(@render_stack.last)
       @dependencies << dependency unless @dependencies.include? dependency
     end
-    
-    # If you change any javascript sources then you need to tell Script.
+
+    # If your Script changes any javascript sources then call this.
     # This is a lazy refresh, you may call it repeatedly.
     def refresh
       @sources.invalidate @env
     end
-    
+
     # Convert soy templates to javascript.  Accepts all arguments that
     # SoyToJsSrcCompiler.jar support plus it expands filename globs.
     # All source filenames are relative to the script calling #soy_to_js.
@@ -125,11 +125,11 @@ class Closure
       ensure
         if pre_js_tempfile
           pre_js_tempfile.close
-          pre_js_tempfile.unlink 
+          pre_js_tempfile.unlink
         end
       end
     end
-    
+
     # Calculate the deps src for a filename.
     # @param (String) filename
     # @return (String) http path info with forward caching query.
@@ -159,7 +159,7 @@ class Closure
     def base_js
       @sources.base_js(@env)
     end
-    
+
     # This is where base.js looks to find deps.js by default.  You will always
     # be served a Closure Script generated deps.js from this location.
     # Very old Library versions may get confused by the forward caching query
@@ -183,12 +183,12 @@ class Closure
     # @example
     #  goog.each {|directory, path| ... }
     def each
-      @sources.each do |directory, path| 
+      @sources.each do |directory, path|
         yield directory, path
       end
     end
     include Enumerable
-    
+
   end
-  
+
 end

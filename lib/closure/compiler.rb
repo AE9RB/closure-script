@@ -14,15 +14,15 @@
 
 
 class Closure
-  
+
   class Compiler
-    
+
     class Error < StandardError
     end
-    
+
     # Java won't let you change working directories and the Closure Compiler
     # doesn't allow setting a base path.  No problem, we can do it.
-    
+
     # These are filename options and will be expanded to a new base.
     OUTPUT_OPTIONS = %w{
       --js_output_file
@@ -32,7 +32,7 @@ class Closure
       --variable_map_output_file
       --module_output_path_prefix
     }
-    
+
     # These are filename options and will be expanded to a new base.
     # These will have their modification times checked against js_output_file.
     INPUT_OPTIONS = %w{
@@ -41,7 +41,7 @@ class Closure
       --property_map_input_file
       --variable_map_input_file
     }
-    
+
     # Compile Javascript. Checks file modification times
     # but does not support namespaces like {Goog#compile} does.
     # @param (Array) args Arguments for the compiler.
@@ -88,27 +88,17 @@ class Closure
       end
       Compilation.new(env, js_output_file, log) << stdout
     end
-    
-    
+
+
     class Compilation
       attr_reader :log
       attr_reader :js_output_file
-      
+
       def initialize(env, js_output_file=nil, log=nil)
         @javascript = []
         @env = env
         @js_output_file = js_output_file
         @log = log
-      end
-      
-      # @private deprecated
-      def to_response_with_console
-        response = to_response
-        if response.class == Rack::Response
-          msg = "#to_response_with_console deprecated, use #to_response"
-          response.write "try{console.warn(#{msg.dump})}catch(err){};\n"
-        end
-        response
       end
 
       # Turn the compiled javascript into a Rack::Response object.
@@ -136,7 +126,7 @@ class Closure
         end
         response
       end
-      
+
       # Appends a string to the javascript.
       # @param [String] javascript
       def <<(javascript)
@@ -156,10 +146,10 @@ class Closure
         end
       end
       alias :to_s :javascript
-      
+
     end
-    
-    
+
+
     # Closure Script extends compiler.jar by transforming the arguments in novel ways.
     # The most obvious augmentation is to support --ns for compiling namespaces.
     # We can also expand paths to a new base, work with modules, and much more.
@@ -183,8 +173,8 @@ class Closure
         end
         args
       end
-  
-        
+
+
       # The javascript snippet for module info
       # @param [Array<Hash>] mods
       def self.module_info(mods)
@@ -207,8 +197,8 @@ class Closure
         end.join ",\n"
         js += "\n};\n"
       end
-    
-    
+
+
       # The javascript snippet for compiled module file locations
       # @param [Array<Hash>] mods
       def self.module_uris_compiled(mods, sources, prefix)
@@ -219,8 +209,8 @@ class Closure
         end.join ",\n"
         js += "\n};\n"
       end
-      
-      
+
+
       # Main function to convert --ns arguments into --js arguments.
       # Returns module info when modules are processed.
       # @param [Array<String>] args
@@ -234,8 +224,8 @@ class Closure
         end
         mods
       end
-      
-      
+
+
       # Extracts the values for a options in the arguments.
       # Use Array#last to emulate compiler.jar for single options.
       # Will collect from an array of options.
@@ -248,17 +238,17 @@ class Closure
         args_index = 0
         while args_index < args.length
           if options.include? args[args_index]
-            values << args[args_index+1] 
+            values << args[args_index+1]
           end
           args_index = args_index + 2
         end
         values
       end
-      
-      
+
+
       private
-      
-      
+
+
       # Converts --ns arguments into --js arguments
       # @param [Array<String>] args
       def self.module_augment(args, sources, mods, env)
@@ -285,8 +275,8 @@ class Closure
           end
         end
       end
-      
-      
+
+
       # Converts --ns arguments into --js arguments
       # @param [Array<String>] args
       def self.namespace_augment(args, sources, files, env)
@@ -309,7 +299,7 @@ class Closure
         end
       end
 
-      
+
       # Insanity-inducing recursive explorer to find common files in child modules.
       # Try every branch in the tree and bubble up common files as we see them.
       def self.walk_modules(sources, mods, env, seek=nil, mods_seen=[], files_seen=[])
@@ -344,7 +334,7 @@ class Closure
         end
         files
       end
-      
+
 
       # @param [Array<String>] args
       # @return [Array<Hash>] mods
@@ -362,7 +352,7 @@ class Closure
             mod_args.unshift args.delete_at args_index
           elsif option == '--module'
             if mod_args.empty?
-              raise "No --js or --ns files for --module #{value}" 
+              raise "No --js or --ns files for --module #{value}"
             end
             mod = value.split ':'
             if mod[1] == '*'
@@ -392,7 +382,7 @@ class Closure
           mods
         end
       end
-      
+
     end
   end
 end

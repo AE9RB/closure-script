@@ -7,8 +7,8 @@ With Script, you build HTML or Javascript with embedded Ruby.
 The core Script technology is very simple and all Scripts execute in the same context
 regardless if they are test, demo, or compiler scripts.
 
-Exploring or extending the examples is the best way to learn <a href="https://github.com/dturnbull/closure-script">Closure Script</a>.  If you
-are looking for information about Closure in general, 
+Exploring or extending the examples is the best way to learn <a href="https://github.com/AE9RB/closure-script">Closure Script</a>.  If you
+are looking for information about Closure in general,
 <a href="http://oreilly.com/catalog/0636920001416">Closure: The Definitive Guide</a>
 is a solid reference.
 
@@ -70,7 +70,7 @@ write to @response or change it to another object then the rendering is discarde
 
 Regardless of your language background, cut-and-paste programming from the
 scaffold examples should be practical.  That's the idea anyways.
-If you can conditionally build arrays of strings in Ruby, you're good to go. 
+If you can conditionally build arrays of strings in Ruby, you're good to go.
 But, of course, the more Ruby you know the more you'll be able to do.
 
 ## config.ru
@@ -85,7 +85,7 @@ The default config.ru explains more in its comments.  The smallest practical con
     Closure.add_source '.', '/'
     use Closure::Middleware
     run Rack::File.new '.'
-    
+
 ## Argument Augmentation
 
 Closure Script adds additional features to the compiler like file modification checks and

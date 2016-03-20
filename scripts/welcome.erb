@@ -1,4 +1,4 @@
-<% 
+<%
 require 'fileutils'
 
 source_dir = File.expand_path File.dirname(__FILE__)
@@ -50,18 +50,19 @@ if get? -%>
     <meta name="Content-Type" content="text/html; charset=UTF-8" />
     <title>Welcome to Closure</title>
     <style type="text/css" media="screen">
-      body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small;}
+      html {font-family: sans-serif; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;}
+      button,input,optgroup,select,textarea {font-family: sans-serif; font-size: inherit;}
     </style>
   </head>
   <body>
-    
+
     <h1>Welcome to Closure</h1>
-    
+
     <dl>
     <dt>Running in:</dt>
     <dd><%=h dest_dir %></dd>
     </dl>
-    
+
     <% if !conflict %>
       <form action='?' method="post">
         Prepare this folder?
@@ -72,7 +73,7 @@ if get? -%>
       <span style="color:red">ERROR:</span>
       Existing files prevent scaffold install.
     <% end %>
-    
+
   </body>
 </html>
 <% end -%>

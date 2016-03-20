@@ -21,9 +21,9 @@ class Closure
   #  sources = Closure::Sources.new
   #  sources.add '/myapp', '../src'
   #  run Closure::Server.new sources
-  
+
   class Server
-    
+
     # @param (Sources) sources An instance configured with your scripts.
     # @param (home_page) home_page Optional file or closure-script to serve as root.
     def initialize(sources, home_page = nil)
@@ -31,7 +31,7 @@ class Closure
       @home_page = home_page
       @working_dir = Dir.getwd
     end
-    
+
     # Rack interface.
     # @param (Hash) env Rack environment.
     # @return (Array)[status, headers, body]
@@ -74,9 +74,9 @@ class Closure
       end
       not_found
     end
-    
+
     private
-    
+
     # Status 404 with X-Cascade => pass.
     # @return (Array)[status, headers, body]
     def not_found
@@ -90,5 +90,5 @@ class Closure
     end
 
   end
-  
+
 end

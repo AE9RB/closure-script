@@ -1,20 +1,25 @@
 // This file was automatically generated from legume.soy.
 // Please don't edit this file by hand.
 
+/**
+ * @fileoverview Templates in namespace myapp.legume.
+ */
+
 goog.provide('myapp.legume');
 
 goog.require('soy');
-goog.require('soy.StringBuilder');
+goog.require('soydata');
 
 
 /**
  * @param {Object.<string, *>=} opt_data
- * @param {soy.StringBuilder=} opt_sb
+ * @param {(null|undefined)=} opt_ignored
  * @return {string}
- * @notypecheck
+ * @suppress {checkTypes|uselessCode}
  */
-myapp.legume.hello = function(opt_data, opt_sb) {
-  var output = opt_sb || new soy.StringBuilder();
-  output.append('\tHello ', soy.$$escapeHtml(opt_data.subject), '!');
-  return opt_sb ? '' : output.toString();
+myapp.legume.hello = function(opt_data, opt_ignored) {
+  return 'Hello ' + soy.$$escapeHtml(opt_data.subject) + '!';
 };
+if (goog.DEBUG) {
+  myapp.legume.hello.soyTemplateName = 'myapp.legume.hello';
+}

@@ -21,7 +21,6 @@ require 'warbler'
 # Only closure is packaged with the gem
 DOCS = %w{closure erb rack haml kramdown}
 
-#TODO add java build (see example in warbler makefile)
 
 # SERVER
 
@@ -87,13 +86,13 @@ war_config = Warbler::Config.new do |config|
     docs
   )
   config.excludes += FileList['scripts/closure-library/**/*', 'scripts/fixtures/**/*']
-  
+
   config.bundler = false
   config.gems << Gem.loaded_specs['jruby-jars']
   config.gems << Gem.loaded_specs['jruby-rack']
   config.gems << Gem.loaded_specs['haml']
   config.gems << Gem.loaded_specs['kramdown']
-  
+
   config.features = %w(executable)
   config.webxml.booter = :rack
 
@@ -111,23 +110,13 @@ war_config = Warbler::Config.new do |config|
       eval(File.read(File.join Closure.base_path, 'scripts/config.ru'), binding, 'config.ru')
     end
   EOS
-  
+
   # Closure Script is thread-safe and multithreaded by default.
   # We choose to be bound in a single runtime to allow Scripts easy
   # access to globals for background processing with Ruby threads.
-  config.webxml.jruby.min.runtimes = 1  
+  config.webxml.jruby.min.runtimes = 1
   config.webxml.jruby.max.runtimes = 1
-  
-  # Include any file to create classes folder which stops a warning
-  config.java_classes = FileList['Rakefile']
-  
-  # I can't figure out why jruby-rack has these settings.
-  # Both need to be true or we often won't see the request.
-  # It's silly that we have to check the filesystem on
-  # every request when we know nothing will ever be found.
-  config.webxml.jruby.rack.filter.adds.html = true
-  config.webxml.jruby.rack.filter.verifies.resource = true
-  
+
 end
 
 task 'war' do
@@ -176,7 +165,7 @@ DOCS.each do |gem_name|
   else
     spec = Gem.loaded_specs[gem_name]
     unless spec
-      print "ERROR: Gem #{gem_name} not loaded." 
+      print "ERROR: Gem #{gem_name} not loaded."
       exit 1
     end
     base_path = spec.full_gem_path
@@ -209,4 +198,3 @@ end
 
 desc 'Generate all documentation'
 task 'docs' => DOCS.collect {|s| "docs:#{s}"}
-

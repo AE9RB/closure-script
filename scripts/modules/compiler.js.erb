@@ -1,4 +1,4 @@
-<% 
+<%
 # The --module option no longer needs a file count if you
 # use '*' to mean 'everything until the next --module'.
 # This way everything is automatic when using namespaces.
@@ -6,9 +6,9 @@ args = %w{
   --summary_detail_level 3
   --module app:*
     --ns example.initializer.app
-  --module api:*:app 
+  --module api:*:app
     --ns example.initializer.api
-  --module settings:*:app 
+  --module settings:*:app
     --ns example.initializer.settings
 }
 

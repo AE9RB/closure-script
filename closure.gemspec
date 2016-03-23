@@ -5,16 +5,18 @@ $:.unshift lib unless $:.include?(lib)
 require 'closure'
 
 Gem::Specification.new do |s|
-  s.name        = "closure"
+  s.name        = 'closure'
   s.version     = Closure::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ['David Turnbull']
   s.email       = ['dturnbull@gmail.com']
+  s.licenses    = ['Apache-2.0']
   s.homepage    = 'https://github.com/AE9RB/closure-script'
-  s.summary     = "Google Closure Compiler, Library, Script, and Templates."
+  s.summary     = 'Google Closure Compiler, Library, Script, and Templates.'
+  s.description = 'Everything you need for advanced Google Closure development.'
 
   s.required_rubygems_version = ">= 1.3.6"
-  s.add_dependency 'rack', '>= 1.0.0'
+  s.add_dependency 'rack', '~> 1'
 
   dirs = %w{beanshell bin closure-compiler closure-templates lib docs/closure}
   dirs += Dir.glob('scripts/*') - %w{scripts/closure-library scripts/fixtures}

@@ -28,7 +28,7 @@ require 'tempfile'
 #   run Rack::File.new './public'
 
 class Closure
-  
+
   # Filesystem location of the Closure Script install.
   # Typically, where the gem was installed.  This is mainly used
   # internally but may be useful for experimental configurations.
@@ -36,15 +36,15 @@ class Closure
   def self.base_path
     @@base_path ||= File.expand_path(File.join(File.dirname(__FILE__), '..'))
   end
-  
+
 
   # Scripts that are distributed with the gem.  These will help get you started quickly.
   BUILT_INS = {
     :soy => File.join(base_path, 'closure-templates'),
     :docs => File.join(base_path, 'docs')
   }
-  
-  
+
+
   # Easy config. This adds to the global instance of sources and
   # supports using the {BUILT_INS}.
   # @example
@@ -57,7 +57,7 @@ class Closure
   # @param (Symbol) built_in
   def self.add_source(directory, path=nil)
     if directory.kind_of? Symbol
-      dir = BUILT_INS[directory] 
+      dir = BUILT_INS[directory]
       raise "Unknown built-in: #{directory}" unless dir
       directory = dir
     end
@@ -73,8 +73,8 @@ class Closure
   def self.sources
     @@sources ||= Sources.new
   end
-  
-  
+
+
   # Execute jar in a REPL or with JRuby
   # @private - internal use only
   # @param (String) jar Path to .jar file
@@ -102,8 +102,8 @@ class Closure
     end
     [out, err]
   end
-  
-  
+
+
   # Set these before the rack server is called for the first time.
   # === Attributes:
   # - (String) *java* -- default: "java" -- Your Java executable. Not used under JRuby.
@@ -123,7 +123,7 @@ class Closure
     end
     @@config
   end
-  
+
   # Run the welcome server.  Handy for gem users.
   # @example
   #  ruby -e "require 'rubygems'; gem 'closure'; require 'closure'; Closure.welcome"
@@ -139,7 +139,7 @@ class Closure
     print "Closure Script Welcome Server: http://localhost:#{port}/\n"
     server.start
   end
-  
+
 end
 
-Dir.glob(File.expand_path('**/*.rb', File.dirname(__FILE__))).each {|f| require f}
+Dir.glob(File.expand_path('**/*.rb', File.dirname(__FILE__))).each {|f| require f unless f == __FILE__}

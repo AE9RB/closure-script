@@ -15,7 +15,7 @@
 require 'pathname'
 
 class Closure
-  
+
   # A Closure::Script instance is the context in which scripts are rendered.
   # It inherits everything from Rack::Request and supplies a Response instance
   # you can use for redirects, cookies, and other controller actions.
@@ -26,9 +26,9 @@ class Closure
 
     class RenderStackOverflow < StandardError
     end
-    
+
     ENV_ERROR_CONTENT_TYPE = 'closure.error.content_type'
-    
+
     def initialize(env, sources, filename)
       super(env)
       @render_stack = []
@@ -43,7 +43,7 @@ class Closure
         # Make errors appear from the render instead of the engine.call
         e.set_backtrace e.backtrace[1..-1]
         env[ENV_ERROR_CONTENT_TYPE] = @response.finish[1]["Content-Type"] rescue nil
-        raise e 
+        raise e
       end
       @response.status = 404
       @response.write "404 Not Found\n"
@@ -53,9 +53,9 @@ class Closure
       env[ENV_ERROR_CONTENT_TYPE] = @response.finish[1]["Content-Type"] rescue nil
       raise e
     end
-    
+
     # After rendering, #finish will be sent to the client.
-    # If you replace the response or add to the response#body, 
+    # If you replace the response or add to the response#body,
     # the script engine rendering will not be added.
     # @return [Rack::Response]
     attr_accessor :response
@@ -67,10 +67,10 @@ class Closure
     # An array of filenames representing the current render stack.
     # @example
     #  <%= if render_stack.size == 1
-    #        render 'html_version' 
+    #        render 'html_version'
     #      else
     #        render 'included_version'
-    #      end 
+    #      end
     #  %>
     # @return [<Array>]
     attr_reader :render_stack
@@ -84,7 +84,7 @@ class Closure
       if render_stack.size > 100
         # Since nobody sane should recurse through here, this mainly
         # finds a render self that you might get after a copy and paste
-        raise RenderStackOverflow 
+        raise RenderStackOverflow
       elsif render_stack.size > 0
         # Hooray for relative paths and easily movable files
         filename = File.expand_path(filename, File.dirname(render_stack.last))
@@ -93,16 +93,16 @@ class Closure
         filename = File.expand_path(filename)
         raise NotFound if File.basename(filename) =~ /^_/
       end
-      ext = File.extname(filename)
+      fext = File.extname(filename)
       files1 = [filename]
-      files1 << filename + '.html' if ext == ''
-      files1 << filename.sub(/.html$/,'') if ext == '.html'
+      files1 << filename + '.html' if fext == ''
+      files1 << filename.sub(/.html$/,'') if fext == '.html'
       files1.each do |filename1|
         Closure.config.engines.each do |ext, engine|
           files2 = [filename1+ext]
           files2 << filename1.gsub(/.html$/, ext) if File.extname(filename1) == '.html'
           unless filename1 =~ /^_/ or render_stack.empty?
-            files2 = files2 + files2.collect {|f| "#{File.dirname(f)}/_#{File.basename(f)}"} 
+            files2 = files2 + files2.collect {|f| "#{File.dirname(f)}/_#{File.basename(f)}"}
           end
           files2.each do |filename2|
             if File.file?(filename2) and File.readable?(filename2)
@@ -120,7 +120,7 @@ class Closure
       end
       raise NotFound
     end
-    
+
     # Helper for finding files relative to Scripts.
     # @param [String] filename
     # @return [String] absolute filesystem path
@@ -133,12 +133,11 @@ class Closure
     # @param [String] filename
     # @return [String] absolute http path
     def expand_src(filename, dir=nil)
-      found = false
       filename = expand_path filename, dir
       src = nil
-      @goog.each do |dir, path|
-        dir_range = (dir.length..-1)
-        if filename.index(dir) == 0
+      @goog.each do |directory, path|
+        dir_range = (directory.length..-1)
+        if filename.index(directory) == 0
           src = "#{path}#{filename.slice(dir_range)}"
           break
         end
@@ -146,7 +145,7 @@ class Closure
       raise Errno::ENOENT unless src
       src
     end
-    
+
     # Helper to locate a file as a file server path.
     # @param [String] filename
     # @return [String] relative http path
@@ -155,7 +154,7 @@ class Closure
       base = Pathname.new File.dirname path_info
       Pathname.new(file).relative_path_from(base).to_s
     end
-    
+
   end
-  
+
 end

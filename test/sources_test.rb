@@ -2,7 +2,7 @@ require 'test_helper'
 
 # Python is required as a dependency of calcdeps.py and closurebuilder.py
 
-class SourcesTest < MiniTest::Unit::TestCase
+class SourcesTest < Minitest::Test
 
   CLOSURE_LIBRARY = File.join(Closure.base_path, 'scripts', 'closure-library')
 
@@ -41,5 +41,5 @@ class SourcesTest < MiniTest::Unit::TestCase
     # Calcdeps generates the same ordering we do.  Yay!
     assert_equal calcdeps_files, FILES
   end
-  
+
 end

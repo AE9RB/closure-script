@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class ServerTest < MiniTest::Unit::TestCase
+class ServerTest < Minitest::Test
 
   def setup
     sources = Closure::Sources.new
@@ -31,11 +31,11 @@ class ServerTest < MiniTest::Unit::TestCase
     # It should not have run as a template
     assert !(response =~ /PASS/)
   end
-  
+
   def test_file_not_found
     assert @request.get("/nOT/Real.fILE").not_found?
   end
-  
+
   def test_partials_not_found
     # We can always get the raw source
     assert @request.get("/_partial.haml").ok?
@@ -45,14 +45,14 @@ class ServerTest < MiniTest::Unit::TestCase
     assert @request.get("/partial.html").not_found?
     assert @request.get("/_partial.html").not_found?
   end
-  
+
   def test_static_html_extension_magic
     # The .html is always optional
     assert @request.get("/html").ok?
     assert @request.get("/html.html").ok?
     assert @request.get("/html.html.html").not_found?
   end
-  
+
   def test_non_html_template_extension
     # The file proper comes back as text/plain
     response = @request.get("/route_js.js.erb")
@@ -62,6 +62,6 @@ class ServerTest < MiniTest::Unit::TestCase
     response = @request.get("/route_js.js")
     assert response.ok?
     assert_equal 'application/javascript', response.content_type
-  end  
+  end
 
 end

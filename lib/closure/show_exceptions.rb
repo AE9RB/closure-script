@@ -39,7 +39,6 @@ class Closure
         body += '"Closure Compiler: %s\n", '
         body += "#{e.message.rstrip.dump}"
         body += ')}catch(err){}'
-        body
         [200,
          {"Content-Type" => "application/javascript",
           "Content-Length" => body.size.to_s},
@@ -50,7 +49,6 @@ class Closure
         body += '"Closure Templates: 1 error(s)\n$s", '
         body += "#{e.message.rstrip.dump}"
         body += ')}catch(err){}'
-        body
         [200,
          {"Content-Type" => "application/javascript",
           "Content-Length" => body.size.to_s},
@@ -67,7 +65,6 @@ class Closure
         body += "#{e.message.rstrip.dump}, "
         body += "#{e.backtrace.join("\n").dump}"
         body += ')}catch(err){}'
-        body
         [200,
          {"Content-Type" => "application/javascript",
           "Content-Length" => body.size.to_s},

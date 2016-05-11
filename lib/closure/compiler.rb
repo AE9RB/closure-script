@@ -93,6 +93,7 @@ class Closure
     class Compilation
       attr_reader :log
       attr_reader :js_output_file
+      attr_accessor :modules
 
       def initialize(env, js_output_file=nil, log=nil)
         @javascript = []
@@ -177,11 +178,11 @@ class Closure
 
       # The javascript snippet for module info
       # @param [Array<Hash>] mods
-      def self.module_info(mods)
-        js = "var MODULE_INFO = {"
+      def self.module_info(mods, var = 'MODULE_INFO')
+        js = "var #{var} = {"
         js += mods.map do |mod|
           reqs = mod[:requires].map{ |r| r.dump }
-          s = "#{mod[:name].dump}: [#{reqs.join ', '}]"
+          "#{mod[:name].dump}: [#{reqs.join ', '}]"
         end.join ', '
         js += "};\n"
       end
@@ -189,11 +190,11 @@ class Closure
 
       # The javascript snippet for raw module file locations
       # @param [Array<Hash>] mods
-      def self.module_uris_raw(mods, sources)
-        js = "var MODULE_URIS = {\n"
+      def self.module_uris_raw(mods, sources, var = 'MODULE_URIS')
+        js = "var #{var} = {\n"
         js += mods.map do |mod|
           files = mod[:files].map{ |r| (sources.src_for r).dump }
-          s = "#{mod[:name].dump}: [\n#{files.join ",\n"}]"
+          "#{mod[:name].dump}: [\n#{files.join ",\n"}]"
         end.join ",\n"
         js += "\n};\n"
       end
@@ -201,11 +202,11 @@ class Closure
 
       # The javascript snippet for compiled module file locations
       # @param [Array<Hash>] mods
-      def self.module_uris_compiled(mods, sources, prefix)
-        js = "var MODULE_URIS = {\n"
+      def self.module_uris_compiled(mods, sources, prefix, var = 'MODULE_URIS')
+        js = "var #{var} = {\n"
         js += mods.map do |mod|
           file = sources.src_for prefix + mod[:name] + '.js'
-          s = "#{mod[:name].dump}: [#{file.dump}]"
+          "#{mod[:name].dump}: [#{file.dump}]"
         end.join ",\n"
         js += "\n};\n"
       end
@@ -376,7 +377,7 @@ class Closure
           raise 'Static and automatic --module options can not be mixed.'
         end
         if mods.empty?
-          args.insert -1, *mod_args
+          args.insert(-1, *mod_args)
           nil
         else
           mods

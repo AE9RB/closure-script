@@ -29,7 +29,7 @@ describe Closure::Compiler do
       }
     end
   end
-  
+
   describe 'Util.arg_values' do
     it 'extracts argument values' do
       args = %w{
@@ -51,13 +51,13 @@ describe Closure::Compiler do
       }
     end
   end
-  
+
   describe 'Util.namespace_augment' do
     it 'expands a namespace' do
       sources = Closure::Sources.new
       sources.add File.join Closure.base_path, 'scripts'
       args = %w{
-        --ns rails.ujs
+        --ns example.App
       }
       @util.augment(args, sources)
       args.wont_include '--ns'

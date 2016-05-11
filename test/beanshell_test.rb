@@ -1,7 +1,7 @@
 require 'test_helper'
 
-class BeanShellTest < MiniTest::Unit::TestCase
-  
+class BeanShellTest < Minitest::Test
+
   BEANSHELL = Closure::BeanShell.new
 
   def test_basic_stdout
@@ -13,4 +13,3 @@ class BeanShellTest < MiniTest::Unit::TestCase
   end
 
 end
-

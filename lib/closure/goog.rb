@@ -121,6 +121,7 @@ class Closure
             comp << "document.write(#{script_tag.dump});\n"
           end
         end
+        comp.modules = mods
         comp
       ensure
         if pre_js_tempfile

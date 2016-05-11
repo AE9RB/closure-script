@@ -15,12 +15,12 @@
 require 'thread'
 
 class Closure
-  
+
   class Templates
-    
+
     class Error < StandardError
     end
-    
+
     # Compiles soy to javascript with SoyToJsSrcCompiler.jar.
     # Supports globbing on source filename arguments.
     # @example
@@ -49,7 +49,7 @@ class Closure
             args_index += 1
           end
           args_index += 1
-        else 
+        else
           arg = args[args_index]
           arg = File.expand_path(arg, base) if base
           if arg =~ /\*/
@@ -62,9 +62,9 @@ class Closure
       end
       # extract filenames
       mode = :start
-      args.each do |arg|
-        mode = :out and next if arg == '--outputPathFormat'
-        files << arg if mode == :collect
+      args.each do |argument|
+        mode = :out and next if argument == '--outputPathFormat'
+        files << argument if mode == :collect
         mode = :collect if mode == :out
       end
       # detect source changes
@@ -81,15 +81,15 @@ class Closure
       mtimes.clear
       # compile as needed
       if !compiled
-        out, err = Closure.run_java Closure.config.soy_js_jar, 'com.google.template.soy.SoyToJsSrcCompiler', args
+        _, err = Closure.run_java Closure.config.soy_js_jar, 'com.google.template.soy.SoyToJsSrcCompiler', args
         unless err.empty?
-          raise Error, err 
+          raise Error, err
         end
       end
       # success, keep the mtimes for next time
       mtimes.merge! new_mtimes
     end
-    
+
     private
 
     # We are unable to determine an output file to compare mtimes against.
@@ -104,8 +104,8 @@ class Closure
       end
       mtimes[:mtimes]
     end
-    
-    
+
+
   end
-  
+
 end

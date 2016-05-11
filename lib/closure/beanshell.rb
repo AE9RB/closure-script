@@ -14,21 +14,21 @@
 
 
 class Closure
-  
+
   # Closure Script will manage a single BeanShell to run the Java tools.
   # This way we don't pay the Java startup costs on every compile job.
   class BeanShell
-    
+
     PROMPT = /^bsh % $\Z/
     JAR = File.join(Closure.base_path, 'beanshell', 'bsh-core-2.0b4.jar')
-    
+
     # @param classpath (Array)<string>
     def initialize(classpath=[])
       @semaphore = Mutex.new
       @classpath = classpath
-      $cmdin = nil
+      @@pipe ||= nil
     end
-    
+
     # Run any Java command that BeanShell supports.
     # Recovers from error conditions when the Java process is killed.
     def run(command)
@@ -37,32 +37,32 @@ class Closure
       rescue Errno::EPIPE
         # Shut down broken pipe; another will be started.
         $stderr.print "#{self.class}: restarting Java.\n"
-        $pipe.close
-        $pipe = nil
+        @@pipe.close
+        @@pipe = nil
       end
       # This "second chance" will not rescue the error.
       execute command
     end
-    
+
     protected
-    
+
     # Executes a command on the REPL and returns the result.
     def execute(command)
       out = ''
       @semaphore.synchronize do
-        unless $pipe
+        unless @@pipe
           classpath = [@classpath, JAR].flatten
           java_repl = "#{Closure.config.java} -classpath #{classpath.join(':').dump} bsh.Interpreter"
-          $pipe = IO.popen(java_repl, 'w+')
+          @@pipe = IO.popen(java_repl, 'w+')
           eat_startup = ''
-          eat_startup << $pipe.readpartial(8192) until eat_startup =~ PROMPT
+          eat_startup << @@pipe.readpartial(8192) until eat_startup =~ PROMPT
         end
-        $pipe << command
-        out << $pipe.readpartial(8192) until out =~ PROMPT
+        @@pipe << command
+        out << @@pipe.readpartial(8192) until out =~ PROMPT
       end
       out.sub(PROMPT, '')
     end
-    
+
   end
-  
+
 end

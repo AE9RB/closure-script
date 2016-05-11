@@ -117,8 +117,9 @@ class Closure
             # Load the first module
             first_module_file = module_output_path_prefix + mods[0][:name] + '.js'
             first_module_file = File.expand_path first_module_file, File.dirname(@render_stack.last)
-            script_tag = "<script src=#{src_for(first_module_file).dump}></script>"
-            comp << "document.write(#{script_tag.dump});\n"
+            comp << '(function(){var e=document.createElement("script");e.type="text/javascript";e.src='
+            comp << src_for(first_module_file).dump
+            comp << ";document.head.appendChild(e);})();\n"
           end
         end
         comp.modules = mods

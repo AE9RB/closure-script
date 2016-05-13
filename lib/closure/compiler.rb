@@ -93,7 +93,6 @@ class Closure
     class Compilation
       attr_reader :log
       attr_reader :js_output_file
-      attr_accessor :modules
 
       def initialize(env, js_output_file=nil, log=nil)
         @javascript = []

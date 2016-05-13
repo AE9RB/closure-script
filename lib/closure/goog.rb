@@ -30,8 +30,10 @@ class Closure
     # Perhaps you want to use a .yml file to define build options.
     # Closure::Script calls this for every render so you don't need
     # to define compiler arguments in the same script that calls compile.
-    def add_dependency(dependency)
-      dependency = File.expand_path dependency, File.dirname(@render_stack.last)
+    # @param [String] root of file paths, optional
+    def add_dependency(dependency, root = nil)
+      root ||= File.dirname(@render_stack.last)
+      dependency = File.expand_path dependency, root
       @dependencies << dependency unless @dependencies.include? dependency
     end
 
@@ -45,8 +47,10 @@ class Closure
     # SoyToJsSrcCompiler.jar support plus it expands filename globs.
     # All source filenames are relative to the script calling #soy_to_js.
     # @param [Array<String>] args
-    def soy_to_js(args)
-      Templates::compile(args, File.dirname(@render_stack.last))
+    # @param [String] root of file paths, optional
+    def soy_to_js(args, root = nil)
+      root ||= File.dirname(@render_stack.last)
+      Templates::compile(args, root)
       refresh
     end
 
@@ -66,70 +70,63 @@ class Closure
     #     --compilation_level ADVANCED_OPTIMIZATIONS
     #   }).to_response %>
     # @param [Array<String>] args
+    # @param [String] root of file paths, optional
     # @return [Compilation]
-    def compile(args)
+    def compile(args, root = nil)
       args = Array.new args # work on a copy
-      pre_js_tempfile = nil
-      begin
-        Compiler::Util.expand_paths args, File.dirname(@render_stack.last)
-        mods = Compiler::Util.augment args, @sources, @env
-        if Compiler::Util.arg_values(args, '--compilation_level').empty?
-          # Raw mode
-          comp = Compiler::Compilation.new @env
-          if mods
-            comp << Compiler::Util.module_info(mods)
-            comp << Compiler::Util.module_uris_raw(mods, @sources)
-          end
-          js_counter = 0
-          args_index = 0
-          while args_index < args.length
-            option, value = args[args_index, 2]
-            if option == '--js'
-              value = File.expand_path value, File.dirname(@render_stack.last)
-              script_tag = "<script src=#{src_for(value).dump}></script>"
-              comp << "document.write(#{script_tag.dump});\n"
-              js_counter += 1
-              # For modules, just the files for the first module
-              break if mods and js_counter >= mods[0][:files].length
-            end
-            args_index = args_index + 2
-          end
-        else
-          # Compiled mode
-          module_output_path_prefix = Compiler::Util.arg_values(args, '--module_output_path_prefix').last
-          if mods and !module_output_path_prefix
-            # raise this before compilation so we don't write to a weird place
-            raise "--module_output_path_prefix is required when using --module"
-          end
-          comp = Compiler.compile args, @dependencies, @env
-          if mods
-            refresh # compilation may add new files, module_uris_compiled uses src_for
-            prefix =  File.expand_path module_output_path_prefix, File.dirname(@render_stack.last)
-            if comp.js_output_file
-              File.open comp.js_output_file, 'w' do |f|
-                f.write Compiler::Util.module_info mods
-                f.write Compiler::Util.module_uris_compiled mods, @sources, prefix
-              end
-            else
-              comp << Compiler::Util.module_info(mods)
-              comp << Compiler::Util.module_uris_compiled(mods, @sources, prefix)
-            end
-            # Load the first module
-            first_module_file = module_output_path_prefix + mods[0][:name] + '.js'
-            first_module_file = File.expand_path first_module_file, File.dirname(@render_stack.last)
-            comp << '(function(){var e=document.createElement("script");e.type="text/javascript";e.src='
-            comp << src_for(first_module_file).dump
-            comp << ";document.head.appendChild(e);})();\n"
-          end
+      root ||= File.dirname(@render_stack.last)
+      Compiler::Util.expand_paths args, root
+      mods = Compiler::Util.augment args, @sources, @env
+      if Compiler::Util.arg_values(args, '--compilation_level').empty?
+        # Raw mode
+        comp = Compiler::Compilation.new @env
+        if mods
+          comp << Compiler::Util.module_info(mods)
+          comp << Compiler::Util.module_uris_raw(mods, @sources)
         end
-        comp.modules = mods
-        comp
-      ensure
-        if pre_js_tempfile
-          pre_js_tempfile.close
-          pre_js_tempfile.unlink
+        js_counter = 0
+        args_index = 0
+        while args_index < args.length
+          option, value = args[args_index, 2]
+          if option == '--js'
+            value = File.expand_path value, root
+            script_tag = "<script src=#{src_for(value).dump}></script>"
+            comp << "document.write(#{script_tag.dump});\n"
+            js_counter += 1
+            # For modules, just the files for the first module
+            break if mods and js_counter >= mods[0][:files].length
+          end
+          args_index = args_index + 2
+        end
+      else
+        # Compiled mode
+        module_output_path_prefix = Compiler::Util.arg_values(args, '--module_output_path_prefix').last
+        if mods and !module_output_path_prefix
+          # raise this before compilation so we don't write to a weird place
+          raise "--module_output_path_prefix is required when using --module"
+        end
+        comp = Compiler.compile args, @dependencies, @env
+        if mods
+          refresh # compilation may add new files, module_uris_compiled uses src_for
+          prefix =  File.expand_path module_output_path_prefix, root
+          if comp.js_output_file
+            File.open comp.js_output_file, 'w' do |f|
+              f.write Compiler::Util.module_info mods
+              f.write Compiler::Util.module_uris_compiled mods, @sources, prefix
+            end
+          else
+            comp << Compiler::Util.module_info(mods)
+            comp << Compiler::Util.module_uris_compiled(mods, @sources, prefix)
+          end
+          # Load the first module
+          first_module_file = module_output_path_prefix + mods[0][:name] + '.js'
+          first_module_file = File.expand_path first_module_file, root
+          comp << '(function(){var e=document.createElement("script");e.type="text/javascript";e.src='
+          comp << src_for(first_module_file).dump
+          comp << ";document.head.appendChild(e);})();\n"
         end
       end
+      comp
     end
 
     # Calculate the deps src for a filename.

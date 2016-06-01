@@ -24,6 +24,19 @@ class Closure
       @env = env
       @render_stack = render_stack
       @dependencies = []
+      @path = ''
+    end
+
+    # Specify an explicit host or path for loading scripts.
+    # e.g. '//example.com' or '/proxy/path'
+    # You may also include a protocol and path if necessary. e.g.
+    # 'http://example.com:8080/proxy/path'
+    # attr_reader :path
+    def path= p
+      @path = p if p.start_with?('/')
+      @path = p if p.start_with?('http://')
+      @path = p if p.start_with?('https://')
+      raise 'goog.path not valid' unless @path == p
     end
 
     # You can add additional files to have their mtimes scanned.
@@ -81,6 +94,7 @@ class Closure
         # Raw mode
         comp = Compiler::Compilation.new @env
         if mods
+          comp << Compiler::Util.module_path(@path)
           comp << Compiler::Util.module_info(mods)
           comp << Compiler::Util.module_uris_raw(mods, @sources)
         end
@@ -89,8 +103,8 @@ class Closure
         while args_index < args.length
           option, value = args[args_index, 2]
           if option == '--js'
-            value = File.expand_path value, root
-            script_tag = "<script src=#{src_for(value).dump}></script>"
+            value = File.expand_path(value, root)
+            script_tag = "<script src=#{(@path+src_for(value)).dump}></script>"
             comp << "document.write(#{script_tag.dump});\n"
             js_counter += 1
             # For modules, just the files for the first module
@@ -111,10 +125,12 @@ class Closure
           prefix =  File.expand_path module_output_path_prefix, root
           if comp.js_output_file
             File.open comp.js_output_file, 'w' do |f|
+              f.write Compiler::Util.module_path @path
               f.write Compiler::Util.module_info mods
               f.write Compiler::Util.module_uris_compiled mods, @sources, prefix
             end
           else
+            comp << Compiler::Util.module_path(@path)
             comp << Compiler::Util.module_info(mods)
             comp << Compiler::Util.module_uris_compiled(mods, @sources, prefix)
           end
@@ -122,7 +138,7 @@ class Closure
           first_module_file = module_output_path_prefix + mods[0][:name] + '.js'
           first_module_file = File.expand_path first_module_file, root
           comp << '(function(){var e=document.createElement("script");e.type="text/javascript";e.src='
-          comp << src_for(first_module_file).dump
+          comp << (@path + src_for(first_module_file)).dump
           comp << ";document.head.appendChild(e);})();\n"
         end
       end

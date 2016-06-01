@@ -177,6 +177,13 @@ class Closure
 
       # The javascript snippet for module info
       # @param [Array<Hash>] mods
+      def self.module_path(path, var = 'MODULE_PATH')
+        js = "var #{var} = #{path.dump};\n"
+      end
+
+
+      # The javascript snippet for module info
+      # @param [Array<Hash>] mods
       def self.module_info(mods, var = 'MODULE_INFO')
         js = "var #{var} = {"
         js += mods.map do |mod|

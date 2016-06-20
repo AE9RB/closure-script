@@ -139,7 +139,7 @@ class Closure
           first_module_file = File.expand_path first_module_file, root
           comp << '(function(){var e=document.createElement("script");e.type="text/javascript";e.src='
           comp << (@path + src_for(first_module_file)).dump
-          comp << ";document.head.appendChild(e);})();\n"
+          comp << ";document.body.appendChild(e);})();\n"
         end
       end
       comp

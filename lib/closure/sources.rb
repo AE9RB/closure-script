@@ -276,22 +276,23 @@ class Closure
               goog = @goog 
             end
             previous_goog_base_filename = nil
-          end          
+          end
+          if path and !file.has_key?(:path)
+            raise unless filename.index(dir) == 0 # glob sanity
+            file[:path] = "#{path}#{filename.slice(dir_range)}"
+            added_files << filename unless file[:excluded]
+          end
           if !path or file[:excluded]
             file[:excluded] = true
             file[:provide] = file[:require] = []          
-          elsif file[:mtime] != mtime or !path
+          elsif file[:mtime] != mtime
             @deps = {}
             old_file_provide = file[:provide]
             old_file_require = file[:require]
             file_text = File.read filename
             file[:provide] = file_text.scan(PROVIDE_REGEX).flatten.uniq
             file[:require] = file_text.scan(REQUIRE_REGEX).flatten.uniq
-            if !file.has_key? :path
-              raise unless filename.index(dir) == 0 # glob sanity
-              file[:path] = "#{path}#{filename.slice(dir_range)}"
-              added_files << filename
-            elsif old_file_provide != file[:provide] or old_file_require != file[:require]
+            if old_file_provide != file[:provide] or old_file_require != file[:require]
               # We're changed only if the provides or requires changes.
               # Other edits to the files don't actually alter the dependencies.
               changed_files << filename

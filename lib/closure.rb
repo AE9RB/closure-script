@@ -70,7 +70,8 @@ class Closure
   # This is typically used to exclude the build folder
   # for whitespace builds (which contain "goog.provide").
   def self.exclude(directory)
-    Closure.add_source(directory, nil)
+    # no check if exists, build may create later
+    sources.add directory, nil
   end
 
 

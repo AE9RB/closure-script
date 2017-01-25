@@ -50,12 +50,12 @@ class Closure
   # @example
   #   Closure.add_source :soy, '/soy_js'
   #   Closure.add_source './myapp', '/myapp'
-  # @overload add_source(directory, path=nil)
-  # @overload add_source(built_in, path=nil)
+  # @overload add_source(directory, path)
+  # @overload add_source(built_in, path)
   # @param (String) path http server mount point.
   # @param (String) directory Where the scripts are in the filesystem.
   # @param (Symbol) built_in
-  def self.add_source(directory, path=nil)
+  def self.add_source(directory, path)
     if directory.kind_of? Symbol
       dir = BUILT_INS[directory]
       raise "Unknown built-in: #{directory}" unless dir
@@ -63,6 +63,14 @@ class Closure
     end
     raise Errno::ENOENT, File.expand_path(directory, Dir.pwd) unless File.directory? directory
     sources.add directory, path
+  end
+
+
+  # Easy config. Exclude a subdirectories of sources.
+  # This is typically used to exclude the build folder
+  # for whitespace builds (which contain "goog.provide").
+  def self.exclude(directory)
+    Closure.add_source(directory, nil)
   end
 
 

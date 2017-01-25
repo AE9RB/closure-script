@@ -267,47 +267,46 @@ class Closure
       @sources.each do |dir, path|
         dir_range = (dir.length..-1)
         Dir.glob(File.join(dir,'**','*.js')).each do |filename|
-          dep = (@files[filename] ||= {})
-          dep.delete(:not_found)
+          file = (@files[filename] ||= {})
+          file.delete(:not_found)
           mtime = File.mtime(filename)
           if previous_goog_base_filename == filename
-            if dep[:mtime] == mtime
+            if file[:mtime] == mtime
               multiple_base_js_failure if goog
               goog = @goog 
             end
             previous_goog_base_filename = nil
-          end
-          if dep[:mtime] != mtime
+          end          
+          if !path or file[:excluded]
+            file[:excluded] = true
+            file[:provide] = file[:require] = []          
+          elsif file[:mtime] != mtime or !path
             @deps = {}
-            file = File.read filename
-            old_dep_provide = dep[:provide]
-            dep[:provide] = file.scan(PROVIDE_REGEX).flatten.uniq
-            old_dep_require = dep[:require]
-            dep[:require] = file.scan(REQUIRE_REGEX).flatten.uniq
-            if !dep.has_key? :path
+            old_file_provide = file[:provide]
+            old_file_require = file[:require]
+            file_text = File.read filename
+            file[:provide] = file_text.scan(PROVIDE_REGEX).flatten.uniq
+            file[:require] = file_text.scan(REQUIRE_REGEX).flatten.uniq
+            if !file.has_key? :path
               raise unless filename.index(dir) == 0 # glob sanity
-              if path
-                dep[:path] = "#{path}#{filename.slice(dir_range)}"
-              else
-                dep[:path] = nil
-              end
+              file[:path] = "#{path}#{filename.slice(dir_range)}"
               added_files << filename
-            elsif old_dep_provide != dep[:provide] or old_dep_require != dep[:require]
+            elsif old_file_provide != file[:provide] or old_file_require != file[:require]
               # We're changed only if the provides or requires changes.
               # Other edits to the files don't actually alter the dependencies.
               changed_files << filename
             end
-            dep[:mtime] = mtime
+            file[:mtime] = mtime
             # Record goog as we pass by
-            if dep[:provide].empty? and dep[:require].empty?
+            if file[:provide].empty? and file[:require].empty?
               if File.basename(filename) == 'base.js'
-                if file =~ BASE_JS_REGEX
+                if file_text =~ BASE_JS_REGEX
                   multiple_base_js_failure if goog
                   goog = {:base_filename => filename}
-                  if dep[:path]
-                    goog[:base_js] = dep[:path]
+                  if file[:path]
+                    goog[:base_js] = file[:path]
                     goog[:base_js_mtime] = mtime
-                    goog[:deps_js] = dep[:path].gsub(/base.js$/, 'deps.js')
+                    goog[:deps_js] = file[:path].gsub(/base.js$/, 'deps.js')
                   end
                 end
               end

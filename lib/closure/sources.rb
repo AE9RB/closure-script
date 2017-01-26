@@ -297,7 +297,6 @@ class Closure
               # Other edits to the files don't actually alter the dependencies.
               changed_files << filename
             end
-            file[:mtime] = mtime
             # Record goog as we pass by
             if file[:provide].empty? and file[:require].empty?
               if File.basename(filename) == 'base.js'
@@ -313,6 +312,7 @@ class Closure
               end
             end
           end
+          file[:mtime] = mtime
         end
       end
       # Sweep to delete not-found files.

@@ -124,10 +124,12 @@ class Closure
           refresh # compilation may add new files, module_uris_compiled uses src_for
           prefix =  File.expand_path module_output_path_prefix, root
           if comp.js_output_file
-            File.open comp.js_output_file, 'w' do |f|
-              f.write Compiler::Util.module_path @path
-              f.write Compiler::Util.module_info mods
-              f.write Compiler::Util.module_uris_compiled mods, @sources, prefix
+            if comp.compiled?
+              File.open comp.js_output_file, 'w' do |f|
+                f.write Compiler::Util.module_path @path
+                f.write Compiler::Util.module_info mods
+                f.write Compiler::Util.module_uris_compiled mods, @sources, prefix
+              end
             end
           else
             comp << Compiler::Util.module_path(@path)

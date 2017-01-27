@@ -100,6 +100,12 @@ class Closure
         @js_output_file = js_output_file
         @log = log
       end
+      
+      # True when compilation actually happened.
+      # False when build was up to date.
+      def compiled?
+        !!@log
+      end
 
       # Turn the compiled javascript into a Rack::Response object.
       # Success and warning messages, which aren't raised like errors,
